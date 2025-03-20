@@ -1,117 +1,96 @@
-"use client"; // For components that need React hooks and browser APIs, SSR (server side rendering) has to be disabled. Read more here: https://nextjs.org/docs/pages/building-your-application/rendering/server-side-rendering
-import "@ant-design/v5-patch-for-react-19";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { Button } from "antd";
-import { BookOutlined, CodeOutlined, GlobalOutlined } from "@ant-design/icons";
-import styles from "@/styles/page.module.css";
+"use client";
+
+import { Card, Col, Row } from "antd";
+
+const authors = [
+  {
+    name: "Melih Serin",
+    id: "24-744-443",
+    email: "melih.serin@uzh.ch",
+    github: "melihsrn",
+  },
+  {
+    name: "Sarah Nabulsi",
+    id: "24-740-755",
+    email: "sarahosama.nabulsi@uzh.ch",
+    github: "sarahnab",
+  },
+  {
+    name: "Leyla Khasiyeva",
+    id: "23-760-259",
+    email: "leyla.khasiyeva@uzh.ch",
+    github: "leylakhasieva",
+  },
+  {
+    name: "Shaurya Kishore Panwar",
+    id: "24-744-856",
+    email: "shauryakishore.panwar@uzh.ch",
+    github: "KlrShaK",
+  },
+  {
+    name: "Nicola Luder",
+    id: "22-729-081",
+    email: "nicola.luder@uzh.ch",
+    github: "nikkiluder",
+  },
+];
 
 export default function Home() {
-  const router = useRouter();
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            <code>app/page.tsx</code>{" "}
-            is the landing page for your application, currently being displayed.
-          </li>
-          <li>
-            <code>app/login/page.tsx</code> is the login page for users.
-          </li>
-          <li>
-            <code>app/users/page.tsx</code>{" "}
-            is the dashboard that shows an overview of all users, fetched from
-            the server.
-          </li>
-          <li>
-            <code>app/users/[id]/page.tsx</code>{" "}
-            is a slug page that shows info of a particular user. Since each user
-            has its own id, each user has its own infopage, dynamically with the
-            use of slugs.
-          </li>
-          <li>
-            To test, modify the current page <code>app/page.tsx</code>{" "}
-            and save to see your changes instantly.
-          </li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <Button
-            type="primary" // as defined in the ConfigProvider in [layout.tsx](./layout.tsx), all primary antd elements are colored #22426b, with buttons #75bd9d as override
-            color="red" // if a single/specific antd component needs yet a different color, it can be explicitly overridden in the component as shown here
-            variant="solid" // read more about the antd button and its options here: https://ant.design/components/button
-            onClick={() =>
-              globalThis.open(
-                "https://vercel.com/new",
-                "_blank",
-                "noopener,noreferrer",
-              )}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Deploy now
-          </Button>
-          <Button
-            type="default"
-            variant="solid"
-            onClick={() =>
-              globalThis.open(
-                "https://nextjs.org/docs",
-                "_blank",
-                "noopener,noreferrer",
-              )}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </Button>
-          <Button
-            type="primary"
-            variant="solid"
-            onClick={() => router.push("/login")}
-          >
-            Go to login
-          </Button>
+      <div
+          style={{
+            backgroundColor: "#16181D",
+            minHeight: "100vh",
+            padding: "2rem",
+            color: "#fff",
+          }}
+      >
+        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+          <h1 style={{ fontSize: "3em", fontWeight: "bold" }}>
+            MemoryDeck Project Page for Team 40 for SOPRA-FS25
+          </h1>
+          <h2 style={{ fontSize: "2em", fontWeight: "bold", marginTop: "1rem" }}>
+            Authors :-
+          </h2>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <Button
-          type="link"
-          icon={<BookOutlined />}
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn
-        </Button>
-        <Button
-          type="link"
-          icon={<CodeOutlined />}
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Examples
-        </Button>
-        <Button
-          type="link"
-          icon={<GlobalOutlined />}
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Go to nextjs.org →
-        </Button>
-      </footer>
-    </div>
+        <Row gutter={[16, 16]}>
+          {authors.map((author, index) => (
+              <Col xs={24} sm={12} md={8} lg={6} key={index}>
+                <Card
+                    variant="borderless"
+                    style={{
+                      backgroundColor: "#272B30",
+                      color: "#fff",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                    }}
+                >
+                  <h2>{author.name}</h2>
+                  <p>ID: {author.id}</p>
+                  <p>
+                    Email:{" "}
+                    <a
+                        href={`mailto:${author.email}`}
+                        style={{ color: "#1890ff" }}
+                    >
+                      {author.email}
+                    </a>
+                  </p>
+                  <p>
+                    Github:{" "}
+                    <a
+                        href={`https://github.com/${author.github}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#1890ff" }}
+                    >
+                      {author.github}
+                    </a>
+                  </p>
+                </Card>
+              </Col>
+          ))}
+        </Row>
+      </div>
   );
 }
