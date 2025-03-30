@@ -217,6 +217,32 @@ const FlashcardPage = () => {
                       height: '100%'
                     }}>
                       <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{flashcard.title}</div>
+                      <div style={{ 
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        alignItems: 'flex-end'
+                      }}>
+                        <Dropdown 
+                          menu={{ 
+                            items: [
+                              { key: 'edit', label: <span style={{ color: '#000' }}>Edit</span> },
+                              { key: 'delete', label: <span style={{ color: '#000' }}>Delete</span> }
+                            ],
+                            onClick: (e) => {
+                              e.domEvent.stopPropagation();
+                              console.log(`Clicked ${e.key} on card ${flashcard.id}`);
+                            }
+                          }} 
+                          trigger={['click']}
+                          placement="bottomRight"
+                        >
+                          <Button 
+                            type="text" 
+                            icon={<EllipsisOutlined style={{ fontSize: '20px', color: '#aaa' }} />} 
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </Dropdown>
+                      </div>
                     </div>
                   </Card>
                 </Col>
