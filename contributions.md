@@ -32,16 +32,18 @@ reason).
 
 ## Contributions Week 1 - [Begin Date] to [End Date]
 
-| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
-| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **Student**        | **Date**   | **Link to Commit**                                                                                               | **Description**                 | **Relevance**                       |
+|--------------------|------------|------------------------------------------------------------------------------------------------------------------| ------------------------------- | ----------------------------------- |
+| **[@githubUser1]** | [date]     | [Link to Commit 1]                                                                                               | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]     | [Link to Commit 2]                                                                                               | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser2]** | [date]     | [Link to Commit 1]                                                                                               | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]     | [Link to Commit 2]                                                                                               | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser3]** | [date]     | [Link to Commit 1]                                                                                               | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]     | [Link to Commit 2]                                                                                               | [Brief description of the task] | [Why this contribution is relevant] |
+| [sarahnab]         | [March 31] | [https://github.com/KlrShaK/MemoryDeck-Server/compare/main...implement-auto-login-after-successful-registration] | [include token in UserGetDTO to support auto-login after registr… 
+
+…ation] | [Without this users would not recieve a token after login] |
+|                    | [March 31]   | [https://github.com/KlrShaK/MemoryDeck-Client/compare/main...feat/registration-form-with-validation] | [Front end registration form] | [Without this form, users would have no place to log in ] |
 
 ---
 
