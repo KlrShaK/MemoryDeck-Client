@@ -34,14 +34,7 @@ reason).
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@melihsrn]** | [31.03.2025]   | [https://github.com/KlrShaK/MemoryDeck-Server/commit/66a3790431edae7d94107590508bc35911685f77] | [Due to not being able to commit freely, I committed my whole work in one commit. This week, I started structuring backend of our app by adding Flashcard and Deck entities with their corresponding DTO, mapper, repository files. Additionally, following our UML diagrams, we will combine deck and flashcard APIs under FlashcardService and FlashcardController files. I implemented REST API endpoints for fetching all the decks for user, getting deck by its id, getting public decks, adding a new deck, updating a deck, and deleting a deck. The regarding issues are #12, #16, #17 but since these issues were not very as granular as it seems, they are under 'In Progress' section in the project. ] | [It is an important foundation for our backend. We will continue building our backend on top of this structure. ] |
 
 ---
 
