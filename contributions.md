@@ -34,8 +34,8 @@ reason).
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@nikkiluder]** | Mar 30, 2025 | [https://github.com/KlrShaK/MemoryDeck-Client/commit/9ef539315591f8218a4ad6f84b35b5655a2dace1](https://github.com/KlrShaK/MemoryDeck-Client/commit/9ef539315591f8218a4ad6f84b35b5655a2dace1) | Create flashcard display component with scrolling functionality | Implemented the core flashcard grid layout with scrolling functionality to allow users to browse through multiple flashcards |
+| **[@nikkiluder]** | Mar 30, 2025 | [https://github.com/KlrShaK/MemoryDeck-Client/commit/ab7a5ebdc991d0b21abacdee2298ddd97a542415](https://github.com/KlrShaK/MemoryDeck-Client/commit/ab7a5ebdc991d0b21abacdee2298ddd97a542415) | Add settings menu with edit and delete options | Enhanced user experience by adding a dropdown menu with options to manage individual flashcards |
 | **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
