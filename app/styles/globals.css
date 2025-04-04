@@ -1,6 +1,8 @@
 :root {
-  --background: #ffffff;
+  --background: #d0e7c9; /* Pistachio green */
   --foreground: #171717;
+  --dark-green: #005B33; /* Dark green for headings */
+  --light-pistachio: #c5d8c5; /* Lighter pistachio for header */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,6 +43,24 @@ a {
   }
 }
 
+.title {
+  text-align: center; /* Center the title */
+  font-size: 3rem; /* Adjust the font size as needed */
+  margin-top: 200px; /* Add some margin for spacing */
+  margin-bottom: 100px 0;
+}
+
+.description {
+  text-align: center; /* Center the description */
+  margin: 10px 0; /* Add margin for spacing */
+}
+
+.buttonContainer {
+  display: flex; /* Use flexbox for layout */
+  justify-content: center; /* Center the buttons horizontally */
+  margin: 20px 0; /* Add margin for spacing */
+}
+
 .login-container {
   display: flex;
   justify-content: center;
@@ -49,8 +69,40 @@ a {
   background-color: rgb(41, 44, 59);
 }
 
+.button {
+  background-color: var(--dark-green); /* Dark green background */
+  color: white; /* Change text color to white */
+  border: none; /* No border */
+  border-radius: 20px; /* Rounded corners */
+  padding: 10px 15px; /* Padding for the button */
+  margin: 5px; /* Margin around the button */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s; /* Transition effect on hover */
+  width: 150px;
+  font-weight: 600;
+}
+
+.button:hover {
+  background-color: #012a1e; /* Darker shade on hover */
+}
+
+
 .login-button {
   width: 100%;
+}
+
+/* Specific styles for the Register button */
+.registerButton {
+  background-color: white; /* White background */
+  color: var(--dark-green); /* Dark green text */
+  border: 2px solid var(--dark-green); /* Dark green border */
+  border-radius: 20px; /* Rounded corners */
+  padding: 10px 15px; /* Padding for the button */
+  margin: 5px; /* Margin around the button */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s; /* Transition effect on hover */
+  width: 150px;
+  font-weight: 600;
 }
 
 .card-container {
@@ -60,3 +112,94 @@ a {
   min-height: 100vh;
   background-color: rgb(41, 44, 59);
 }
+
+h1 {
+  color: var(--dark-green); /* Dark green for h1 */
+}
+
+h3 {
+  color: var(--dark-green); /* Dark green for h3 */
+}
+
+.header {
+  display: flex; /* Use flexbox for layout */
+  justify-content: flex-end; /* Align items to the right */
+  align-items: center; /* Center items vertically */
+  background-color: var(--light-pistachio); /* Lighter pistachio for the header */
+  padding: 10px 20px; /* Add padding to the header */
+  position: relative; /* Positioning context for the login button */
+}
+
+.loginButton {
+  background-color: var(--dark-green);
+  border: none;
+  border-radius: 20px;
+  border-color: var(--dark-green);
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.featureCards {
+  display: flex;
+  justify-content: center;
+  gap: 20px; /* Space between cards */
+  flex-wrap: wrap; /* Allows wrapping if screen is small */
+  padding: 20px;
+}
+
+.flashcard {
+  background-color: white;
+  margin-top: 70px;
+  border-radius: 15px;
+  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  width: 350px; /* Set fixed width */
+  height: 200px; /* Set fixed height */
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease-in-out;
+}
+
+.flashcard:hover {
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+.flashcard h3 {
+  margin-bottom: 18px;
+  font-size: 20px;
+  font-weight: 900px;
+  color: var(--dark-green); /* Dark green heading */
+}
+
+.flashcard p {
+  font-size: 14px;
+  color: #333;
+}
+
+.footer {
+  background-color: var(--dark-green); /* Dark green background */
+  color: white;
+  text-align: center;
+  padding: 20px;
+  margin-top: 60px;
+  position: relative;
+  bottom: 20;
+  width: 100%;
+  font-size: 12px;
+}
+
+.footer a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+
