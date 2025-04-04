@@ -44,13 +44,12 @@ reason).
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 
 ---
-
-## Contributions Week 2 - [Begin Date] to [End Date]
+## Contributions Week 2 - 01.04.2025 to 07.04.2025
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@klrshak]** | [date]   | [https://github.com/KlrShaK/MemoryDeck-Server/commit/19b89d3cdced03d6d2b79d5d010de9468cd20406] | [Develop Backend API integration to send user input to GPT API and process its JSON request and send a response back] | [Established critical connection between user interface and AI system, enabling core functionality of dynamic flashcard generation based on user input.] |
+|                    | [date]   | [https://github.com/KlrShaK/MemoryDeck-Server/commit/41e0d5b8bc3dd7d3a3a666c57b0bb262d51dbe78] | [Write ChatGPT service, which Talks with ChatGPT API, merges the "Deck Title", "Deck Category" and the user given prompt into a appropriate prompt to send to chatgpt] | [Created intelligent prompt engineering system that optimizes AI responses by contextualizing user input with proper metadata, significantly improving flashcard quality and relevance.] |
 | **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
@@ -60,9 +59,18 @@ reason).
 
 ---
 
-## Contributions Week 3 - [Begin Date] to [End Date]
+## Contributions Week 3 - 07.04.2025 to 14.04.2025
 
-_Continue with the same table format as above._
+| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
+| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
+| **[@klrshak]** | [date]   | [Link to Commit 1](https://github.com/KlrShaK/MemoryDeck-Server/commit/f054e2d415b04f52798b9856ca7710e367147a62) | [Write code to parse the response from chatgpt (in json format) to extract the generated flashcard content and forward to flashcard service] | [Developed crucial data transformation layer that processes AI-generated content into structured flashcard format, ensuring consistent and reliable display of educational content to users.] |
+|                    | [date]   | [Link to Commit 2](https://github.com/KlrShaK/MemoryDeck-Server/commit/423ae94daffbe32af98bf8c0e42e593aa064b696) | [Store finalized flashcards in the database so they appear in the homepage flashcard decks.] | [Implemented persistent data storage solution that maintains user-generated content across sessions, enhancing user experience by providing immediate access to previously created Decks.] |
+| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 
 ---
 
