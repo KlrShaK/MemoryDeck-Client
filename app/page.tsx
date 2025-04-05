@@ -3,24 +3,23 @@
 import React from 'react';
 import Link from 'next/link';
 import './styles/globals.css'; // Importing global CSS
+import { useRouter } from 'next/navigation';
 
 const LandingPage = () => {
+  const router = useRouter();
+
   return (
     <div className="container">
       <header className="header">
-        <Link href="/login">
-          <button className="loginButton button">Log in</button>
-        </Link>
+        <button className="loginButton button" onClick={() => router.push('/login')}>Log in</button>
       </header>
       <h1 className="title">Memory Deck</h1>
-      <p className="description">Helping elderly individuals and those with memory loss retain valuable information through interactive flashcards</p>
+      <p className="description">
+        Helping elderly individuals and those with memory loss retain valuable information through interactive flashcards
+      </p>
       <div className="buttonContainer">
-        <Link href="/register">
-          <button className="button">Get Started</button>
-        </Link>
-        <Link href="/login">
-          <button className="button registerButton">Register</button> {/* Apply the new registerButton class */}
-        </Link>
+        <button className="button" onClick={() => router.push('/register')}>Get Started</button>
+        <button className="button registerButton" onClick={() => router.push('/register')}>Register</button>
       </div>
       <div className="featureCards">
         <div className="flashcard">
