@@ -50,7 +50,9 @@ const CreateDeckPage: React.FC = () => {
      */
     const onFinish = async (values: FlashcardFormValues) => {
         try {
+            // Just log values so it's used and not flagged by the linter:
             console.log("Submitted values:", values);
+
             // e.g.:
             // await apiService.post('/decks', values);
 
@@ -119,6 +121,7 @@ const CreateDeckPage: React.FC = () => {
                     <Form.Item
                         label={<span style={{ color: "#333", fontWeight: 600 }}>Deck Title</span>}
                         name="deckTitle"
+                        rules={[{ required: true, message: "Please enter a deck title!" }]}
                     >
                         <Input
                             placeholder="e.g. My Memory Deck"
@@ -129,9 +132,21 @@ const CreateDeckPage: React.FC = () => {
                                 borderRadius: "6px",
                             }}
                         />
+
                     </Form.Item>
 
-                    <Form.List name="flashcards">
+                    <Form.List
+                        name="flashcards"
+                        rules={[
+                            {
+                                validator: async (_rule, flashcards) => {
+                                    if (!flashcards || flashcards.length < 1) {
+                                        return Promise.reject(new Error("At least one flashcard is required."));
+                                    }
+                                },
+                            },
+                        ]}
+                    >
                         {(fields, { add, remove }) => (
                             <>
                                 <AnimatePresence>
@@ -147,7 +162,7 @@ const CreateDeckPage: React.FC = () => {
                                                 style={{
                                                     marginBottom: "20px",
                                                     borderRadius: "8px",
-                                                    backgroundColor: "#fff",
+                                                    backgroundColor: "#f2f2f2",
                                                     border: "2px solid #005B33",
                                                 }}
                                             >
@@ -175,6 +190,7 @@ const CreateDeckPage: React.FC = () => {
                                                             {...restField}
                                                             label={<span style={{ color: "#333", fontWeight: 600 }}>Topic / Question</span>}
                                                             name={[name, "question"]}
+                                                            rules={[{ required: true, message: "A question is required." }]}
                                                         >
                                                             <Input.TextArea
                                                                 placeholder="e.g. When was I born?"
@@ -214,6 +230,7 @@ const CreateDeckPage: React.FC = () => {
                                                             {...restField}
                                                             label={<span style={{ color: "#333", fontWeight: 600 }}>Answer / Memory</span>}
                                                             name={[name, "answer"]}
+                                                            rules={[{ required: true, message: "An answer is required." }]}
                                                         >
                                                             <Input.TextArea
                                                                 placeholder="e.g. 1985 in Istanbul"
