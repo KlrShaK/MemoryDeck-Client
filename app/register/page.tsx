@@ -14,7 +14,7 @@ const Register: React.FC = () => {
     const router = useRouter();
     const { set: setToken } = useLocalStorage<string>("token", "");
 
-    const handleRegister = async (values: { username: string; name: string; password: string }) => {
+    const handleRegister = async (values: { username: string; name: string }) => {
         try {
             const response = await apiService.post<User>("/users", {
                 username: values.username,
@@ -26,17 +26,15 @@ const Register: React.FC = () => {
                 setToken(response.token);
                 router.push("/users");
             }
-        } catch (error: any) {
-            const msg = error?.message || "";
-
-            if (msg.includes("username")) {
-                form.setFields([{ name: "username", errors: ["Username already exists."] }]);
-            } else if (msg.includes("name")) {
-                form.setFields([{ name: "name", errors: ["Name already exists."] }]);
-            } else {
-                form.setFields([{ name: "username", errors: ["Unexpected error. Please try again."] }]);
-            }
+        } catch {
+            form.setFields([
+                {
+                    name: "username",
+                    errors: ["Registration failed. Please try again later."],
+                },
+            ]);
         }
+
     };
 
     return (
