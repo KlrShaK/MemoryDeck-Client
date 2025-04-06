@@ -230,8 +230,12 @@ const FlashcardPage = () => {
                             ],
                             onClick: (e) => {
                               e.domEvent.stopPropagation();
-                              console.log(`Clicked ${e.key} on card ${flashcard.id}`);
-                            }
+                              if (e.key === 'edit') {
+                                router.push(`/flashcards/edit/${flashcard.id}`);
+                              } else if (e.key === 'delete') {
+                                console.log(`Delete flashcard ${flashcard.id}`);
+                              }
+                            }                            
                           }} 
                           trigger={['click']}
                           placement="bottomRight"
