@@ -64,6 +64,10 @@ const FlashcardPage = () => {
     console.log("Profile button clicked");
   };
 
+  const handleEditFlashcard = (id: number) => {
+    router.push(`/flashcards/edit/${id}`);
+  };
+
   return (
     <div style={{ backgroundColor: '#ccf0cc', minHeight: '100vh', padding: '0' }}>
       {/* Header with user profile */}
@@ -230,7 +234,11 @@ const FlashcardPage = () => {
                             ],
                             onClick: (e) => {
                               e.domEvent.stopPropagation();
-                              console.log(`Clicked ${e.key} on card ${flashcard.id}`);
+                              if (e.key === 'edit') {
+                                handleEditFlashcard(flashcard.id); // Call the new function
+                              } else if (e.key === 'delete') {
+                                console.log(`Delete flashcard ${flashcard.id}`);
+                              }
                             }
                           }} 
                           trigger={['click']}
