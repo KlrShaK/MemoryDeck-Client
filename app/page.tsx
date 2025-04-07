@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import './styles/globals.css'; // Importing global CSS
+import "@/styles/globals.css";
 
 const LandingPage = () => {
   return (

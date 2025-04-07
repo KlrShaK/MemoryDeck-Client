@@ -1,71 +1,78 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Input, Button, Spin } from 'antd';
 import React from 'react';
 
-interface Flashcard {
+interface Deck {
   id: number;
   title: string;
   content: string;
 }
 
-export default function EditFlashcardPage() {
-  const { id } = useParams(); // Get flashcard ID from URL
-  const [flashcard, setFlashcard] = useState<Flashcard | null>(null);
+export default function EditDeckPage() {
+  const { id } = useParams(); // Get deck ID from URL
+  const [deck, setDeck] = useState<Deck | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Simulate loading flashcard data 
+  // Simulate loading deck data
   useEffect(() => {
-    const simulateFetchFlashcard = async () => {
-      // Simulate a delay to mimic an API call
+    const simulateFetchDeck = async () => {
       setTimeout(() => {
-        // Simulated flashcard data based on the ID
-        const simulatedData: Flashcard = {
+        const simulatedData: Deck = {
           id: Number(id),
-          title: `Flashcard Title ${id}`,
-          content: `Content for flashcard ${id}`
+          title: `Deck Title ${id}`,
+          content: `Content for deck ${id}`
         };
-        
-        setFlashcard(simulatedData);
+
+        setDeck(simulatedData);
         setLoading(false);
-      }, 500); // Simulated loading time
+      }, 500);
     };
-  
-    simulateFetchFlashcard();
+
+    simulateFetchDeck();
   }, [id]);
 
   const handleSave = () => {
-    console.log("Saving changes:", flashcard);
+    console.log('Saving changes:', deck);
     // You can implement the API call here when ready
   };
 
   const handleDiscard = () => {
-    console.log("Discarding changes");
+    console.log('Discarding changes');
     // Reset the state or navigate back
   };
 
-  if (loading || !flashcard) {
+  if (loading || !deck) {
     return <Spin />;
   }
 
   return (
     <div style={{ padding: 32 }}>
-      <h2>Editing Flashcard {flashcard.title}</h2>
-      <Input 
-        style={{ marginBottom: 16 }} 
-        value={flashcard.title} 
-        onChange={e => setFlashcard({ ...flashcard, title: e.target.value })} 
-        placeholder="e.g. What is your name?"
+      <h2>Editing Deck {deck.title}</h2>
+      <Input
+        style={{ marginBottom: 16 }}
+        value={deck.title}
+        onChange={(e) => setDeck({ ...deck, title: e.target.value })}
+        placeholder="e.g. French Verbs"
       />
-      <Input.TextArea 
-        rows={4} 
-        value={flashcard.content} 
-        onChange={e => setFlashcard({ ...flashcard, content: e.target.value })} 
-        placeholder="e.g. My name is John Doe."
+      <Input.TextArea
+        rows={4}
+        value={deck.content}
+        onChange={(e) => setDeck({ ...deck, content: e.target.value })}
+        placeholder="e.g. List of common French verbs with translations."
       />
-      <div style={{ position: 'fixed', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '10px' }}>
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 20,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          gap: '10px'
+        }}
+      >
         <Button type="primary" onClick={handleSave}>
           Save
         </Button>
@@ -76,6 +83,7 @@ export default function EditFlashcardPage() {
     </div>
   );
 }
+
 
 /*
 "use client";

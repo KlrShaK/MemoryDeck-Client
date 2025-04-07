@@ -154,8 +154,8 @@ h3 {
   border-radius: 15px;
   box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
   padding: 15px;
-  width: 350px; /* Set fixed width */
-  height: 200px; /* Set fixed height */
+  width: 350px;
+  height: 200px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -165,14 +165,14 @@ h3 {
 }
 
 .flashcard:hover {
-  transform: scale(1.05); /* Slight zoom effect on hover */
+  transform: scale(1.05);
 }
 
 .flashcard h3 {
   margin-bottom: 18px;
   font-size: 20px;
-  font-weight: 900px;
-  color: var(--dark-green); /* Dark green heading */
+  font-weight: 900;
+  color: var(--dark-green);
 }
 
 .flashcard p {

@@ -1,72 +1,53 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Button, Card, Row, Col, Avatar, Dropdown, Spin } from 'antd';
 import { EllipsisOutlined, UserOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
-// Simple Flashcard type
-interface Flashcard {
+// Deck type
+interface Deck {
   id: number;
   title: string;
   content: string;
 }
 
-const FlashcardPage = () => {
+const DeckPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]);
 
-  // Load all flashcards at once
   useEffect(() => {
     setTimeout(() => {
-      const dummyData: Flashcard[] = Array(24).fill(null).map((_, index) => ({
+      const dummyData: Deck[] = Array(24).fill(null).map((_, index) => ({
         id: index + 1,
-        title: `Flashcard ${index + 1}`,
-        content: `Content for flashcard ${index + 1}`
+        title: `Deck ${index + 1}`,
+        content: `Content for deck ${index + 1}`
       }));
-      setFlashcards(dummyData);
+      setDecks(dummyData);
       setLoading(false);
     }, 500);
   }, []);
 
-  // Navigation to quiz screen when clicking a flashcard
-  const handleFlashcardClick = (id: number) => {
-    router.push(`/flashcards/quiz/${id}`);
+  const handleDeckClick = (id: number) => {
+    router.push(`/decks/quiz/${id}`);
   };
 
-  // Sidebar buttons
-  const handleCreateClick = () => {
-    console.log("Create button clicked");
+  const handleEditDeck = (id: number) => {
+    router.push(`/decks/edit/${id}`);
   };
 
-  const handlePerformanceClick = () => {
-    console.log("Performance button clicked");
+  const handleDeleteDeck = (id: number) => {
+    console.log(`Delete deck ${id}`);
   };
 
-  const handleSetReminderClick = () => {
-    console.log("Set Reminder button clicked");
-  };
-
-  const handleQuizClick = () => {
-    console.log("Quiz button clicked");
-  };
-
-  const handleVersusClick = () => {
-    console.log("Versus Mode button clicked");
-  };
-
-  const handleTutorialClick = () => {
-    console.log("Tutorial button clicked");
-  };
-
-  const handleProfileClick = () => {
-    console.log("Profile button clicked");
-  };
-
-  const handleEditFlashcard = (id: number) => {
-    router.push(`/flashcards/edit/${id}`);
-  };
+  const handleCreateClick = () => console.log("Create button clicked");
+  const handlePerformanceClick = () => console.log("Performance button clicked");
+  const handleSetReminderClick = () => console.log("Set Reminder button clicked");
+  const handleQuizClick = () => console.log("Quiz button clicked");
+  const handleVersusClick = () => console.log("Versus Mode button clicked");
+  const handleTutorialClick = () => console.log("Tutorial button clicked");
+  const handleProfileClick = () => console.log("Profile button clicked");
 
   return (
     <div style={{ backgroundColor: '#ccf0cc', minHeight: '100vh', padding: '0' }}>
@@ -187,9 +168,9 @@ const FlashcardPage = () => {
           </div>
         </div>
 
-        {/* Flashcard Grid with natural scrolling */}
+        {/* Deck Grid */}
         <div style={{ flex: 1 }}>
-          <h2 style={{ marginBottom: '20px', color: '#333' }}>Your Flashcards</h2>
+          <h2 style={{ marginBottom: '20px', color: '#333' }}>Your Decks</h2>
           
           {loading ? (
             <div style={{ textAlign: 'center', padding: '40px' }}>
@@ -197,8 +178,8 @@ const FlashcardPage = () => {
             </div>
           ) : (
             <Row gutter={[16, 16]}>
-              {flashcards.map(flashcard => (
-                <Col xs={24} sm={12} md={8} key={flashcard.id}>
+              {decks.map(deck => (
+                <Col xs={24} sm={12} md={8} key={deck.id}>
                   <Card 
                     style={{ 
                       height: '150px',
@@ -212,7 +193,7 @@ const FlashcardPage = () => {
                         height: '100%' 
                       } 
                     }}
-                    onClick={() => handleFlashcardClick(flashcard.id)}
+                    onClick={() => handleDeckClick(deck.id)}
                   >
                     <div style={{ 
                       display: 'flex', 
@@ -220,7 +201,7 @@ const FlashcardPage = () => {
                       justifyContent: 'space-between',
                       height: '100%'
                     }}>
-                      <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{flashcard.title}</div>
+                      <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{deck.title}</div>
                       <div style={{ 
                         display: 'flex',
                         justifyContent: 'flex-end',
@@ -235,9 +216,9 @@ const FlashcardPage = () => {
                             onClick: (e) => {
                               e.domEvent.stopPropagation();
                               if (e.key === 'edit') {
-                                handleEditFlashcard(flashcard.id); // Call the new function
+                                handleEditDeck(deck.id);
                               } else if (e.key === 'delete') {
-                                console.log(`Delete flashcard ${flashcard.id}`);
+                                handleDeleteDeck(deck.id);
                               }
                             }
                           }} 
@@ -263,4 +244,5 @@ const FlashcardPage = () => {
   );
 };
 
-export default FlashcardPage;
+export default DeckPage;
+
