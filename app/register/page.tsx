@@ -14,17 +14,17 @@ const Register: React.FC = () => {
     const router = useRouter();
     const { set: setToken } = useLocalStorage<string>("token", "");
 
-    const handleRegister = async (values: { username: string; name: string }) => {
+    const handleRegister = async (values: { username: string; name: string; password: string }) => {
         try {
-            const response = await apiService.post<User>("/users", {
+            const response = await apiService.post<User>("/register", {
                 username: values.username,
                 name: values.name,
-                // password: values.password, FOR LATER!
+                password: values.password,
             });
 
             if (response.token) {
                 setToken(response.token);
-                router.push("/users");
+                router.push("/home");
             }
         } catch {
             form.setFields([
@@ -34,7 +34,6 @@ const Register: React.FC = () => {
                 },
             ]);
         }
-
     };
 
     return (
