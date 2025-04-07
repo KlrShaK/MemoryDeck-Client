@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Row, Col, Avatar, Dropdown, Spin } from 'antd';
-import { EllipsisOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Card, Row, Col, Avatar, Dropdown, Spin, Popover } from 'antd';
+import { EllipsisOutlined, UserOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 
 // Simple Flashcard type
@@ -16,6 +16,7 @@ const FlashcardPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+  const [profilePopoverVisible, setProfilePopoverVisible] = useState(false);
 
   // Load all flashcards at once
   useEffect(() => {
@@ -61,8 +62,87 @@ const FlashcardPage = () => {
   };
 
   const handleProfileClick = () => {
-    console.log("Profile button clicked");
+    setProfilePopoverVisible(!profilePopoverVisible);
   };
+
+  const handleSettingsClick = () => {
+    console.log("Settings clicked");
+    // Navigate to settings page when implemented
+    // router.push('/settings');
+  };
+
+  const handleLogoutClick = () => {
+    console.log("Logout clicked");
+    // Implement logout functionality
+    // Clear token from localStorage
+    router.push('/login');
+  };
+
+  const profileMenu = (
+    <div style={{ 
+      backgroundColor: '#f9f9f9', 
+      borderRadius: '12px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+      width: '200px',
+      padding: '16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        marginBottom: '10px'
+      }}>
+        <Avatar 
+          size={50} 
+          icon={<UserOutlined />} 
+          style={{ backgroundColor: '#285c28', color: 'white' }} 
+        />
+      </div>
+      
+      <div style={{ 
+        borderBottom: '1px solid rgb(0, 0, 0)', 
+        marginBottom: '12px'
+      }}></div>
+      
+      <Button 
+        icon={<SettingOutlined />} 
+        onClick={handleSettingsClick}
+        style={{ 
+          textAlign: 'left', 
+          border: 'none', 
+          boxShadow: 'none',
+          backgroundColor: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '8px 12px',
+          borderRadius: '8px'
+        }}
+      >
+        Settings and Profile
+      </Button>
+      
+      <Button 
+        icon={<LogoutOutlined />} 
+        onClick={handleLogoutClick}
+        danger
+        style={{ 
+          textAlign: 'left', 
+          border: 'none', 
+          boxShadow: 'none',
+          backgroundColor: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '8px 12px',
+          borderRadius: '8px'
+        }}
+      >
+        Logout
+      </Button>
+    </div>
+  );
 
   return (
     <div style={{ backgroundColor: '#ccf0cc', minHeight: '100vh', padding: '0' }}>
@@ -71,14 +151,29 @@ const FlashcardPage = () => {
         display: 'flex', 
         justifyContent: 'flex-end', 
         padding: '16px 24px',
-        backgroundColor: '#ccf0cc'
+        backgroundColor: '#ccf0cc',
+        position: 'relative'
       }}>
-        <Avatar 
-          size={40} 
-          icon={<UserOutlined />} 
-          style={{ backgroundColor: '#fff', color: '#ccc', cursor: 'pointer' }} 
-          onClick={handleProfileClick}
-        />
+        <Popover
+          content={profileMenu}
+          trigger="click"
+          open={profilePopoverVisible}
+          onOpenChange={setProfilePopoverVisible}
+          placement="bottomRight"
+          overlayStyle={{ padding: 0 }}
+        >
+          <Avatar 
+            size={40} 
+            icon={<UserOutlined />} 
+            style={{ 
+              backgroundColor: '#285c28', 
+              color: 'white', 
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }} 
+            onClick={handleProfileClick}
+          />
+        </Popover>
       </div>
 
       {/* Main content */}
