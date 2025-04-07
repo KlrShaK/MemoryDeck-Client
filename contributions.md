@@ -49,8 +49,8 @@ reason).
 
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| [@nikkiluder] | April 7, 2025 | [https://github.com/KlrShaK/MemoryDeck-Client/commit/b7bdb1c433fdf7e23d8dc3c5e41f2bc18033429c] | Connected home page to flashcard editing and creation pages | This fixes subissues #102 and #103 Essential front-end navigation implemented to allow users to access the core flashcard management functionality from the home screen |
+| [@nikkiluder] | April 7, 2025 | [https://github.com/KlrShaK/MemoryDeck-Client/commit/4b8be0cc21c9c7c15d742fc0043d471f4ec6feb4] | Implemented user invitation interface for quiz functionality | This implements subtasks #62, #68, #64, Created the user selection screen page with search bar, user selection, and "Choose Random" option, enhancing the multiplayer quiz experience |
 | **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
