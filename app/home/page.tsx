@@ -49,7 +49,7 @@ const FlashcardPage = () => {
   };
 
   const handleQuizClick = () => {
-    console.log("Quiz button clicked");
+    router.push('/flashcards/invite');
   };
 
   const handleVersusClick = () => {
@@ -234,6 +234,8 @@ const FlashcardPage = () => {
                               // Add navigation here:
                               if (e.key === 'edit') {
                                 router.push(`/flashcards/edit/${flashcard.id}`);
+                              } else if (e.key === 'delete') {
+                                console.log(`Delete flashcard ${flashcard.id}`);
                               }
                             }
                           }} 
