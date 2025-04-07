@@ -29,7 +29,7 @@ const EditFlashcardPage: React.FC = () => {
     setWrongAnswers(newAnswers);
   };
 
-  const handleImageChange = async ({ file, fileList }: UploadChangeParam<UploadFile>) => {
+  /*const handleImageChange = async ({ file, fileList }: UploadChangeParam<UploadFile>) => {
     setFileList(fileList);
 
     if (file.status === "removed") {
@@ -47,7 +47,7 @@ const EditFlashcardPage: React.FC = () => {
             setFileList([]);  // Clear the failed file
         }
     }
-};
+};*/
 
 
   useEffect(() => {

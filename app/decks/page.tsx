@@ -1,10 +1,11 @@
-// Deck overview/home page
+// app/decks/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Row, Col, Avatar, Dropdown, Spin } from 'antd';
+import { Button, Card, Row, Col, Avatar, Dropdown, Spin, message } from 'antd';
 import { EllipsisOutlined, UserOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
+import { useApi } from "@/hooks/useApi"; // Make sure to import the API hook
 
 // Deck type
 interface Deck {
@@ -15,31 +16,39 @@ interface Deck {
 
 const DeckPage = () => {
   const router = useRouter();
+  const apiService = useApi(); // Initialize your API service hook
   const [loading, setLoading] = useState<boolean>(true);
-  const [decks, setDecks] = useState<Deck[]>([]);
+  const [decks, setDecks] = useState<Deck[]>([]); // State to store the fetched decks
 
   useEffect(() => {
-    setTimeout(() => {
-      const dummyData: Deck[] = Array(24).fill(null).map((_, index) => ({
-        id: index + 1,
-        title: `Deck ${index + 1}`,
-        content: `Content for deck ${index + 1}`
-      }));
-      setDecks(dummyData);
-      setLoading(false);
-    }, 500);
-  }, []);
+    const fetchUserDecks = async () => {
+      setLoading(true);
+      try {
+        // Fetch decks from the API for the logged-in user
+        const fetchedDecks = await apiService.get<Deck[]>('/decks'); // Adjust the endpoint as necessary
+        setDecks(fetchedDecks);
+      } catch (error) {
+        message.error("Failed to fetch decks. Please try again later.");
+        console.error("Error fetching decks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDecks();
+  }, [apiService]);
 
   const handleDeckClick = (id: number) => {
-    router.push(`/decks/quiz/${id}`);
+    router.push(`/decks/${id}`);
   };
 
   const handleEditDeck = (id: number) => {
-    router.push(`/decks/edit/${id}`);
+    router.push(`/decks/${id}/edit`);
   };
 
   const handleDeleteDeck = (id: number) => {
     console.log(`Delete deck ${id}`);
+    // Implement actual delete logic here
   };
 
   const handleCreateClick = () => console.log("Create button clicked");
@@ -177,6 +186,10 @@ const DeckPage = () => {
             <div style={{ textAlign: 'center', padding: '40px' }}>
               <Spin size="large" />
             </div>
+          ) : decks.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '160px', color: '#ff0000', fontWeight: 700 }}>
+              You have no saved decks yet. To get started, please create decks from the menu.
+            </div>
           ) : (
             <Row gutter={[16, 16]}>
               {decks.map(deck => (
@@ -246,3 +259,4 @@ const DeckPage = () => {
 };
 
 export default DeckPage;
+
