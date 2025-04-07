@@ -202,4 +202,28 @@ h3 {
   text-decoration: underline;
 }
 
+/* Style the selector input box */
+.createDeckCardNumberDropdown .ant-select-selector {
+  background-color: #fff !important;
+  color: #000 !important;
+}
 
+.createDeckCardNumberDropdown .ant-select-arrow {
+  color: #000 !important;
+}
+
+/* Style the dropdown popup only for this Select */
+.dropdownCardNumberPopup .ant-select-item {
+  color: #000 !important;
+}
+
+.dropdownCardNumberPopup .ant-select-item-option-content {
+  color: #000 !important;
+}
+
+.dropdownCardNumberPopup .ant-select-item-option-active,
+.dropdownCardNumberPopup .ant-select-item-option-selected,
+.dropdownCardNumberPopup .ant-select-item-option:hover {
+  color: #000 !important;
+  background-color: #e6e6e6 !important;
+}
