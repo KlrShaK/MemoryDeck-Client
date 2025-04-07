@@ -37,7 +37,7 @@ const FlashcardPage = () => {
 
   // Sidebar buttons
   const handleCreateClick = () => {
-    console.log("Create button clicked");
+    router.push('/flashcards/create');
   };
 
   const handlePerformanceClick = () => {
@@ -231,6 +231,10 @@ const FlashcardPage = () => {
                             onClick: (e) => {
                               e.domEvent.stopPropagation();
                               console.log(`Clicked ${e.key} on card ${flashcard.id}`);
+                              // Add navigation here:
+                              if (e.key === 'edit') {
+                                router.push(`/flashcards/edit/${flashcard.id}`);
+                              }
                             }
                           }} 
                           trigger={['click']}
