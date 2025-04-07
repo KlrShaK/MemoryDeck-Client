@@ -18,7 +18,7 @@ const LandingPage = () => {
         <Link href="/register">
           <button className="button">Get Started</button>
         </Link>
-        <Link href="/login">
+        <Link href="/register">
           <button className="button registerButton">Register</button> {/* Apply the new registerButton class */}
         </Link>
       </div>
