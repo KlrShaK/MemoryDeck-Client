@@ -24,7 +24,7 @@ const Register: React.FC = () => {
 
             if (response.token) {
                 setToken(response.token);
-                router.push("/home");
+                router.push("/decks");
             }
         } catch {
             form.setFields([

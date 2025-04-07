@@ -23,7 +23,7 @@ const Login: React.FC = () => {
 
       if (response.token) {
         setToken(response.token);
-        router.push("/home"); // redirect to user dashboard or main page
+        router.push("/decks"); // redirect to user dashboard or main page
       }
     } catch (error) {
       form.setFields([

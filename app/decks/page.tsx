@@ -51,7 +51,7 @@ const DeckPage = () => {
     // Implement actual delete logic here
   };
 
-  const handleCreateClick = () => console.log("Create button clicked");
+  const handleCreateClick = () => {router.push('/decks/create');};
   const handlePerformanceClick = () => console.log("Performance button clicked");
   const handleSetReminderClick = () => console.log("Set Reminder button clicked");
   const handleQuizClick = () => console.log("Quiz button clicked");
