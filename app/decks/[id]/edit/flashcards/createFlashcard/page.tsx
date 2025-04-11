@@ -34,16 +34,11 @@ const AddFlashcardPage: React.FC = () => {
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-    if (isNaN(userIdAsNumber)) {
-        message.error("Invalid user id. Please log in again.");
-        router.push("/login");
-        return null;
-    }
 
     useEffect(() => {
-        if (isNaN(Number(deckId))) {
-            message.error("Invalid deck ID");
-            router.push("/decks");
+        if (isNaN(Number(deckId)) || isNaN(userIdAsNumber)) {
+            message.error("Invalid user or deck ID. Please log in again.");
+            router.push("/login");
             return;
         }
 
@@ -54,15 +49,15 @@ const AddFlashcardPage: React.FC = () => {
                     flashcardCategory: deck?.deckCategory,
                     isPublic: deck?.isPublic,
                 });
-
-            } catch{
+            } catch {
                 message.error("Failed to fetch deck data");
                 router.push("/decks");
             }
         };
 
         fetchDeck();
-    }, [deckId, apiService, form, router]);
+    }, [deckId, userIdAsNumber, apiService, form, router]);
+
 
     const handleImageChange = async ({ file, fileList }: UploadChangeParam<UploadFile>) => {
         setFileList(fileList);
@@ -133,6 +128,10 @@ const AddFlashcardPage: React.FC = () => {
             message.error("Failed to add flashcard.");
         }
     };
+
+    if (!userIdAsNumber || isNaN(userIdAsNumber)) {
+        return null; // prevents flicker before router.push takes effect
+    }
 
     return (
         <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
