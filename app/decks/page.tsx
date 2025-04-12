@@ -69,8 +69,20 @@ const DeckPage = () => {
         }
     };
 
+    const handleCreateClick = () => router.push('/decks/create');
+    const handlePerformanceClick = () => console.log("Performance button clicked");
+    const handleSetReminderClick = () => console.log("Set Reminder button clicked");
+    const handleQuizClick = () => console.log("Quiz button clicked");
+    const handleVersusClick = () => console.log("Versus Mode button clicked");
+    const handleTutorialClick = () => console.log("Tutorial button clicked");
+    const handleProfileClick = () => console.log("Profile button clicked");
+
     useEffect(() => {
-        fetchGroupedDecks();
+        if (userId) {
+            fetchGroupedDecks();
+        } else {
+            setLoading(false);
+        }
     }, [userId]);
 
     return (
@@ -81,6 +93,7 @@ const DeckPage = () => {
                     size={40}
                     icon={<UserOutlined />}
                     style={{ backgroundColor: '#fff', color: '#ccc', cursor: 'pointer' }}
+                    onClick={handleProfileClick}
                 />
             </div>
 
@@ -89,7 +102,7 @@ const DeckPage = () => {
                 <div style={{ width: '200px', marginRight: '20px' }}>
                     <Button
                         type="primary"
-                        onClick={() => router.push('/decks/create')}
+                        onClick={handleCreateClick}
                         style={{
                             width: '100%',
                             marginBottom: '20px',
@@ -102,6 +115,87 @@ const DeckPage = () => {
                     >
                         Create
                     </Button>
+
+                    <div style={{ borderTop: '1px solid #a8e6a8', marginBottom: '20px' }}></div>
+
+                    <Button
+                        type="default"
+                        onClick={handlePerformanceClick}
+                        style={{
+                            width: '100%',
+                            marginBottom: '10px',
+                            backgroundColor: 'white',
+                            borderColor: 'white',
+                            borderRadius: '24px',
+                        }}
+                    >
+                        Performance
+                    </Button>
+
+                    <Button
+                        type="default"
+                        onClick={handleSetReminderClick}
+                        style={{
+                            width: '100%',
+                            marginBottom: '25px',
+                            backgroundColor: 'white',
+                            borderColor: 'white',
+                            borderRadius: '24px',
+                        }}
+                    >
+                        Set Reminder
+                    </Button>
+
+                    <div style={{ borderTop: '1px solid #a8e6a8', marginBottom: '20px' }}></div>
+
+                    <h3 style={{ margin: '20px 0px 30px 40px', color: '#333' }}>Gamemodes</h3>
+
+                    <Button
+                        type="primary"
+                        onClick={handleQuizClick}
+                        style={{
+                            width: '100%',
+                            marginBottom: '15px',
+                            backgroundColor: '#285c28',
+                            borderColor: '#285c28',
+                            borderRadius: '24px',
+                            fontWeight: 'normal',
+                            fontSize: '14px',
+                        }}
+                    >
+                        Start a quiz together!
+                    </Button>
+
+                    <Button
+                        type="primary"
+                        onClick={handleVersusClick}
+                        style={{
+                            width: '100%',
+                            marginBottom: '15px',
+                            backgroundColor: '#285c28',
+                            borderColor: '#285c28',
+                            borderRadius: '24px',
+                            fontWeight: 'normal',
+                            fontSize: '14px',
+                        }}
+                    >
+                        Versus Mode
+                    </Button>
+
+                    <div style={{ position: 'fixed', bottom: '20px' }}>
+                        <Button
+                            type="default"
+                            onClick={handleTutorialClick}
+                            style={{
+                                backgroundColor: 'white',
+                                borderColor: 'white',
+                                borderRadius: '8px',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            Tutorial and FAQs
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Main Content */}
@@ -118,7 +212,7 @@ const DeckPage = () => {
                         </div>
                     ) : (
                         <Row gutter={[16, 16]}>
-                            {Object.entries(decks).map(([deckIdStr, { title, flashcards }]) => {
+                            {Object.entries(decks).map(([deckIdStr, { title }]) => {
                                 const deckId = parseInt(deckIdStr);
                                 return (
                                     <Col xs={24} sm={12} md={8} key={deckId}>
@@ -170,3 +264,4 @@ const DeckPage = () => {
 };
 
 export default DeckPage;
+
