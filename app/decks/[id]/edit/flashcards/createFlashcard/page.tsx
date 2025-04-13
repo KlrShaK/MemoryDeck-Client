@@ -1,4 +1,3 @@
-// Create new flashcard after creating the deck
 "use client";
 
 import React, {useEffect, useState} from "react";
@@ -28,18 +27,26 @@ const AddFlashcardPage: React.FC = () => {
 
     const { deckId } = useParams();
 
-    const { value: user_id } = useLocalStorage<string>("user_id", "");
-    const userIdAsNumber = Number(user_id);
-    const [wrongAnswers, setWrongAnswers] = useState<string[]>(['', '', '']);
+    const { value: userId } = useLocalStorage<string>("userId", "");
+    const userIdAsNumber = Number(userId?.replace(/"/g, "")); // parse out quotes if any
+
+    const [wrongAnswers, setWrongAnswers] = useState<string[]>(["", "", ""]);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-    if (isNaN(userIdAsNumber)) {
-        message.error("Invalid user id. Please log in again.");
-        router.push("/login");
-        return null;
-    }
+    // We'll track a simple boolean to see if the user is considered valid
+    const [isValidUser, setIsValidUser] = useState(true);
 
+    // 1) Do the userId check inside a useEffect
+    useEffect(() => {
+        if (isNaN(userIdAsNumber)) {
+            message.error("Invalid user id. Please log in again.");
+            router.push("/login");
+            setIsValidUser(false);
+        }
+    }, [userIdAsNumber, router]);
+
+    // 2) If deckId is invalid, do that check in another effect
     useEffect(() => {
         if (isNaN(Number(deckId))) {
             message.error("Invalid deck ID");
@@ -54,8 +61,7 @@ const AddFlashcardPage: React.FC = () => {
                     flashcardCategory: deck?.deckCategory,
                     isPublic: deck?.isPublic,
                 });
-
-            } catch{
+            } catch {
                 message.error("Failed to fetch deck data");
                 router.push("/decks");
             }
@@ -64,11 +70,18 @@ const AddFlashcardPage: React.FC = () => {
         fetchDeck();
     }, [deckId, apiService, form, router]);
 
+    // 3) If user ID was invalid, skip rendering below (the effect is already redirecting)
+    if (!isValidUser) {
+        // Return null or a spinner, so we don't call more hooks or render the form
+        return null;
+    }
+
+    // Hook for image uploads
     const handleImageChange = async ({ file, fileList }: UploadChangeParam<UploadFile>) => {
         setFileList(fileList);
 
         if (file.status === "removed") {
-            setImageUrl(null);  // Clear image URL when removing
+            setImageUrl(null);
             return;
         }
 
@@ -79,13 +92,10 @@ const AddFlashcardPage: React.FC = () => {
                 message.success("Image uploaded successfully!");
             } catch {
                 message.error("Image upload failed.");
-                setFileList([]);  // Clear the failed file
+                setFileList([]);
             }
         }
     };
-
-
-
 
     const handleWrongAnswerChange = (index: number, value: string) => {
         const newAnswers = [...wrongAnswers];
@@ -95,8 +105,8 @@ const AddFlashcardPage: React.FC = () => {
 
     const handleAddFlashcard = async (values: FlashcardFormValues) => {
         try {
-            if (wrongAnswers.filter(a => a.trim()).length === 0) {
-                alert('Please provide at least one wrong answer.');
+            if (wrongAnswers.filter((a) => a.trim()).length === 0) {
+                alert("Please provide at least one wrong answer.");
                 return;
             }
 
@@ -114,20 +124,17 @@ const AddFlashcardPage: React.FC = () => {
             const flashcardDTO = {
                 description: values.description,
                 answer: values.answer,
-                wrongAnswers: wrongAnswers.filter(a => a.trim()), // Remove empty ones
-                date: values.date, // or allow user to select date
+                wrongAnswers: wrongAnswers.filter((a) => a.trim()),
+                date: values.date,
                 imageUrl: finalImageUrl || null,
                 isPublic: values.isPublic,
                 flashcardCategory: values.flashcardCategory,
             };
 
-            await apiService.post<Flashcard>(
-                `/decks/${deckId}/flashcards/addFlashcard`,
-                flashcardDTO
-            );
+            await apiService.post<Flashcard>(`/decks/${deckId}/flashcards/addFlashcard`, flashcardDTO);
 
             message.success("Flashcard added successfully!");
-            router.push(`/decks/${deckId}/flashcards`); // Go back to flashcards list
+            router.push(`/decks/${deckId}/flashcards`);
         } catch (error) {
             console.error("Error adding flashcard:", error);
             message.error("Failed to add flashcard.");
@@ -138,13 +145,10 @@ const AddFlashcardPage: React.FC = () => {
         <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
             <Card title={`Add New Flashcard`} style={{ width: 400 }}>
                 <Form form={form} onFinish={handleAddFlashcard} layout="vertical">
-                    <Form.Item
-                        label="Date"
-                        name="date"
-                        rules={[{ required: false }]}
-                    >
+                    <Form.Item label="Date" name="date" rules={[{ required: false }]}>
                         <Input type="date" />
                     </Form.Item>
+
                     <Form.Item
                         label="Description"
                         name="description"
@@ -153,11 +157,8 @@ const AddFlashcardPage: React.FC = () => {
                         <Input />
                     </Form.Item>
 
-                    <Form.Item
-                        label="Flashcard Category"
-                        name="flashcardCategory"
-                    >
-                        <Input disabled/>
+                    <Form.Item label="Flashcard Category" name="flashcardCategory">
+                        <Input disabled />
                     </Form.Item>
 
                     <Form.Item
@@ -169,7 +170,7 @@ const AddFlashcardPage: React.FC = () => {
                     </Form.Item>
 
                     <Form.Item label="Wrong Answers (at least 1 required)">
-                        {['First', 'Second', 'Third'].map((label, index) => (
+                        {["First", "Second", "Third"].map((label, index) => (
                             <div key={index} style={{ marginBottom: 8 }}>
                                 <Input
                                     placeholder={`${label} Wrong Answer`}
@@ -183,12 +184,12 @@ const AddFlashcardPage: React.FC = () => {
                     <Form.Item label="Image">
                         <Upload
                             fileList={fileList}
-                            beforeUpload={() => false}  // Don't auto-upload, we will upload manually
+                            beforeUpload={() => false}
                             onChange={handleImageChange}
                             listType="picture-card"
                             onRemove={() => {
                                 setFileList([]);
-                                setImageUrl(null);  // Clear imageUrl when removed
+                                setImageUrl(null);
                             }}
                         >
                             {fileList.length >= 1 ? null : <Button icon={<UploadOutlined />}>Upload Image</Button>}
@@ -204,7 +205,7 @@ const AddFlashcardPage: React.FC = () => {
                     </Form.Item>
 
                     <Form.Item name="isPublic" valuePropName="checked">
-                        <Checkbox disabled >Public</Checkbox>
+                        <Checkbox disabled>Public</Checkbox>
                     </Form.Item>
 
                     <Button type="primary" htmlType="submit">
