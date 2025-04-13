@@ -126,7 +126,7 @@ const AddFlashcardPage: React.FC = () => {
       );
 
       message.success("Flashcard added successfully!");
-      router.push(`/decks/${deckId}/flashcards`); // Go back to flashcards list
+      router.push(`/decks/${deckId}/edit`); // Go back to edit deck page
     } catch (error) {
       console.error("Error adding flashcard:", error);
       message.error("Failed to add flashcard.");
@@ -210,7 +210,7 @@ const AddFlashcardPage: React.FC = () => {
           Save Flashcard
         </Button>
 
-        <Button style={{ marginLeft: "10px" }} onClick={() => router.push(`/decks/${deckId}/flashcards`)}>
+        <Button style={{ marginLeft: "10px" }} onClick={() => router.push(`/decks/${deckId}/edit`)}>
           Cancel
           </Button>
       </Form>
