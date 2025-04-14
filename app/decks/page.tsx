@@ -9,7 +9,7 @@ import { Deck } from "@/types/deck";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
 // CHANGED: We store decks as null initially to indicate "not loaded yet"
-type GroupedDecks = Record<number, { title: string; flashcards: Flashcard[] }>;
+type GroupedDecks = Record<string, { title: string; flashcards: Flashcard[] }>;
 interface Flashcard {
     id: number;
     question: string;
@@ -32,40 +32,33 @@ const DeckPage = () => {
 
     const fetchGroupedDecks = async () => {
         if (!userId) return; // no user ID? just exit.
-
+    
         try {
             // fetch all decks
             const deckList = await apiService.get<Deck[]>(`/decks?userId=${userId}`);
-
-            // fetch flashcards (or handle 404)
-            const flashcards = await apiService
-                .get<Flashcard[]>(`/flashcards?userId=${userId}`)
-                .catch((err) => {
-                    // If there's a 404, we just continue with empty flashcards
-                    if (err instanceof Error && err.message.includes("404")) {
-                        console.warn("Flashcards not found. Continuing without them.");
-                        return [];
-                    }
-                    throw err;
-                });
-
-            // Build a grouped structure
+    
             const grouped: GroupedDecks = {};
-            deckList.forEach((deck) => {
-                grouped[deck.id] = {
+            for (const deck of deckList) {
+                grouped[String(deck.id)] = {
                     title: deck.title ?? "Untitled",
                     flashcards: [],
                 };
-            });
-
-            flashcards.forEach((card) => {
-                const deckId = card.deckId;
-                if (grouped[deckId]) {
-                    grouped[deckId].flashcards.push(card);
-                }
-            });
-
-            //  set the final grouped decks, removing "null"
+    
+                // Now, fetch flashcards for each deck
+                const flashcards = await apiService
+                    .get<Flashcard[]>(`/decks/${deck.id}/flashcards`)
+                    .catch((err) => {
+                        if (err instanceof Error && err.message.includes("404")) {
+                            console.warn("Flashcards not found for deck:", deck.id);
+                            return [];
+                        }
+                        throw err;
+                    });
+    
+                // Add the fetched flashcards to the grouped deck
+                grouped[String(deck.id)].flashcards = flashcards;
+            }
+    
             setDecks(grouped);
         } catch (error) {
             console.error("Failed to fetch decks or flashcards:", error);
@@ -76,6 +69,7 @@ const DeckPage = () => {
             setLoading(false);
         }
     };
+    
 
     useEffect(() => {
         if (userId) {
@@ -87,7 +81,7 @@ const DeckPage = () => {
 
     // Deck actions
     const handleDeckClick = (deckId: number) => {
-        router.push(`/decks/quiz/${deckId}`);
+        router.push(`/decks/${deckId}/edit/flashcards`);
     };
 
     const handleEditDeck = (deckId: number) => {

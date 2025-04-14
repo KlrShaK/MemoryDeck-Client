@@ -52,23 +52,28 @@ const AddFlashcardPage: React.FC = () => {
             message.error("Invalid deck ID");
             router.push("/decks");
             return;
-        }
+          }
 
-        const fetchDeck = async () => {
+          const fetchDeck = async () => {
             try {
-                const deck = await apiService.get<Deck>(`/decks/${deckId}`);
-                form.setFieldsValue({
-                    flashcardCategory: deck?.deckCategory,
-                    isPublic: deck?.isPublic,
-                });
-            } catch {
-                message.error("Failed to fetch deck data");
+              const deck = await apiService.get<Deck>(`/decks/${deckId}`);
+              if (!deck) {
+                message.error("Deck not found.");
                 router.push("/decks");
+              } else {
+                form.setFieldsValue({
+                  flashcardCategory: deck.deckCategory,
+                  isPublic: deck.isPublic,
+                });
+              }
+            } catch {
+              message.error("Failed to fetch deck data.");
+              router.push("/decks");
             }
-        };
-
-        fetchDeck();
-    }, [deckId, apiService, form, router]);
+          };
+        
+          fetchDeck();
+        }, [deckId, apiService, form, router]);
 
     // 3) If user ID was invalid, skip rendering below (the effect is already redirecting)
     if (!isValidUser) {

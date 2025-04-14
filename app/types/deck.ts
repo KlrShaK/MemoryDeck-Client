@@ -6,10 +6,13 @@ import { User } from "./user";
 export interface Deck {
     id: string;
     title: string | null;
-    flashcards: Flashcard | null;
+    flashcards: Flashcard[];
     deckCategory: string;
-    isPublic: boolean ;
+    isPublic: boolean;
     user: User;
     //quiz: Quiz;
     //invitation: Invitation | null;
 }
+
+
+

@@ -41,6 +41,11 @@
    const router = useRouter();
    const params = useParams();
    const deckId = params?.id;
+   if (!deckId) {
+    message.error("Invalid deck ID");
+    router.push("/decks");
+    return;
+  }
    const apiService = useApi();
    const [loading, setLoading] = useState(true);
    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -100,7 +105,7 @@
    };
 
    const handleAddFlashcard = () => {
-     router.push(`/decks/${deckId}/edit/createFlashcard`);
+        router.push(`/decks/${deckId}/edit/flashcards/createFlashcard`);
    };
 
    if (loading) {
