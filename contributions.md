@@ -81,15 +81,34 @@ reason).
 
 ---
 
-## Contributions Week 4 - [Begin Date] to [End Date]
+## Contributions Week 4 - [14.04.2025] to [21.04.2025]
 
-_Continue with the same table format as above._
+
+| **Student**      | **Date**  | **Link to Commit**          | **Description**                     | **Relevance**                          |
+|-------------------|-----------|-----------------------------|-------------------------------------|-----------------------------------------|
+| **[@melihsrn]** | [16.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/21362c23a76ae8fd21ca23aa36bc6aca54310635]          | [Create an API endpoint to send quiz invitations to selected online users]     | [It is important to send invitations among users in order to have a functional multi-player quiz interface.]     |
+|                   | [16.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/64cb9d5740284127ed1e3654d746a6375770fffb]          | [Create granular API endpoints to get invitation entities by ID, invitees and inviters and to delete invitation entity by ID]     | [It is important to send invitations among users in order to have a functional multi-player quiz interface.]     |
+| **[@githubUser2]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **[@githubUser3]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **[@githubUser4]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
 
 ---
 
-## Contributions Week 5 - [Begin Date] to [End Date]
+## Contributions Week 5 - [28.04.2025] to [02.05.2025]
 
-_Continue with the same table format as above._
+| **Student**      | **Date**  | **Link to Commit**          | **Description**                     | **Relevance**                          |
+|-------------------|-----------|-----------------------------|-------------------------------------|-----------------------------------------|
+| **[@melihsrn]** | [16.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/4287dbf2921d87bafe0b68ee3b772b5e9fa5cd7c]          | [FUTURE WORK: Handle invitation responses in the backend with granular API endpoints: If accepted, set the quiz status IN_PROGRESS and get the quiz for sender user as well, if rejected delete the created quiz and invitation entities to prevent overloaded data in DB]     | [It is important to send invitations among users in order to have a functional multi-player quiz interface.]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **[@githubUser2]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **[@githubUser3]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **[@githubUser4]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
 
 ---
 
