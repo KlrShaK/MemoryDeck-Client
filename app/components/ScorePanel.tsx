@@ -1,24 +1,14 @@
-import React, { useState } from "react";
-import { Button } from "antd";
+import React from "react";
 
-const ScorePanel = () => {
-    const [correct, setCorrect] = useState(0);
-    const [total, setTotal] = useState(0);
+interface ScorePanelProps {
+    score: number;
+    total: number;
+}
 
-    const handleAnswer = (isCorrect: boolean) => {
-        setTotal((t) => t + 1);
-        if (isCorrect) setCorrect((c) => c + 1);
-    };
-
+const ScorePanel: React.FC<ScorePanelProps> = ({ score, total }) => {
     return (
-        <div style={{ textAlign: "center", marginTop: "32px" }}>
-            <p>Score: {correct}/{total}</p>
-            <Button onClick={() => handleAnswer(true)} type="primary" style={{ marginRight: "8px" }}>
-                Correct
-            </Button>
-            <Button onClick={() => handleAnswer(false)} danger>
-                Incorrect
-            </Button>
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+            <p><strong>Score:</strong> {score} / {total}</p>
         </div>
     );
 };

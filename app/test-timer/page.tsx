@@ -6,6 +6,7 @@ import ProgressBar from "@/components/ProgressBar";
 import ScorePanel from "@/components/ScorePanel";
 import { useTimer } from "@/hooks/useTimer";
 import { useApi } from "@/hooks/useApi";
+import OpponentProgress from "@/components/OpponentProgress";
 
 const TimerPage = () => {
     const duration = 60;
@@ -29,6 +30,8 @@ const TimerPage = () => {
                 Start Timer
             </Button>
             <Button onClick={reset}>Reset Timer</Button>
+
+            <OpponentProgress name="Opponent A" score={3} total={5} />
 
             <hr style={{ margin: "24px 0" }} />
 
