@@ -35,7 +35,7 @@ const TimerPage = () => {
 
             <hr style={{ margin: "24px 0" }} />
 
-            <ScorePanel />
+            <ScorePanel score={0} total={0} />
         </div>
     );
 };
