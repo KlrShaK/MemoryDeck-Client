@@ -98,12 +98,12 @@ reason).
 
 ---
 
-## Contributions Week 5 - [28.04.2025] to [02.05.2025]
+## Contributions Week 5 - [28.04.2025] to [05.05.2025]
 
 | **Student**        | **Date**         | **Link to Commit**          | **Description**                                                                                                                                                                                                                                                            | **Relevance**                                                                                       |
 |--------------------|------------------|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
 | **[@melihsrn]**    | [16.04.2025]     | [https://github.com/KlrShaK/MemoryDeck-Server/commit/4287dbf2921d87bafe0b68ee3b772b5e9fa5cd7c]          | [FUTURE WORK: Handle invitation responses in the backend with granular API endpoints: If accepted, set the quiz status IN_PROGRESS and get the quiz for sender user as well, if rejected delete the created quiz and invitation entities to prevent overloaded data in DB] | [It is important to send invitations among users in order to have a functional multi-player quiz interface.] |
-|                    | [20.04.2025]           | [https://github.com/KlrShaK/MemoryDeck-Server/commit/9a6db8ad7fa1fff5071c1dfffdccabf7d626283a]          | [Create tests for all of the REST APIs in the FlashcardController.]  | [It is very important to test functionality of our server.]  |
+|                    | [20.04.2025]           | [https://github.com/KlrShaK/MemoryDeck-Server/commit/9a6db8ad7fa1fff5071c1dfffdccabf7d626283a]          | [FUTURE WORK: Create tests for all of the REST APIs in the FlashcardController.]  | [It is very important to test functionality of our server.]  |
 | **[@sarahnab]**      | [April 17, 2025] | [https://github.com/KlrShaK/MemoryDeck-Client/commit/ea92ad6ee868817d963486ef27290dd38f6c4a37]          | [Working ahead: added component to show users the progress of their opponents]                                                                                                                                                                                             | [This feature creates competitiveness between players]                                                                 |
 |                    | [date]           | [Link to Commit 2]          | [Brief description of the task]                                                                                                                                                                                                                                            | [Why this contribution is relevant]                                                                 |
 | **[@githubUser3]** | [date]           | [Link to Commit 1]          | [Brief description of the task]                                                                                                                                                                                                                                            | [Why this contribution is relevant]                                                                 |
@@ -113,6 +113,18 @@ reason).
 
 ---
 
-## Contributions Week 6 - [Begin Date] to [End Date]
+## Contributions Week 6 - [05.05.2025] to [12.05.2025]
 
-_Continue with the same table format as above._
+
+| **Student**      | **Date**  | **Link to Commit**          | **Description**                     | **Relevance**                          |
+|-------------------|-----------|-----------------------------|-------------------------------------|-----------------------------------------|
+| **[@melihsrn]** | [20.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/a81e557dd4dadeb83e0619dcc284cc4ef9d2e8ae]          | [FUTURE WORK: Create tests for all of the Mappers]     | [It is very important to test functionality of our server.]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **[@githubUser2]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **[@githubUser3]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **[@githubUser4]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+
+---
