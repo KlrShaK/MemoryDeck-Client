@@ -107,12 +107,14 @@ const DeckPage = () => {
 
     // Additional button handlers
     const handleCreateClick = () => router.push("/decks/create");
+
     const handlePerformanceClick = () => console.log("Performance button clicked");
     const handleSetReminderClick = () => console.log("Set Reminder button clicked");
     const handleQuizClick = () => console.log("Quiz button clicked");
     const handleVersusClick = () => console.log("Versus Mode button clicked");
     const handleTutorialClick = () => console.log("Tutorial button clicked");
     const handleProfileClick = () => console.log("Profile button clicked");
+
 
     return (
         <div style={{ backgroundColor: "#ccf0cc", minHeight: "100vh", padding: "0" }}>
@@ -122,6 +124,7 @@ const DeckPage = () => {
                     size={40}
                     icon={<UserOutlined />}
                     style={{ backgroundColor: "#fff", color: "#ccc", cursor: "pointer" }}
+
                     onClick={handleProfileClick}
                 />
             </div>
@@ -147,6 +150,7 @@ const DeckPage = () => {
 
                     <div style={{ borderTop: "1px solid #a8e6a8", marginBottom: "20px" }}></div>
 
+
                     <Button
                         type="default"
                         onClick={handlePerformanceClick}
@@ -156,6 +160,7 @@ const DeckPage = () => {
                             backgroundColor: "white",
                             borderColor: "white",
                             borderRadius: "24px",
+
                         }}
                     >
                         Performance
@@ -179,6 +184,7 @@ const DeckPage = () => {
 
                     <h3 style={{ margin: "20px 0px 30px 40px", color: "#333" }}>Gamemodes</h3>
 
+
                     <Button
                         type="primary"
                         onClick={handleQuizClick}
@@ -190,6 +196,7 @@ const DeckPage = () => {
                             borderRadius: "24px",
                             fontWeight: "normal",
                             fontSize: "14px",
+
                         }}
                     >
                         Start a quiz together!
@@ -206,12 +213,14 @@ const DeckPage = () => {
                             borderRadius: "24px",
                             fontWeight: "normal",
                             fontSize: "14px",
+
                         }}
                     >
                         Versus Mode
                     </Button>
 
                     <div style={{ position: "fixed", bottom: "20px" }}>
+
                         <Button
                             type="default"
                             onClick={handleTutorialClick}
@@ -220,6 +229,7 @@ const DeckPage = () => {
                                 borderColor: "white",
                                 borderRadius: "8px",
                                 fontWeight: "bold",
+
                             }}
                         >
                             Tutorial and FAQs
@@ -304,3 +314,4 @@ const DeckPage = () => {
 };
 
 export default DeckPage;
+

@@ -13,11 +13,11 @@ import type { UploadFile } from "antd/es/upload/interface";
 import Image from "next/image";
 
 type FlashcardFormValues = {
-    description: string;
-    answer: string;
-    date?: string;
-    isPublic?: boolean;
-    flashcardCategory: string;
+  description: string;
+  answer: string;
+  date?: string;
+  isPublic?: boolean;
+  flashcardCategory: string;
 };
 
 const AddFlashcardPage: React.FC = () => {
@@ -219,6 +219,7 @@ const AddFlashcardPage: React.FC = () => {
             </Card>
         </div>
     );
+
 };
 
 export default AddFlashcardPage;
