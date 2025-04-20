@@ -119,7 +119,7 @@ reason).
 | **Student**      | **Date**  | **Link to Commit**          | **Description**                     | **Relevance**                          |
 |-------------------|-----------|-----------------------------|-------------------------------------|-----------------------------------------|
 | **[@melihsrn]** | [20.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/a81e557dd4dadeb83e0619dcc284cc4ef9d2e8ae]          | [FUTURE WORK: Create tests for all of the Mappers]     | [It is very important to test functionality of our server.]     |
-|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+|                   | [20.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/c442952ea8135aa9e643ad72807a04f3e58bb0db]          | [FUTURE WORK: Create tests for FlashcardService and GCS Service]     | [It is very important to test functionality of our server.]     |
 | **[@githubUser2]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
 |                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
 | **[@githubUser3]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
