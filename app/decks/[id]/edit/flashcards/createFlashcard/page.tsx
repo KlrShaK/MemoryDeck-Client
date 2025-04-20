@@ -21,202 +21,205 @@ type FlashcardFormValues = {
 };
 
 const AddFlashcardPage: React.FC = () => {
-  const [form] = Form.useForm();
-  const router = useRouter();
-  const apiService = useApi();
+    const [form] = Form.useForm();
+    const router = useRouter();
+    const apiService = useApi();
 
-  const { deckId } = useParams();
+    const { deckId } = useParams();
 
-  const { value: user_id } = useLocalStorage<string>("user_id", "");
-  const userIdAsNumber = Number(user_id);
-  const [wrongAnswers, setWrongAnswers] = useState<string[]>(['', '', '']);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const { value: userId } = useLocalStorage<string>("userId", "");
+    const userIdAsNumber = Number(userId?.replace(/"/g, "")); // parse out quotes if any
 
-  if (isNaN(userIdAsNumber)) {
-    message.error("Invalid user id. Please log in again.");
-    router.push("/login");
-    return null;
-  }
+    const [wrongAnswers, setWrongAnswers] = useState<string[]>(["", "", ""]);
+    const [fileList, setFileList] = useState<UploadFile[]>([]);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isNaN(Number(deckId))) {
-      message.error("Invalid deck ID");
-      router.push("/decks");
-      return;
-    }
+    // We'll track a simple boolean to see if the user is considered valid
+    const [isValidUser, setIsValidUser] = useState(true);
 
-  const fetchDeck = async () => {
-    try {
-      const deck = await apiService.get<Deck>(`/decks/${deckId}`);
-      form.setFieldsValue({
-        flashcardCategory: deck?.deckCategory,
-        isPublic: deck?.isPublic,
-      });
-
-    } catch{
-      message.error("Failed to fetch deck data");
-      router.push("/decks");
-    }
-  };
-
-  fetchDeck();
-}, [deckId, apiService, form, router]);
-
-  const handleImageChange = async ({ file, fileList }: UploadChangeParam<UploadFile>) => {
-    setFileList(fileList);
-
-    if (file.status === "removed") {
-        setImageUrl(null);  // Clear image URL when removing
-        return;
-    }
-
-    if (file.originFileObj) {
-        try {
-            const uploadedImageUrl = await apiService.uploadImage("/flashcards/upload-image", file.originFileObj);
-            setImageUrl(uploadedImageUrl);
-            message.success("Image uploaded successfully!");
-        } catch {
-            message.error("Image upload failed.");
-            setFileList([]);  // Clear the failed file
+    // 1) Do the userId check inside a useEffect
+    useEffect(() => {
+        if (isNaN(userIdAsNumber)) {
+            message.error("Invalid user id. Please log in again.");
+            router.push("/login");
+            setIsValidUser(false);
         }
+    }, [userIdAsNumber, router]);
+
+    // 2) If deckId is invalid, do that check in another effect
+    useEffect(() => {
+        if (isNaN(Number(deckId))) {
+            message.error("Invalid deck ID");
+            router.push("/decks");
+            return;
+        }
+
+        const fetchDeck = async () => {
+            try {
+                const deck = await apiService.get<Deck>(`/decks/${deckId}`);
+                form.setFieldsValue({
+                    flashcardCategory: deck?.deckCategory,
+                    isPublic: deck?.isPublic,
+                });
+            } catch {
+                message.error("Failed to fetch deck data");
+                router.push("/decks");
+            }
+        };
+
+        fetchDeck();
+    }, [deckId, apiService, form, router]);
+
+    // 3) If user ID was invalid, skip rendering below (the effect is already redirecting)
+    if (!isValidUser) {
+        // Return null or a spinner, so we don't call more hooks or render the form
+        return null;
     }
-};
 
+    // Hook for image uploads
+    const handleImageChange = async ({ file, fileList }: UploadChangeParam<UploadFile>) => {
+        setFileList(fileList);
 
+        if (file.status === "removed") {
+            setImageUrl(null);
+            return;
+        }
 
+        if (file.originFileObj) {
+            try {
+                const uploadedImageUrl = await apiService.uploadImage("/flashcards/upload-image", file.originFileObj);
+                setImageUrl(uploadedImageUrl);
+                message.success("Image uploaded successfully!");
+            } catch {
+                message.error("Image upload failed.");
+                setFileList([]);
+            }
+        }
+    };
 
-  const handleWrongAnswerChange = (index: number, value: string) => {
-    const newAnswers = [...wrongAnswers];
-    newAnswers[index] = value;
-    setWrongAnswers(newAnswers);
-  };
+    const handleWrongAnswerChange = (index: number, value: string) => {
+        const newAnswers = [...wrongAnswers];
+        newAnswers[index] = value;
+        setWrongAnswers(newAnswers);
+    };
 
-  const handleAddFlashcard = async (values: FlashcardFormValues) => {
-    try {
-      if (wrongAnswers.filter(a => a.trim()).length === 0) {
-        alert('Please provide at least one wrong answer.');
-        return;
-      }
+    const handleAddFlashcard = async (values: FlashcardFormValues) => {
+        try {
+            if (wrongAnswers.filter((a) => a.trim()).length === 0) {
+                alert("Please provide at least one wrong answer.");
+                return;
+            }
 
-      let finalImageUrl = imageUrl;
+            let finalImageUrl = imageUrl;
 
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-          try {
-              finalImageUrl = await apiService.uploadImage("/flashcards/upload-image", fileList[0].originFileObj);
-          } catch {
-              message.error("Image upload failed. Please try again.");
-              return;
-          }
-      }
+            if (fileList.length > 0 && fileList[0].originFileObj) {
+                try {
+                    finalImageUrl = await apiService.uploadImage("/flashcards/upload-image", fileList[0].originFileObj);
+                } catch {
+                    message.error("Image upload failed. Please try again.");
+                    return;
+                }
+            }
 
-      const flashcardDTO = {
-        description: values.description,
-        answer: values.answer,
-        wrongAnswers: wrongAnswers.filter(a => a.trim()), // Remove empty ones
-        date: values.date, // or allow user to select date
-        imageUrl: finalImageUrl || null,
-        isPublic: values.isPublic,
-        flashcardCategory: values.flashcardCategory,
-      };
+            const flashcardDTO = {
+                description: values.description,
+                answer: values.answer,
+                wrongAnswers: wrongAnswers.filter((a) => a.trim()),
+                date: values.date,
+                imageUrl: finalImageUrl || null,
+                isPublic: values.isPublic,
+                flashcardCategory: values.flashcardCategory,
+            };
 
-      await apiService.post<Flashcard>(
-        `/decks/${deckId}/flashcards/addFlashcard`,
-        flashcardDTO
-      );
+            await apiService.post<Flashcard>(`/decks/${deckId}/flashcards/addFlashcard`, flashcardDTO);
 
-      message.success("Flashcard added successfully!");
-      router.push(`/decks/${deckId}/flashcards`); // Go back to flashcards list
-    } catch (error) {
-      console.error("Error adding flashcard:", error);
-      message.error("Failed to add flashcard.");
-    }
-  };
+            message.success("Flashcard added successfully!");
+            router.push(`/decks/${deckId}/flashcards`);
+        } catch (error) {
+            console.error("Error adding flashcard:", error);
+            message.error("Failed to add flashcard.");
+        }
+    };
 
-  return (
-    <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-    <Card title={`Add New Flashcard`} style={{ width: 400 }}>
-      <Form form={form} onFinish={handleAddFlashcard} layout="vertical">
-      <Form.Item
-          label="Date"
-          name="date"
-          rules={[{ required: false }]}
-        >
-          <Input type="date" /> 
-        </Form.Item>
-        <Form.Item
-          label="Description"
-          name="description"
-          rules={[{ required: true, message: "Description is required" }]}
-        >
-          <Input />
-        </Form.Item>
+    return (
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+            <Card title={`Add New Flashcard`} style={{ width: 400 }}>
+                <Form form={form} onFinish={handleAddFlashcard} layout="vertical">
+                    <Form.Item label="Date" name="date" rules={[{ required: false }]}>
+                        <Input type="date" />
+                    </Form.Item>
 
-        <Form.Item
-          label="Flashcard Category"
-          name="flashcardCategory"
-        >
-          <Input disabled/>
-        </Form.Item>
+                    <Form.Item
+                        label="Description"
+                        name="description"
+                        rules={[{ required: true, message: "Description is required" }]}
+                    >
+                        <Input />
+                    </Form.Item>
 
-        <Form.Item
-          label="Answer"
-          name="answer"
-          rules={[{ required: true, message: "Answer is required" }]}
-        >
-          <Input />
-        </Form.Item>
+                    <Form.Item label="Flashcard Category" name="flashcardCategory">
+                        <Input disabled />
+                    </Form.Item>
 
-        <Form.Item label="Wrong Answers (at least 1 required)">
-          {['First', 'Second', 'Third'].map((label, index) => (
-            <div key={index} style={{ marginBottom: 8 }}>
-              <Input
-                placeholder={`${label} Wrong Answer`}
-                value={wrongAnswers[index]}
-                onChange={(e) => handleWrongAnswerChange(index, e.target.value)}
-              />
-            </div>
-          ))}
-        </Form.Item>
+                    <Form.Item
+                        label="Answer"
+                        name="answer"
+                        rules={[{ required: true, message: "Answer is required" }]}
+                    >
+                        <Input />
+                    </Form.Item>
 
-        <Form.Item label="Image">
-              <Upload
-                  fileList={fileList}
-                  beforeUpload={() => false}  // Don't auto-upload, we will upload manually
-                  onChange={handleImageChange}
-                  listType="picture-card"
-                  onRemove={() => {
-                      setFileList([]);
-                      setImageUrl(null);  // Clear imageUrl when removed
-                  }}
-              >
-                  {fileList.length >= 1 ? null : <Button icon={<UploadOutlined />}>Upload Image</Button>}
-              </Upload>
-              {imageUrl && (
-                  <Image
-                      src={imageUrl}
-                      alt="Flashcard"
-                      unoptimized={true}
-                      style={{ width: "100%", marginTop: "10px", borderRadius: "5px" }}
-                  />
-              )}
-          </Form.Item>
+                    <Form.Item label="Wrong Answers (at least 1 required)">
+                        {["First", "Second", "Third"].map((label, index) => (
+                            <div key={index} style={{ marginBottom: 8 }}>
+                                <Input
+                                    placeholder={`${label} Wrong Answer`}
+                                    value={wrongAnswers[index]}
+                                    onChange={(e) => handleWrongAnswerChange(index, e.target.value)}
+                                />
+                            </div>
+                        ))}
+                    </Form.Item>
 
-        <Form.Item name="isPublic" valuePropName="checked">
-          <Checkbox disabled >Public</Checkbox>
-        </Form.Item>
+                    <Form.Item label="Image">
+                        <Upload
+                            fileList={fileList}
+                            beforeUpload={() => false}
+                            onChange={handleImageChange}
+                            listType="picture-card"
+                            onRemove={() => {
+                                setFileList([]);
+                                setImageUrl(null);
+                            }}
+                        >
+                            {fileList.length >= 1 ? null : <Button icon={<UploadOutlined />}>Upload Image</Button>}
+                        </Upload>
+                        {imageUrl && (
+                            <Image
+                                src={imageUrl}
+                                alt="Flashcard"
+                                unoptimized={true}
+                                style={{ width: "100%", marginTop: "10px", borderRadius: "5px" }}
+                            />
+                        )}
+                    </Form.Item>
 
-        <Button type="primary" htmlType="submit">
-          Save Flashcard
-        </Button>
+                    <Form.Item name="isPublic" valuePropName="checked">
+                        <Checkbox disabled>Public</Checkbox>
+                    </Form.Item>
 
-        <Button style={{ marginLeft: "10px" }} onClick={() => router.push(`/decks/${deckId}/flashcards`)}>
-          Cancel
-          </Button>
-      </Form>
-    </Card>
-    </div>
-  );
+                    <Button type="primary" htmlType="submit">
+                        Save Flashcard
+                    </Button>
+
+                    <Button style={{ marginLeft: "10px" }} onClick={() => router.push(`/decks/${deckId}/flashcards`)}>
+                        Cancel
+                    </Button>
+                </Form>
+            </Card>
+        </div>
+    );
+
 };
 
 export default AddFlashcardPage;

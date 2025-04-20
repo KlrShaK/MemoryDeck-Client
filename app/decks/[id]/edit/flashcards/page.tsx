@@ -31,22 +31,17 @@ const FlashcardsPage: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const checkLogged = async () => {
-      const token = localStorage.getItem("token");
-      if (!token || token === "null") {
-        router.push("/login");
-      }
-    };
-
-    checkLogged();
-    const interval = setInterval(checkLogged, 5000);
-    return () => clearInterval(interval);
-  }, [router]);
+    // Check if userId is valid
+    useEffect(() => {
+        const userId = localStorage.getItem("userId")?.replace(/"/g, "");
+        if (!userId || isNaN(Number(userId)) || Number(userId) <= 0) {
+            router.push("/login");
+        }
+    }, [router]);
 
 
 
-  useEffect(() => {
+    useEffect(() => {
     const fetchCards = async () => {
         try {
           const fetchedFlashcards = await apiService.get<Flashcard[]>(`/decks/${deckId}/flashcards`);

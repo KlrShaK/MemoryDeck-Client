@@ -13,6 +13,8 @@ const Login: React.FC = () => {
   const apiService = useApi();
   const [form] = Form.useForm();
   const { set: setToken } = useLocalStorage<string>("token", "");
+  const { set: setUserId } = useLocalStorage<string>("userId", "");
+
 
   const handleLogin = async (values: { username: string; password: string }) => {
     try {
@@ -20,11 +22,13 @@ const Login: React.FC = () => {
         username: values.username,
         password: values.password,
       });
+      console.log("🧠 FULL LOGIN RESPONSE:", response);
 
       if (response.token) {
         setToken(response.token);
         router.push("/decks"); // redirect to user dashboard or main page
       }
+      setUserId(String(response.id));
     } catch (error) {
       form.setFields([
         {

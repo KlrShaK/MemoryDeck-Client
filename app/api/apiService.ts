@@ -36,21 +36,16 @@ export class ApiService {
           errorDetail = JSON.stringify(errorInfo);
         }
       } catch {
-        // If parsing fails, keep using res.statusText
+        // fallback to statusText
       }
       const detailedMessage = `${errorMessage} (${res.status}: ${errorDetail})`;
-      const error: ApplicationError = new Error(
-          detailedMessage,
-      ) as ApplicationError;
-      error.info = JSON.stringify(
-          { status: res.status, statusText: res.statusText },
-          null,
-          2,
-      );
+      const error: ApplicationError = new Error(detailedMessage) as ApplicationError;
+      error.info = JSON.stringify({ status: res.status, statusText: res.statusText }, null, 2);
+
       error.status = res.status;
+      error.response = { status: res.status };
       throw error;
     }
-    // return res.json() as Promise<T>;
     return res.headers.get("Content-Type")?.includes("application/json")
         ? res.json() as Promise<T>
         : Promise.resolve(res as T);
