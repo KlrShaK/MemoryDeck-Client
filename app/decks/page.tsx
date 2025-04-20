@@ -133,7 +133,6 @@ const DeckPage = () => {
                     <Button
                         type="primary"
                         onClick={handleCreateClick}
-                        onClick={handleCreateClick}
                         style={{
                             width: "100%",
                             marginBottom: "20px",
@@ -242,7 +241,6 @@ const DeckPage = () => {
                     ) : Object.keys(decks).length > 0 ? (
                         // We have some decks
                         <Row gutter={[16, 16]}>
-                            {Object.entries(decks).map(([deckIdStr, { title }]) => {
                             {Object.entries(decks).map(([deckIdStr, { title }]) => {
                                 const deckId = parseInt(deckIdStr);
                                 return (
