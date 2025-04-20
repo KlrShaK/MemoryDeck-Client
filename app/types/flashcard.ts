@@ -1,5 +1,3 @@
-import { Deck } from "./deck";
-
 export interface Flashcard {
     id: string;
     description: string | null;
@@ -7,7 +5,11 @@ export interface Flashcard {
     answer: string;
     wrongAnswers: string[];
     imageUrl: string | null;
-    isPublic: boolean ;
+    isPublic: boolean;
     flashcardCategory: string;
-    deck: Deck;
+    deck: {
+        id: string;
+        title: string | null;
+    }; 
 }
+

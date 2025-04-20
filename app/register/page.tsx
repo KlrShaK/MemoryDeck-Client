@@ -12,7 +12,9 @@ const Register: React.FC = () => {
     const [form] = Form.useForm();
     const apiService = useApi();
     const router = useRouter();
+
     const { set: setToken } = useLocalStorage<string>("token", "");
+    const { set: setUserId } = useLocalStorage<string>("userId", ""); // ✅ KEEP THIS ONE
 
     const handleRegister = async (values: { username: string; name: string; password: string }) => {
         try {
@@ -22,8 +24,12 @@ const Register: React.FC = () => {
                 password: values.password,
             });
 
-            if (response.token) {
+            // ❌ REMOVE this line:
+            // const { set: setUserId } = useLocalStorage<string>("userId", "");
+
+            if (response.token && response.id) {
                 setToken(response.token);
+                setUserId(String(response.id)); // ✅ works because it's from the top level
                 router.push("/decks");
             }
         } catch {
@@ -35,6 +41,7 @@ const Register: React.FC = () => {
             ]);
         }
     };
+
 
     return (
         <div className="register-container" style={{ maxWidth: 400, margin: "0 auto", paddingTop: 64 }}>
