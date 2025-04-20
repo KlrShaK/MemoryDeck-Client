@@ -1,3 +1,5 @@
+//actual quiz play page with questions
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -6,6 +8,8 @@ import { useTimer } from "@/hooks/useTimer";
 import ProgressBar from "@/components/ProgressBar";
 import ScorePanel from "@/components/ScorePanel";
 import OpponentProgress from "@/components/OpponentProgress";
+import { useRouter } from "next/navigation";
+
 
 const mockQuiz = {
     quizId: 999,
@@ -44,7 +48,7 @@ const QuizPlayPage: React.FC = () => {
     const [userScore, setUserScore] = useState(0);
     const [answers, setAnswers] = useState<string[]>([]);
     const [isFinished, setIsFinished] = useState(false);
-
+    const router = useRouter();
     const currentFlashcard = mockQuiz.flashcards[currentIndex];
 
     const handleAnswer = (answer: string) => {
@@ -114,10 +118,18 @@ const QuizPlayPage: React.FC = () => {
                 </>
             ) : (
                 <div>
-                    <h3>You’ve completed the quiz!</h3>
-                    <p>Your score: {userScore} / {mockQuiz.flashcards.length}</p>
-                    <Button onClick={() => window.location.reload()}>Play Again</Button>
+                <h3>You’ve completed the quiz!</h3>
+                <p>Your score: {userScore} / {mockQuiz.flashcards.length}</p>
+                <Space style={{ marginTop: 20 }}>
+                    <Button type="primary" onClick={() => window.location.reload()}>
+                        Rematch
+                    </Button>
+                    <Button onClick={() => router.push("/decks")}>
+                        Return Home
+                    </Button>
+                </Space>
                 </div>
+
             )}
         </div>
     );

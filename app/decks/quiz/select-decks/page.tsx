@@ -1,3 +1,4 @@
+//View all available decks and select one of those decks to start a quiz.
 "use client";
 
 import React, { useEffect, useState } from 'react';

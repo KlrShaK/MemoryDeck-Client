@@ -1,3 +1,4 @@
+//"Quiz Invitation" to let a logged-in user invite another user to start a quiz
 "use client";
 
 import React, { useState, useEffect } from 'react';
