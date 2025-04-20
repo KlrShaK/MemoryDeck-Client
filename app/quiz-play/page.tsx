@@ -3,13 +3,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Space } from "antd";
+import { Button, Space, Card } from "antd";
 import { useTimer } from "@/hooks/useTimer";
 import ProgressBar from "@/components/ProgressBar";
 import ScorePanel from "@/components/ScorePanel";
 import OpponentProgress from "@/components/OpponentProgress";
 import { useRouter } from "next/navigation";
-
 
 const mockQuiz = {
     quizId: 999,
@@ -77,8 +76,69 @@ const QuizPlayPage: React.FC = () => {
         start();
     }, []);
 
+    const renderResults = () => {
+        return (
+            <div>
+                <h3>You’ve completed the quiz!</h3>
+                <p style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
+                    Your score: {userScore} / {mockQuiz.flashcards.length}
+                </p>
+                <p style={{ fontSize: "1.3rem", color: "#555" }}>
+                    Performance Summary: {((userScore / mockQuiz.flashcards.length) * 100).toFixed(2)}%
+                </p>
+    
+                <div style={{ marginTop: 30 }}>
+                    <h4 style={{ marginBottom: 16, color:"#005c4b" }}>Answered Flashcards:</h4>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                        {mockQuiz.flashcards.map((flashcard, index) => {
+                            const answer = answers[index];
+                            const isCorrect = flashcard.correctAnswer === answer;
+    
+                            return (
+                                <div
+                                    key={flashcard.id}
+                                    style={{
+                                        backgroundColor: "white",
+                                        color: "black",
+                                        borderRadius: "12px",
+                                        padding: "20px",
+                                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                                        textAlign: "left",
+                                    }}
+                                >
+                                    <h3 style={{ color: "#005c4b", marginBottom: 8 }}>{flashcard.question}</h3>
+                                    <p><strong>Your answer:</strong> {answer}</p>
+                                    <p>
+                                        {isCorrect ? (
+                                            <span style={{ color: "green", fontWeight: "bold" }}>Correct</span>
+                                        ) : (
+                                            <>
+                                                <span style={{ color: "red", fontWeight: "bold" }}>Incorrect</span><br />
+                                                <strong>Correct answer:</strong> {flashcard.correctAnswer}
+                                            </>
+                                        )}
+                                    </p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+    
+                <Space style={{ marginTop: 30 }}>
+                    <Button type="primary" onClick={() => window.location.reload()}>
+                        Rematch
+                    </Button>
+                    <Button onClick={() => router.push("/decks")}>
+                        Return Home
+                    </Button>
+                </Space>
+            </div>
+        );
+    };
+    
+
     return (
-        <div style={{ maxWidth: 600, margin: "60px auto", padding: 20, textAlign: "center" }}>
+        <div style={{ maxWidth: 600, margin: "100px auto", padding: 20, textAlign: "center" }}>
             <h2>Quiz Play</h2>
 
             {!isFinished && currentFlashcard ? (
@@ -117,22 +177,11 @@ const QuizPlayPage: React.FC = () => {
                     </Button>
                 </>
             ) : (
-                <div>
-                <h3>You’ve completed the quiz!</h3>
-                <p>Your score: {userScore} / {mockQuiz.flashcards.length}</p>
-                <Space style={{ marginTop: 20 }}>
-                    <Button type="primary" onClick={() => window.location.reload()}>
-                        Rematch
-                    </Button>
-                    <Button onClick={() => router.push("/decks")}>
-                        Return Home
-                    </Button>
-                </Space>
-                </div>
-
+                renderResults()
             )}
         </div>
     );
 };
 
 export default QuizPlayPage;
+
