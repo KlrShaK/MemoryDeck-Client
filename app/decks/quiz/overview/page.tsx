@@ -1,255 +1,304 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Input, Button, message } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { SearchOutlined } from '@ant-design/icons';
-import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
-import { User } from "@/types/user";
+import { List, Avatar, Button, Input, message, Card, Spin, Modal } from 'antd';
+import { UserOutlined, SearchOutlined, UserSwitchOutlined, LoadingOutlined } from '@ant-design/icons';
+import { useApi } from '@/hooks/useApi';
+import useLocalStorage from '@/hooks/useLocalStorage';
+import { User } from '@/types/user';
 
-interface UserWithStatus extends User {
-  status: string;
-}
+const { Search } = Input;
 
-// Sample users for testing
-const sampleUsers: UserWithStatus[] = [
-  { id: "1", username: "Alice", name: "Alice Smith", status: "ONLINE", token: null },
-  { id: "2", username: "Bob", name: "Bob Johnson", status: "ONLINE", token: null },
-  { id: "3", username: "Charlie", name: "Charlie Brown", status: "OFFLINE", token: null },
-  { id: "4", username: "David", name: "David Miller", status: "ONLINE", token: null },
-  { id: "5", username: "Eva", name: "Eva Wilson", status: "ONLINE", token: null },
-  { id: "6", username: "Frank", name: "Frank Thomas", status: "OFFLINE", token: null },
-  { id: "7", username: "Grace", name: "Grace Lee", status: "ONLINE", token: null },
-  { id: "8", username: "Hannah", name: "Hannah Garcia", status: "OFFLINE", token: null },
-  { id: "9", username: "Ian", name: "Ian Roberts", status: "ONLINE", token: null },
-  { id: "10", username: "Julia", name: "Julia Chen", status: "ONLINE", token: null },
-];
-
-const QuizInvitePage: React.FC = () => {
+const UserInvitationPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const [searchText, setSearchText] = useState<string>('');
-  const [users, setUsers] = useState<UserWithStatus[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const { value: userId } = useLocalStorage<string>("user_id", "");
+  const { value: currentUserId } = useLocalStorage<string>('user_id', '');
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [timeLimit, setTimeLimit] = useState(30); // Default time limit in seconds
+  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
+  const [invitationModalVisible, setInvitationModalVisible] = useState(false);
+  const [sendingInvitation, setSendingInvitation] = useState(false);
+  const [waitingModalVisible, setWaitingModalVisible] = useState(false);
+  const [invitationSent, setInvitationSent] = useState(false);
+  
+  // Sample users for testing
+  const sampleUsers = [
+    { id: "1", username: "johndoe", name: "John Doe", status: "ONLINE", token: "sample-token-1"},
+    { id: "2", username: "janedoe", name: "Jane Doe", status: "ONLINE", token: "sample-token-2"},
+    { id: "3", username: "mikebrown", name: "Mike Brown", status: "OFFLINE", token: "sample-token-3"},
+    { id: "4", username: "sarahsmith", name: "Sarah Smith", status: "ONLINE", token: "sample-token-4"},
+    { id: "5", username: "alexwilson", name: "Alex Wilson", status: "OFFLINE", token: "sample-token-5"}
+  ];
 
-  // Fetch users from API or use sample data
   useEffect(() => {
+    // Retrieve the selected deck ID from localStorage
+    const deckId = localStorage.getItem('selected_quiz_deck_id');
+    if (!deckId) {
+      message.error('No deck selected. Please select a deck first.');
+      router.push('/decks/select-decks');
+      return;
+    }
+    
+    setSelectedDeckId(deckId);
+
     const fetchUsers = async () => {
+      /*
+      if (!currentUserId) {
+        message.error("You must be logged in to access this page");
+        router.push("/login");
+        return;
+      }
+      */
       try {
-        // Try to fetch users from API
-        const fetchedUsers = await apiService.get<User[]>('/users');
-        const usersWithStatus = fetchedUsers.map(user => ({
-          ...user,
-          status: user.status || 'OFFLINE'
-        }));
-        setUsers(usersWithStatus);
+        // Try to fetch from API first
+        // const response = await apiService.get<User[]>('/users');
+        
+        // Use sample data for now
+        // const filteredResponse = response.filter(user => user.id !== currentUserId);
+        const filteredResponse = sampleUsers.filter(user => user.id !== currentUserId);
+        
+        setUsers(filteredResponse);
+        setFilteredUsers(filteredResponse);
       } catch (error) {
-        console.error('Failed to fetch users from API, using sample data:', error);
-        // Use sample data if API call fails
-        setUsers(sampleUsers);
-        message.info('Using sample user data for testing');
+        console.error('Failed to fetch users:', error);
+        message.error('Failed to load users.');
+        
+        // Fallback to sample data if API call fails
+        const filteredSampleUsers = sampleUsers.filter(user => user.id !== currentUserId);
+        setUsers(filteredSampleUsers);
+        setFilteredUsers(filteredSampleUsers);
       } finally {
         setLoading(false);
       }
     };
 
     fetchUsers();
-  }, [apiService]);
+  }, [currentUserId, apiService, router]);
 
-  const handleSendInvite = async () => {
-    if (!selectedUser) return;
-    
-    try {
-      setLoading(true);
-      // Get the user ID of the selected user
-      const selectedUserObject = users.find(user => user.username === selectedUser);
-      
-      if (!selectedUserObject || !selectedUserObject.id) {
-        message.error('Selected user not found');
-        return;
-      }
-
-      // API call
-      await apiService.post('/invitations', {
-        fromUserId: userId,
-        toUserId: selectedUserObject.id,
-        timeLimit: 60, // Default time limit in seconds
-        isAccepted: false
-      });
-      
-      message.success(`Invitation sent to ${selectedUser}!`);
-      router.push('/decks');
-    } catch (error) {
-      console.error('Error sending invitation:', error);
-      message.error('Failed to send invitation. Please try again.');
-    } finally {
-      setLoading(false);
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    if (!value.trim()) {
+      setFilteredUsers(users);
+      return;
     }
-  };
 
-  const handleChooseRandom = () => {
-    const onlineUsers = users.filter(user => 
-      user.status === 'ONLINE' && user.id?.toString() !== userId
+    const filtered = users.filter(user => 
+      user.username?.toLowerCase().includes(value.toLowerCase()) ||
+      user.name?.toLowerCase().includes(value.toLowerCase())
     );
+    setFilteredUsers(filtered);
+  };
+
+  const handleSelectUser = (user: User) => {
+    setSelectedUser(user);
+    setInvitationModalVisible(true);
+  };
+
+  const handleRandomUser = () => {
+    if (users.length === 0) return;
     
-    if (onlineUsers.length > 0) {
-      const randomIndex = Math.floor(Math.random() * onlineUsers.length);
-      const randomUser = onlineUsers[randomIndex];
-      setSelectedUser(randomUser.username || null);
-    } else {
-      message.info('No other online users available');
+    const onlineUsers = users.filter(user => user.status === "ONLINE");
+    const availableUsers = onlineUsers.length > 0 ? onlineUsers : users;
+    
+    const randomIndex = Math.floor(Math.random() * availableUsers.length);
+    const randomUser = availableUsers[randomIndex];
+    setSelectedUser(randomUser);
+    setInvitationModalVisible(true);
+  };
+
+  const handleSendInvitation = async () => {
+    if (!selectedUser || !selectedDeckId || !currentUserId) {
+      message.error('Missing required information');
+      return;
+    }
+
+    setSendingInvitation(true);
+    try {
+      // In a real app, this would call your API
+      // await apiService.post('/quiz/invite', {
+      //   fromUserId: currentUserId,
+      //   toUserId: selectedUser.id,
+      //   flashcardIds: [selectedDeckId],
+      //   timeLimit: timeLimit
+      // });
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      message.success(`Invitation sent to ${selectedUser.username}`);
+      setInvitationModalVisible(false);
+      
+      // Mark invitation as sent and show waiting screen
+      setInvitationSent(true);
+      setWaitingModalVisible(true);
+      
+      // For demo, after 10 seconds, simulate acceptance and redirect to quiz
+      setTimeout(() => {
+        setWaitingModalVisible(false);
+        const quizId = "demo123"; // This would come from your API
+        router.push(`/decks/quiz/${quizId}`);
+      }, 10000); // 10 seconds
+    } catch (error) {
+      console.error('Failed to send invitation:', error);
+      message.error('Failed to send invitation.');
+    } finally {
+      setSendingInvitation(false);
     }
   };
 
-  const handleExit = () => {
+  const handleCancelWaiting = () => {
+    // In a real app, you would cancel the invitation via API
+    // apiService.delete(`/quiz/invitations/${invitationId}`);
+    
+    setWaitingModalVisible(false);
     router.push('/decks');
   };
 
-  const filteredUsers = users.filter(user => 
-    user.id?.toString() !== userId &&
-    (user.username?.toLowerCase() || "").includes(searchText.toLowerCase())
-  );
+  const handleCancel = () => {
+    router.push('/decks');
+  };
 
   return (
-    <div style={{ 
-      backgroundColor: '#ccf0cc', 
-      minHeight: '100vh', 
-      padding: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center' 
-    }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '20px', color: '#333' }}>
-        Start a Quiz
-      </h1>
-
-      <div style={{ position: 'absolute', top: '20px', left: '20px' }}>
-        <Button 
-          onClick={handleExit}
-          style={{ 
-            backgroundColor: '#285c28',
-            borderColor: '#285c28',
-            color: 'white',
-            borderRadius: '4px'
-          }}
-        >
-          Exit
-        </Button>
-      </div>
-
-      <div style={{ 
-        backgroundColor: 'white', 
-        borderRadius: '8px', 
-        padding: '20px',
-        width: '80%',
-        maxWidth: '800px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        overflow: 'hidden'
-      }}>
-        <Input
-          placeholder="Search by username..."
-          prefix={<SearchOutlined />}
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          style={{ 
-            marginBottom: '20px',
-            color: 'black',
-            background: '#f5f5f5', 
-            borderRadius: '20px',
-            padding: '10px 15px',
-            border: 'none'
-          }}
-        />
-
-        <div style={{ background: '#1f1f1f', borderRadius: '8px', overflow: 'hidden' }}>
-          {/* Header */}
-          <div style={{ 
-            display: 'flex', 
-            padding: '12px 20px',
-            borderBottom: '1px solid #333',
-            fontWeight: 'bold',
-            color: 'white'
-          }}>
-            <div style={{ flex: 1 }}>Username</div>
-            <div style={{ width: '100px', textAlign: 'right' }}>Status</div>
+    <div style={{ backgroundColor: '#ccf0cc', minHeight: '100vh', padding: '20px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <h2 style={{ marginBottom: '20px', color: '#333' }}>Select a Player for Quiz</h2>
+        
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
+            <Spin size="large" />
           </div>
-
-          {/* User List */}
-          {loading ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: 'white' }}>Loading users...</div>
-          ) : filteredUsers.length === 0 ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: 'white' }}>No users found</div>
-          ) : (
-            filteredUsers.map(user => (
-              <div 
-                key={user.id}
-                onClick={() => setSelectedUser(user.username || null)}
-                style={{ 
-                  display: 'flex', 
-                  padding: '16px 20px',
-                  borderBottom: '1px solid #333',
-                  cursor: 'pointer',
-                  color: 'white',
-                  backgroundColor: selectedUser === user.username ? '#2a4d2a' : 'transparent',
-                  transition: 'background-color 0.2s'
+        ) : (
+          <Card>
+            <div style={{ marginBottom: '20px' }}>
+              <Search
+                placeholder="Search by username or name"
+                prefix={<SearchOutlined />}
+                style={{ width: '100%' }}
+                onChange={e => handleSearch(e.target.value)}
+                value={searchQuery}
+              />
+            </div>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <Button 
+                icon={<UserSwitchOutlined />} 
+                onClick={handleRandomUser}
+                type="primary"
+                style={{
+                  backgroundColor: '#285c28',
+                  borderColor: '#285c28',
                 }}
+                disabled={users.length === 0}
               >
-                <div style={{ flex: 1 }}>{user.username}</div>
-                <div 
+                Choose Random Player
+              </Button>
+            </div>
+            
+            <List
+              itemLayout="horizontal"
+              dataSource={filteredUsers}
+              locale={{ emptyText: 'No users found' }}
+              renderItem={user => (
+                <List.Item
+                  actions={[
+                    <Button 
+                      key="invite" 
+                      onClick={() => handleSelectUser(user)}
+                      disabled={user.status === "OFFLINE"}
+                    >
+                      Invite
+                    </Button>,
+                  ]}
                   style={{ 
-                    width: '100px', 
-                    textAlign: 'right',
-                    color: user.status === 'ONLINE' ? '#4CAF50' : '#9e9e9e'
+                    cursor: user.status === "OFFLINE" ? 'default' : 'pointer',
+                    opacity: user.status === "OFFLINE" ? 0.7 : 1
+                  }}
+                  onClick={() => {
+                    if (user.status !== "OFFLINE") {
+                      handleSelectUser(user);
+                    }
                   }}
                 >
-                  {user.status === 'ONLINE' ? 'Online' : 'Offline'}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center',
-        marginTop: '20px',
-        gap: '20px'
-      }}>
-        <Button 
-          onClick={handleSendInvite}
-          disabled={!selectedUser || loading}
-          style={{ 
-            backgroundColor: '#285c28',
-            borderColor: '#285c28',
-            color: 'white',
-            padding: '0 30px',
-            height: '40px',
-            borderRadius: '4px'
+                  <List.Item.Meta
+                    avatar={<Avatar icon={<UserOutlined />} />}
+                    title={
+                      <span>
+                        {user.username || 'Unknown'} 
+                        {user.status === "OFFLINE" && <span style={{ color: 'gray', marginLeft: '10px' }}>(Offline)</span>}
+                      </span>
+                    }
+                    description={user.name || 'No name provided'}
+                  />
+                  <div>{user.status === 'ONLINE' ? 
+                    <span style={{ color: 'green' }}>Online</span> : 
+                    <span style={{ color: 'gray' }}>Offline</span>}
+                  </div>
+                </List.Item>
+              )}
+            />
+            
+            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+              <Button onClick={handleCancel}>
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        )}
+        
+        {/* Invitation Confirmation Modal */}
+        <Modal
+          title="Send Quiz Invitation"
+          open={invitationModalVisible}
+          onOk={handleSendInvitation}
+          onCancel={() => setInvitationModalVisible(false)}
+          okText="Send Invitation"
+          confirmLoading={sendingInvitation}
+          okButtonProps={{ 
+            style: { backgroundColor: '#285c28', borderColor: '#285c28' }
           }}
         >
-          Send Quiz invitation
-        </Button>
-        <Button 
-          onClick={handleChooseRandom}
-          disabled={loading}
-          style={{ 
-            backgroundColor: 'white',
-            borderColor: '#285c28',
-            color: '#285c28',
-            padding: '0 30px',
-            height: '40px',
-            borderRadius: '4px'
-          }}
+          <p>Send a quiz invitation to {selectedUser?.username}?</p>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Time limit per question (seconds):
+            </label>
+            <Input
+              type="number"
+              value={timeLimit}
+              onChange={e => setTimeLimit(Number(e.target.value))}
+              min={10}
+              max={120}
+            />
+          </div>
+        </Modal>
+        
+        {/* Waiting for Response Modal */}
+        <Modal
+          title="Waiting for Response"
+          open={waitingModalVisible}
+          footer={[
+            <Button key="cancel" onClick={handleCancelWaiting}>
+              Cancel Invitation
+            </Button>
+          ]}
+          closable={false}
+          centered
         >
-          Choose Random
-        </Button>
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+            <p style={{ marginTop: '15px' }}>
+              Waiting for {selectedUser?.username} to accept your invitation...
+            </p>
+          </div>
+        </Modal>
       </div>
     </div>
   );
 };
 
-export default QuizInvitePage;
+export default UserInvitationPage;
