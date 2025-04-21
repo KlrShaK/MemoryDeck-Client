@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConfigProvider, theme, App as AntdApp } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import InvitationProvider from "./components/InvitationProvider";
+import NotificationProvider from '@/components/NotificationProvider';
 import "@/styles/globals.css";
 
 const geistSans = Geist({
@@ -59,7 +59,9 @@ export default function RootLayout({
       >
         <AntdRegistry>
           <AntdApp>
-            {children}
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
           </AntdApp>
         </AntdRegistry>
       </ConfigProvider>
