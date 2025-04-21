@@ -8,8 +8,11 @@ export interface Deck {
     title: string | null;
     flashcards: Flashcard[] | null; 
     deckCategory: string;
-    isPublic: boolean ;
+    isPublic: boolean;
     user: User;
     //quiz: Quiz;
     //invitation: Invitation | null;
 }
+
+
+

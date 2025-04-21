@@ -21,6 +21,8 @@ const AddDeckPage: React.FC = () => {
     const [form] = Form.useForm();
     const [isAiEnabled, setIsAiEnabled] = useState(false);
     const router = useRouter();
+    const [isAiEnabled, setIsAiEnabled] = useState(false);
+    const router = useRouter();
     const apiService = useApi();
 
     const { value: user_id } = useLocalStorage<string>("user_id", "");
@@ -51,6 +53,11 @@ const AddDeckPage: React.FC = () => {
             await apiService.post(`/decks/addDeck?userId=${userIdAsNumber}`, deckDTO);
             message.success("Deck added successfully!");
             router.push("/decks");
+        } catch (error) {
+            console.error("Error adding deck:", error);
+            message.error("Failed to add deck.");
+        }
+    };
         } catch (error) {
             console.error("Error adding deck:", error);
             message.error("Failed to add deck.");
@@ -163,6 +170,7 @@ const AddDeckPage: React.FC = () => {
                         Cancel
                     </Button>
                 </Form>
+            </Card>
             </Card>
         </div>
     );

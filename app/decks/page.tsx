@@ -1,12 +1,16 @@
-'use client';
+//decks home page
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button, Card, Row, Col, Avatar, Dropdown, Spin, message } from 'antd';
-import { EllipsisOutlined, UserOutlined } from '@ant-design/icons';
-import { useApi } from '@/hooks/useApi';
-import useLocalStorage from '@/hooks/useLocalStorage';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button, Card, Row, Col, Avatar, Dropdown, Spin, message } from "antd";
+import { EllipsisOutlined, UserOutlined } from "@ant-design/icons";
+import { useApi } from "@/hooks/useApi";
+import { Deck } from "@/types/deck";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
+// CHANGED: We store decks as null initially to indicate "not loaded yet"
+type GroupedDecks = Record<string, { title: string; flashcards: Flashcard[] }>;
 interface Flashcard {
     id: number;
     question: string;
@@ -17,63 +21,98 @@ interface Flashcard {
     deckTitle: string;
 }
 
-type GroupedDecks = Record<number, { title: string; flashcards: Flashcard[] }>;
-
 const DeckPage = () => {
     const router = useRouter();
     const apiService = useApi();
-    const { value: userId } = useLocalStorage<string>('userId', '');
-    const [decks, setDecks] = useState<GroupedDecks>({});
+    const { value: userId } = useLocalStorage<string>("userId", "");
+    // CHANGED: start as null, not {}
+    const [decks, setDecks] = useState<GroupedDecks | null>(null);
+
+    // We'll keep the loading if we want to differentiate "fetch in progress" from "no userId"
     const [loading, setLoading] = useState(true);
 
     const fetchGroupedDecks = async () => {
-        if (!userId) return;
-
+        if (!userId) return; // no user ID? just exit.
+    
         try {
-            const response = await apiService.get<Flashcard[]>(`/flashcards?userId=${userId}`);
-
+            // fetch all decks
+            const deckList = await apiService.get<Deck[]>(`/decks?userId=${userId}`);
+    
             const grouped: GroupedDecks = {};
-            response.forEach(card => {
-                const deckId = card.deckId;
-                if (!grouped[deckId]) {
-                    grouped[deckId] = { title: card.deckTitle, flashcards: [] };
-                }
-                grouped[deckId].flashcards.push(card);
-            });
-
+            for (const deck of deckList) {
+                grouped[String(deck.id)] = {
+                    title: deck.title ?? "Untitled",
+                    flashcards: [],
+                };
+    
+                // Now, fetch flashcards for each deck
+                const flashcards = await apiService
+                    .get<Flashcard[]>(`/decks/${deck.id}/flashcards`)
+                    .catch((err) => {
+                        if (err instanceof Error && err.message.includes("404")) {
+                            console.warn("Flashcards not found for deck:", deck.id);
+                            return [];
+                        }
+                        throw err;
+                    });
+    
+                // Add the fetched flashcards to the grouped deck
+                grouped[String(deck.id)].flashcards = flashcards;
+            }
+    
             setDecks(grouped);
         } catch (error) {
-            console.error('Failed to fetch flashcards:', error);
-            message.error('Failed to load decks.');
+            console.error("Failed to fetch decks or flashcards:", error);
+            message.error("Failed to load decks.");
+            // If there's a fatal error, at least set an empty object so we don't remain null
+            setDecks({});
         } finally {
             setLoading(false);
         }
     };
+    
 
+    useEffect(() => {
+        if (userId) {
+            fetchGroupedDecks();
+        } else {
+            setLoading(false);
+        }
+    }, [userId]);
+
+    // Deck actions
     const handleDeckClick = (deckId: number) => {
-        router.push(`/decks/quiz/${deckId}`);
+        router.push(`/decks/${deckId}/edit/flashcards`);
     };
 
     const handleEditDeck = (deckId: number) => {
-        router.push(`/decks/edit/${deckId}`);
+        router.push(`/decks/${deckId}/edit`);
     };
 
     const handleDeleteDeck = async (deckId: number) => {
         try {
-            await apiService.delete(`/flashcards/delete?userId=${userId}&deckId=${deckId}`);
+            await apiService.delete(`/decks/${deckId}`);
             message.success(`Deleted deck #${deckId}`);
-            fetchGroupedDecks(); // Refresh
+            fetchGroupedDecks();
         } catch (err) {
             console.error(err);
             message.error("Failed to delete deck.");
         }
     };
 
-    const handleCreateClick = () => router.push('/decks/create');
+    const handleCreateClick = () => {
+        console.log("Create Deck button clicked");
+        router.push('/decks/create');
+      };
     const handlePerformanceClick = () => console.log("Performance button clicked");
     const handleSetReminderClick = () => console.log("Set Reminder button clicked");
-    const handleQuizClick = () => console.log("Quiz button clicked");
-    const handleVersusClick = () => console.log("Versus Mode button clicked");
+    const handleQuizClick = () => {
+        console.log("Quiz button clicked");
+        //router.push('/quiz-play');
+    }
+    const handleVersusClick = () => {
+        console.log("Versus Mode button clicked");
+        router.push('/quiz-play');}
     const handleTutorialClick = () => console.log("Tutorial button clicked");
     const handleProfileClick = () => console.log("Profile button clicked");
 
@@ -86,9 +125,9 @@ const DeckPage = () => {
     }, [userId]);
 
     return (
-        <div style={{ backgroundColor: '#ccf0cc', minHeight: '100vh', padding: '0' }}>
+        <div style={{ backgroundColor: "#ccf0cc", minHeight: "100vh", padding: "0" }}>
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 24px' }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", padding: "16px 24px" }}>
                 <Avatar
                     size={40}
                     icon={<UserOutlined />}
@@ -97,20 +136,20 @@ const DeckPage = () => {
                 />
             </div>
 
-            <div style={{ display: 'flex', padding: '0 20px' }}>
+            <div style={{ display: "flex", padding: "0 20px" }}>
                 {/* Sidebar */}
-                <div style={{ width: '200px', marginRight: '20px' }}>
+                <div style={{ width: "200px", marginRight: "20px" }}>
                     <Button
                         type="primary"
                         onClick={handleCreateClick}
                         style={{
-                            width: '100%',
-                            marginBottom: '20px',
-                            height: '48px',
-                            backgroundColor: '#285c28',
-                            borderColor: '#285c28',
-                            borderRadius: '24px',
-                            fontWeight: 'bold',
+                            width: "100%",
+                            marginBottom: "20px",
+                            height: "48px",
+                            backgroundColor: "#285c28",
+                            borderColor: "#285c28",
+                            borderRadius: "24px",
+                            fontWeight: "bold",
                         }}
                     >
                         Create
@@ -200,17 +239,16 @@ const DeckPage = () => {
 
                 {/* Main Content */}
                 <div style={{ flex: 1 }}>
-                    <h2 style={{ marginBottom: '20px', color: '#333' }}>Your Decks</h2>
+                    <h2 style={{ marginBottom: "20px", color: "#333" }}>Your Decks</h2>
 
-                    {loading ? (
-                        <div style={{ textAlign: 'center', padding: '40px' }}>
+                    {/* CHANGED: We check if decks === null FIRST => means still loading */}
+                    {decks === null ? (
+                        <div style={{ textAlign: "center", padding: "40px" }}>
                             <Spin size="large" />
+                            <p style={{ marginTop: "16px", fontSize: "16px", color: "#555" }}>Loading decks...</p>
                         </div>
-                    ) : Object.keys(decks).length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '160px', color: '#ff0000', fontWeight: 700 }}>
-                            You have no saved decks yet. To get started, please create decks from the menu.
-                        </div>
-                    ) : (
+                    ) : Object.keys(decks).length > 0 ? (
+                        // We have some decks
                         <Row gutter={[16, 16]}>
                             {Object.entries(decks).map(([deckIdStr, { title }]) => {
                                 const deckId = parseInt(deckIdStr);
@@ -218,34 +256,41 @@ const DeckPage = () => {
                                     <Col xs={24} sm={12} md={8} key={deckId}>
                                         <Card
                                             style={{
-                                                height: '150px',
-                                                borderRadius: '12px',
-                                                cursor: 'pointer',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                                                height: "150px",
+                                                borderRadius: "12px",
+                                                cursor: "pointer",
+                                                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                                             }}
                                             onClick={() => handleDeckClick(deckId)}
                                         >
-                                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                                                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{title}</div>
-                                                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    justifyContent: "space-between",
+                                                    height: "100%",
+                                                }}
+                                            >
+                                                <div style={{ fontWeight: "bold", fontSize: "16px" }}>{title}</div>
+                                                <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-end" }}>
                                                     <Dropdown
                                                         menu={{
                                                             items: [
-                                                                { key: 'edit', label: 'Edit' },
-                                                                { key: 'delete', label: 'Delete' },
+                                                                { key: "edit", label: "Edit" },
+                                                                { key: "delete", label: "Delete" },
                                                             ],
                                                             onClick: (e) => {
                                                                 e.domEvent.stopPropagation();
-                                                                if (e.key === 'edit') handleEditDeck(deckId);
-                                                                else if (e.key === 'delete') handleDeleteDeck(deckId);
+                                                                if (e.key === "edit") handleEditDeck(deckId);
+                                                                else if (e.key === "delete") handleDeleteDeck(deckId);
                                                             },
                                                         }}
-                                                        trigger={['click']}
+                                                        trigger={["click"]}
                                                         placement="bottomRight"
                                                     >
                                                         <Button
                                                             type="text"
-                                                            icon={<EllipsisOutlined style={{ fontSize: '20px', color: '#aaa' }} />}
+                                                            icon={<EllipsisOutlined style={{ fontSize: "20px", color: "#aaa" }} />}
                                                             onClick={(e) => e.stopPropagation()}
                                                         />
                                                     </Dropdown>
@@ -256,6 +301,11 @@ const DeckPage = () => {
                                 );
                             })}
                         </Row>
+                    ) : (
+                        // deck object is empty => "no decks"
+                        <div style={{ textAlign: "center", padding: "160px", color: "#ff0000", fontWeight: 700 }}>
+                            You have no saved decks yet. To get started, please create decks from the menu.
+                        </div>
                     )}
                 </div>
             </div>

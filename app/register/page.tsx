@@ -12,43 +12,36 @@ const Register: React.FC = () => {
     const [form] = Form.useForm();
     const apiService = useApi();
     const router = useRouter();
-    const { set: setToken } = useLocalStorage<string>("token", "");
 
-    // In your register component
-const handleRegister = async (values: { username: string; name: string; password: string }) => {
-    try {
-      // For testing without backend
-      console.log("Registration values:", values);
-      
-      // Instead of API call, use localStorage to simulate registration
-      const user = {
-        id: Math.random().toString(36).substring(2, 9), // Generate random ID
-        username: values.username,
-        name: values.name,
-        token: "test-token-" + Math.random().toString(36).substring(2, 9),
-        status: "ONLINE"
-      };
-      
-      // Store user in localStorage
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", user.token);
-      localStorage.setItem("user_id", user.id);
-      
-      // Show success message
-      
-      
-      // Redirect to decks page
-      router.push("/decks");
-    } catch (error) {
-      console.error("Registration error:", error);
-      form.setFields([
-        {
-          name: "username",
-          errors: ["Registration failed. Please try again later."],
-        },
-      ]);
-    }
-  };
+    const { set: setToken } = useLocalStorage<string>("token", "");
+    const { set: setUserId } = useLocalStorage<string>("userId", ""); // ✅ KEEP THIS ONE
+
+    const handleRegister = async (values: { username: string; name: string; password: string }) => {
+        try {
+            const response = await apiService.post<User>("/register", {
+                username: values.username,
+                name: values.name,
+                password: values.password,
+            });
+
+            // ❌ REMOVE this line:
+            // const { set: setUserId } = useLocalStorage<string>("userId", "");
+
+            if (response.token && response.id) {
+                setToken(response.token);
+                setUserId(String(response.id)); // ✅ works because it's from the top level
+                router.push("/decks");
+            }
+        } catch {
+            form.setFields([
+                {
+                    name: "username",
+                    errors: ["Registration failed. Please try again later."],
+                },
+            ]);
+        }
+    };
+
 
     return (
         <div className="register-container" style={{ maxWidth: 400, margin: "0 auto", paddingTop: 64 }}>
