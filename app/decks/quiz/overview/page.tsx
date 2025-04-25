@@ -148,7 +148,7 @@ const UserInvitationPage: React.FC = () => {
       // Delete the invitation if it exists
       if (selectedUser && currentUserId) {
         // Find pending invitations for the current user
-        const invitations = await apiService.get(`/quiz/invitation/senders?fromUserId=${currentUserId}`);
+        const invitations = await apiService.get<Invitation[]>(`/quiz/invitation/senders?fromUserId=${currentUserId}`);
         const pendingInvitation = invitations.find((inv: Invitation) => 
           inv.toUserId === selectedUser.id && !inv.isAccepted
         );
