@@ -6,6 +6,7 @@ import { Card, Button, Radio, Space, Progress, Typography, Row, Col, Spin, messa
 import { useApi } from '@/hooks/useApi';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { useCallback } from 'react';
 import Image from 'next/image';
 import { getApiDomain } from '@/utils/domain';
 
@@ -28,7 +29,6 @@ interface QuizData {
   participants: {
     id: string;
     username: string;
-    score: number;
   }[];
 }
 
@@ -48,6 +48,9 @@ const QuizGamePage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [gameEnded, setGameEnded] = useState(false);
   const [score, setScore] = useState(0);
+  
+  // Track scores for participants
+  const [scores, setScores] = useState<{ [key: string]: number }>({});
 
   // Sample quiz data for testing
   const sampleQuiz: QuizData = {
@@ -83,27 +86,33 @@ const QuizGamePage: React.FC = () => {
     participants: [
       {
         id: "1",
-        username: "You",
-        score: 0
+        username: "You"
       },
       {
         id: "2",
-        username: "Opponent",
-        score: 0
+        username: "Opponent"
       }
     ]
   };
 
+  const handleTimeUp = useCallback(() => {
+    if (!answerSubmitted) {
+      setAnswerSubmitted(true);
+      setIsCorrect(false);
+      message.warning('Time is up&#39;!');
+    }
+  }, [answerSubmitted]);
+
   useEffect(() => {
     const fetchQuizData = async () => {
       try {
-        // Try to fetch the quiz data from API
-        // const response = await apiService.get<QuizData>(`/quiz/${quizId}`);
-        // setQuiz(response);
-        
-        // Using sample data for now
         setQuiz(sampleQuiz);
         setTimeLeft(sampleQuiz.timeLimit);
+        const initialScores = sampleQuiz.participants.reduce((acc, participant) => {
+          acc[participant.id] = 0;
+          return acc;
+        }, {} as { [key: string]: number });
+        setScores(initialScores);
       } catch (error) {
         console.error('Failed to fetch quiz data:', error);
         message.error('Error loading quiz');
@@ -111,36 +120,25 @@ const QuizGamePage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchQuizData();
-  }, [quizId, apiService]);
-
-  // Timer effect
+  }, [quizId, apiService, sampleQuiz]);  // Add sampleQuiz here
+  
   useEffect(() => {
     if (!quiz || answerSubmitted || gameEnded || !timeLeft) return;
-    
+  
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleTimeUp();
+          handleTimeUp();  // handleTimeUp should be in dependencies
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    
+  
     return () => clearInterval(timer);
-  }, [quiz, timeLeft, answerSubmitted, gameEnded]);
-
-  const handleTimeUp = () => {
-    if (!answerSubmitted) {
-      // Time ran out without an answer
-      setAnswerSubmitted(true);
-      setIsCorrect(false);
-      message.warning('Time is up!');
-    }
-  };
+  }, [quiz, timeLeft, answerSubmitted, gameEnded, handleTimeUp]);  // Add handleTimeUp here
 
   const getAllAnswers = (flashcard: QuizFlashcard) => {
     // Combine correct and wrong answers and shuffle them
@@ -172,16 +170,11 @@ const QuizGamePage: React.FC = () => {
     setAnswerSubmitted(true);
     
     if (correct) {
-      setScore(prev => prev + 1);
-      
-      // Update UI to show updated score
-      const updatedQuiz = { ...quiz };
-      // Find the user's participant entry and update the score
-      const userParticipant = updatedQuiz.participants.find(p => p.id === userId);
-      if (userParticipant) {
-        userParticipant.score += 1;
-      }
-      setQuiz(updatedQuiz);
+      // Update score for the participant who answered correctly
+      setScores(prevScores => ({
+        ...prevScores,
+        [userId]: (prevScores[userId] || 0) + 1
+      }));
     }
     
     // In a real app, send the answer to the API
@@ -218,10 +211,15 @@ const QuizGamePage: React.FC = () => {
   const renderResultModal = () => {
     if (!quiz) return null;
     
-    // Find winner
-    const sortedParticipants = [...quiz.participants].sort((a, b) => b.score - a.score);
+    // Sort participants based on the score
+    const sortedParticipants = [...quiz.participants].sort((a, b) => {
+      const scoreA = scores[a.id] || 0;
+      const scoreB = scores[b.id] || 0;
+      return scoreB - scoreA;
+    });
+
     const winner = sortedParticipants[0];
-    const isTie = sortedParticipants.length > 1 && sortedParticipants[0].score === sortedParticipants[1].score;
+    const isTie = sortedParticipants.length > 1 && scores[sortedParticipants[0].id] === scores[sortedParticipants[1].id];
     
     return (
       <Modal
@@ -245,7 +243,7 @@ const QuizGamePage: React.FC = () => {
           ) : (
             <>
               <Title level={3}>{winner.username} wins!</Title>
-              <Text type="secondary">With a score of {winner.score}/{quiz.flashcards.length}</Text>
+              <Text type="secondary">With a score of {scores[winner.id]}/{quiz.flashcards.length}</Text>
             </>
           )}
           
@@ -254,7 +252,7 @@ const QuizGamePage: React.FC = () => {
             {quiz.participants.map(participant => (
               <div key={participant.id} style={{ margin: '10px 0' }}>
                 <Text strong>{participant.username}: </Text>
-                <Text>{participant.score} / {quiz.flashcards.length}</Text>
+                <Text>{scores[participant.id] || 0} / {quiz.flashcards.length}</Text>
               </div>
             ))}
           </div>
@@ -318,12 +316,10 @@ const QuizGamePage: React.FC = () => {
         <Row gutter={16}>
           <Col span={6}>
             <Card title="Scores" style={{ marginBottom: '20px' }}>
-              {quiz.participants.map(participant => (
-                <div key={participant.id} style={{ marginBottom: '10px' }}>
-                  <Text strong>{participant.username}: </Text>
-                  <Text>{participant.score}</Text>
-                </div>
-              ))}
+              <div key={userId} style={{ marginBottom: '10px' }}>
+                <Text strong>{quiz.participants[0]?.username}: </Text>
+                <Text>{scores[userId] || 0}</Text>
+              </div>
             </Card>
           </Col>
           
@@ -356,76 +352,36 @@ const QuizGamePage: React.FC = () => {
                     <Radio
                       key={index}
                       value={answer}
-                      style={{ 
-                        width: '100%', 
-                        height: '50px',
-                        padding: '10px',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: '8px',
-                        marginBottom: '8px',
-                        backgroundColor: answerSubmitted ? 
-                          (answer === currentCard.answer ? '#f6ffed' : 
-                           selectedAnswer === answer && selectedAnswer !== currentCard.answer ? '#fff2f0' : 
-                           'transparent') : 
-                          'transparent'
+                      style={{
+                        backgroundColor: answerSubmitted 
+                          ? (answer === currentCard.answer ? '#c6f7c7' : '#ffccc7') 
+                          : undefined
                       }}
                     >
-                      <Space>
-                        {answer}
-                        {answerSubmitted && answer === currentCard.answer && (
-                          <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                        )}
-                        {answerSubmitted && selectedAnswer === answer && answer !== currentCard.answer && (
-                          <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
-                        )}
-                      </Space>
+                      {answer}
                     </Radio>
                   ))}
                 </Space>
               </Radio.Group>
-              
-              {answerSubmitted ? (
-                <div style={{ 
-                  marginTop: '20px', 
-                  padding: '10px', 
-                  backgroundColor: isCorrect ? '#f6ffed' : '#fff2f0',
-                  borderRadius: '8px',
-                  borderColor: isCorrect ? '#b7eb8f' : '#ffccc7',
-                  borderWidth: '1px',
-                  borderStyle: 'solid'
-                }}>
-                  <Text strong style={{ color: isCorrect ? '#52c41a' : '#ff4d4f' }}>
-                    {isCorrect ? 'Correct! ' : 'Incorrect. '}
-                  </Text>
-                  <Text>
-                    {isCorrect 
-                      ? 'Well done!' 
-                      : `The correct answer is: ${currentCard.answer}`}
-                  </Text>
-                </div>
-              ) : (
+
+              <div style={{ marginTop: '20px', textAlign: 'center' }}>
                 <Button 
                   type="primary" 
                   onClick={handleSubmitAnswer}
-                  disabled={!selectedAnswer}
-                  style={{ 
-                    marginTop: '20px',
-                    backgroundColor: '#285c28',
-                    borderColor: '#285c28',
-                  }}
-                  block
+                  disabled={answerSubmitted}
                 >
                   Submit Answer
                 </Button>
-              )}
+              </div>
             </Card>
           </Col>
         </Row>
       </div>
-      
+
       {renderResultModal()}
     </div>
   );
 };
 
 export default QuizGamePage;
+
