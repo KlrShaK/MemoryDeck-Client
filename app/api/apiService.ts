@@ -2,8 +2,9 @@ import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
 
 export class ApiService {
-  private readonly baseURL: string = "...";
   private readonly defaultHeaders: HeadersInit;
+  private readonly baseURL: string = "...";
+
 
   constructor() {
     this.baseURL = getApiDomain();
