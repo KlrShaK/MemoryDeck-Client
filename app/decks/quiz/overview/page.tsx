@@ -28,16 +28,16 @@ const UserInvitationPage: React.FC = () => {
   const [waitingModalVisible, setWaitingModalVisible] = useState(false);
   const [invitationSent, setInvitationSent] = useState(false);
   
-  // Sample users for testing
-  const sampleUsers = [
-    { id: "1", username: "johndoe", name: "John Doe", status: "ONLINE", token: "sample-token-1"},
-    { id: "2", username: "janedoe", name: "Jane Doe", status: "ONLINE", token: "sample-token-2"},
-    { id: "3", username: "mikebrown", name: "Mike Brown", status: "OFFLINE", token: "sample-token-3"},
-    { id: "4", username: "sarahsmith", name: "Sarah Smith", status: "ONLINE", token: "sample-token-4"},
-    { id: "5", username: "alexwilson", name: "Alex Wilson", status: "OFFLINE", token: "sample-token-5"}
-  ];
 
   useEffect(() => {
+    // Sample users for testing
+    const sampleUsers = [
+      { id: "1", username: "johndoe", name: "John Doe", status: "ONLINE", token: "sample-token-1"},
+      { id: "2", username: "janedoe", name: "Jane Doe", status: "ONLINE", token: "sample-token-2"},
+      { id: "3", username: "mikebrown", name: "Mike Brown", status: "OFFLINE", token: "sample-token-3"},
+      { id: "4", username: "sarahsmith", name: "Sarah Smith", status: "ONLINE", token: "sample-token-4"},
+      { id: "5", username: "alexwilson", name: "Alex Wilson", status: "OFFLINE", token: "sample-token-5"}
+    ];
     // Retrieve the selected deck ID from localStorage
     const deckId = localStorage.getItem('selected_quiz_deck_id');
     if (!deckId) {
@@ -80,7 +80,7 @@ const UserInvitationPage: React.FC = () => {
     };
 
     fetchUsers();
-  }, [currentUserId, apiService, router, sampleUsers]);
+  }, [currentUserId, apiService, router]);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);

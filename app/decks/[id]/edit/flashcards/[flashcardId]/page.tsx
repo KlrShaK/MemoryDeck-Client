@@ -9,7 +9,7 @@ import { Flashcard } from "@/types/flashcard";
 import { useApi } from "@/hooks/useApi";
 import type { UploadChangeParam } from "antd/es/upload";
 import type { UploadFile } from "antd/es/upload/interface";
-import { getApiDomain } from "@/utils/domain";
+//import { getApiDomain } from "@/utils/domain";
 import Image from "next/image";
 
 const EditFlashcardPage: React.FC = () => {

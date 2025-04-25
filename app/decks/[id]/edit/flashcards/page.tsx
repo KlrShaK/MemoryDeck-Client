@@ -153,7 +153,11 @@ const FlashcardsPage: React.FC = () => {
             cursor: "pointer"
           }}
           tabIndex={0}
-          onClick={() => flashcards.length > 0 && toggleFlip(currentIndex)}
+          onClick={() => {
+            if (flashcards.length > 0) {
+              toggleFlip(currentIndex);
+            }
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();

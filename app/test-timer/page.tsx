@@ -11,7 +11,7 @@ import OpponentProgress from "@/components/OpponentProgress";
 const TimerPage = () => {
     const duration = 60;
     const { timeLeft, isRunning, start, reset } = useTimer(duration);
-    const api = useApi();
+    //const api = useApi();
 
     useEffect(() => {
         if (timeLeft === 0 && isRunning) {

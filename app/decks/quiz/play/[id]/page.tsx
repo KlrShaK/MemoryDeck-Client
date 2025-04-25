@@ -166,7 +166,7 @@ const QuizPlayPage: React.FC = () => {
       // Times up, auto-submit current answer or skip
       handleSubmitAnswer();
     }
-  }, [timeLeft]);
+  }, [timeLeft, answerSubmitted, quizCompleted]);
   
   // Shuffle array helper
   const shuffleArray = <T,>(array: T[]): T[] => {

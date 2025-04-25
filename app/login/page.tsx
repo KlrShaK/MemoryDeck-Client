@@ -69,7 +69,7 @@ const Login: React.FC = () => {
           </Form.Item>
 
           <p style={{ textAlign: "center" }}>
-            Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
             <a onClick={() => router.push("/register")}>Register</a>
           </p>
         </Form>
