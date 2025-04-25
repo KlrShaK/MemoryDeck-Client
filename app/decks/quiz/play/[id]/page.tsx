@@ -158,12 +158,12 @@ const QuizPlayPage: React.FC = () => {
     }, 3000);
     
     return () => clearInterval(intervalId);
-  }, [quizId, userId, apiService, router, quizCompleted]);
+  }, [quizId, userId, apiService, router, quizCompleted, start]);
   
   // Timer effect
   useEffect(() => {
     if (timeLeft === 0 && !answerSubmitted && !quizCompleted) {
-      // Time's up, auto-submit current answer or skip
+      // Times up, auto-submit current answer or skip
       handleSubmitAnswer();
     }
   }, [timeLeft]);
@@ -178,7 +178,7 @@ const QuizPlayPage: React.FC = () => {
     return shuffled;
   };
   
-  // Get all answer options (correct + wrong) and shuffle them
+  // Get all answer options and shuffle them
   const getAnswerOptions = (flashcard: Flashcard): string[] => {
     if (!flashcard) return [];
     const options = [flashcard.answer, ...flashcard.wrongAnswers];
@@ -192,11 +192,9 @@ const QuizPlayPage: React.FC = () => {
   };
   
   const handleSubmitAnswer = async () => {
-    if (quizCompleted) return;
+    if (quizCompleted || !flashcards[currentCardIndex]) return;
     
     const currentFlashcard = flashcards[currentCardIndex];
-    if (!currentFlashcard) return;
-    
     const answer = selectedAnswer || ""; // Submit empty string if no answer selected
     const correct = answer === currentFlashcard.answer;
     
@@ -241,7 +239,7 @@ const QuizPlayPage: React.FC = () => {
     
     try {
       // Fetch final results
-      const results = await apiService.get<Quiz>(`/quiz/results?quizId=${quizId}`);
+      const results = await apiService.get<Quiz>(`/quiz/status?quizId=${quizId}`);
       
       // Update quiz with final results
       setQuiz(results);
