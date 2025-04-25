@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Button, Space, Card, Spin, message, Progress, Row, Col, Typography, Radio } from "antd";
 import { useRouter, useParams } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
@@ -54,7 +54,7 @@ const QuizPlayPage: React.FC = () => {
   const { value: userId } = useLocalStorage<string>("userId", "");
   
   const [loading, setLoading] = useState(true);
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [, setQuiz] = useState<Quiz | null>(null);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -160,13 +160,7 @@ const QuizPlayPage: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [quizId, userId, apiService, router, quizCompleted, start]);
   
-  // Timer effect
-  useEffect(() => {
-    if (timeLeft === 0 && !answerSubmitted && !quizCompleted) {
-      // Times up, auto-submit current answer or skip
-      handleSubmitAnswer();
-    }
-  }, [timeLeft, answerSubmitted, quizCompleted]);
+
   
   // Shuffle array helper
   const shuffleArray = <T,>(array: T[]): T[] => {
@@ -190,61 +184,12 @@ const QuizPlayPage: React.FC = () => {
       setSelectedAnswer(answer);
     }
   };
-  
-  const handleSubmitAnswer = async () => {
-    if (quizCompleted || !flashcards[currentCardIndex]) return;
-    
-    const currentFlashcard = flashcards[currentCardIndex];
-    const answer = selectedAnswer || ""; // Submit empty string if no answer selected
-    const correct = answer === currentFlashcard.answer;
-    
-    setAnswerSubmitted(true);
-    setIsCorrect(correct);
-    setTotalAnswered(totalAnswered + 1);
-    
-    if (correct) {
-      setScore(score + 1);
-    }
-    
-    // Submit answer to backend
-    try {
-      await apiService.post("/quiz/submit-answer", {
-        quizId,
-        userId,
-        flashcardId: currentFlashcard.id,
-        answer
-      });
-    } catch (error) {
-      console.error("Failed to submit answer:", error);
-      // Continue anyway - the local score is updated
-    }
-    
-    // Wait 2 seconds to show the result before moving to next question
-    setTimeout(() => {
-      if (currentCardIndex < flashcards.length - 1) {
-        // Move to next question
-        setCurrentCardIndex(currentCardIndex + 1);
-        setSelectedAnswer(null);
-        setAnswerSubmitted(false);
-        reset(); // Reset timer for next question
-      } else {
-        // End of quiz
-        finishQuiz();
-      }
-    }, 2000);
-  };
-  
-  const finishQuiz = async () => {
+
+  const finishQuiz = useCallback(async () => {
     setQuizCompleted(true);
-    
     try {
-      // Fetch final results
       const results = await apiService.get<Quiz>(`/quiz/status?quizId=${quizId}`);
-      
-      // Update quiz with final results
       setQuiz(results);
-      
-      // Update opponent with final score
       if (results.scores && results.scores.length > 0) {
         const opponentScore = results.scores.find(s => s.user.id !== userId);
         if (opponentScore && opponent) {
@@ -258,7 +203,66 @@ const QuizPlayPage: React.FC = () => {
     } catch (error) {
       console.error("Failed to get quiz results:", error);
     }
-  };
+  }, [apiService, quizId, setQuiz, userId, opponent]);
+
+
+  const handleSubmitAnswer = useCallback(async () => {
+    if (quizCompleted || !flashcards[currentCardIndex]) return;
+
+    const currentFlashcard = flashcards[currentCardIndex];
+    const answer = selectedAnswer || ""; // Submit empty string if no answer selected
+    const correct = answer === currentFlashcard.answer;
+
+    setAnswerSubmitted(true);
+    setIsCorrect(correct);
+    setTotalAnswered(prev => prev + 1);
+
+    if (correct) {
+      setScore(prev => prev + 1);
+    }
+
+    try {
+      await apiService.post("/quiz/submit-answer", {
+        quizId,
+        userId,
+        flashcardId: currentFlashcard.id,
+        answer,
+      });
+    } catch (error) {
+      console.error("Failed to submit answer:", error);
+      // Continue anyway - local score is updated
+    }
+
+    setTimeout(() => {
+      if (currentCardIndex < flashcards.length - 1) {
+        setCurrentCardIndex(prev => prev + 1);
+        setSelectedAnswer(null);
+        setAnswerSubmitted(false);
+        reset(); // Reset timer for next question
+      } else {
+        finishQuiz();
+      }
+    }, 2000);
+  }, [
+    quizCompleted,
+    flashcards,
+    currentCardIndex,
+    selectedAnswer,
+    apiService,
+    quizId,
+    userId,
+    reset,
+    finishQuiz
+  ]);
+
+  // Timer effect
+  useEffect(() => {
+    if (timeLeft === 0 && !answerSubmitted && !quizCompleted) {
+      handleSubmitAnswer();
+    }
+  }, [timeLeft, answerSubmitted, quizCompleted, handleSubmitAnswer]);
+
+
   
   const handleLeaveQuiz = async () => {
     try {
@@ -300,7 +304,7 @@ const QuizPlayPage: React.FC = () => {
           
           <div style={{ textAlign: "center", margin: "30px 0" }}>
             {isTie ? (
-              <Title level={3}>It's a tie!</Title>
+                <Title level={3}>It&apos;s a tie!</Title>
             ) : (
               <Title level={3}>{userWon ? "You won!" : `${opponent?.username || "Opponent"} won!`}</Title>
             )}
@@ -315,7 +319,7 @@ const QuizPlayPage: React.FC = () => {
               </Col>
               
               <Col span={12}>
-                <Card title={`${opponent?.username || "Opponent"}'s Score`} style={{ textAlign: "center" }}>
+                <Card title={`${opponent?.username || "Opponent"}&apos;s Score`} style={{ textAlign: "center" }}>
                   <Title level={2}>{opponent?.score || 0}</Title>
                   <Text>out of {flashcards.length}</Text>
                   <Progress percent={Math.round(((opponent?.score || 0) / flashcards.length) * 100)} status="active" />
@@ -480,7 +484,7 @@ const QuizPlayPage: React.FC = () => {
                 <Text>
                   {isCorrect 
                     ? "Great job!" 
-                    : `The correct answer is: ${currentFlashcard.answer}&#39;`
+                    : `The correct answer is: ${currentFlashcard.answer}`
                   }
                 </Text>
 

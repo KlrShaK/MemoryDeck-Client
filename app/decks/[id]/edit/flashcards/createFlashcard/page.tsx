@@ -92,7 +92,10 @@ const AddFlashcardPage: React.FC = () => {
 
     if (file.originFileObj) {
       try {
-        const uploadedImageUrl = await apiService.uploadImage("/flashcards/upload-image", file.originFileObj);
+        const uploadedImageUrl = await apiService.uploadImage(
+            "/flashcards/upload-image",
+            file.originFileObj as File
+        );
         setImageUrl(uploadedImageUrl);
         message.success("Image uploaded successfully!");
       } catch {
@@ -101,6 +104,7 @@ const AddFlashcardPage: React.FC = () => {
       }
     }
   };
+
 
   const handleWrongAnswerChange = (index: number, value: string) => {
     const newAnswers = [...wrongAnswers];
@@ -143,13 +147,10 @@ const AddFlashcardPage: React.FC = () => {
       message.success(`Flashcard has been added to the "${deckName}" Deck`);
       router.push(`/decks/${id}/edit`);
     } catch (error: unknown) {
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "response" in error &&
-        typeof (error as any).response?.status === "number"
-      ) {
-        const status = (error as any).response.status;
+      if (typeof error === "object" && error !== null) {
+        const err = error as { response?: { status?: number } };
+        const status = err.response?.status;
+
         if (status === 400 || status === 422) {
           message.error("Make sure all mandatory fields have been filled out correctly.");
         } else {
@@ -159,7 +160,8 @@ const AddFlashcardPage: React.FC = () => {
         message.error("Something went wrong. Please try again.");
       }
     }
-    
+
+
   };
 
   return (

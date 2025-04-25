@@ -27,6 +27,7 @@ const DeckPage = () => {
     const { value: userId } = useLocalStorage<string>("userId", "");
     // CHANGED: start as null, not {}
     const [decks, setDecks] = useState<GroupedDecks | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
 
 
@@ -62,15 +63,7 @@ const DeckPage = () => {
 
 
 
-    useEffect(() => {
-        if (!userId) {
-            return;
-        }
 
-        (async () => {
-            await fetchGroupedDecks();
-        })();
-    }, [userId, fetchGroupedDecks]);
 
     // Deck actions
     const handleDeckClick = (deckId: number) => {
@@ -109,11 +102,13 @@ const DeckPage = () => {
     const handleProfileClick = () => console.log("Profile button clicked");
 
     useEffect(() => {
-        if (userId) {
-            fetchGroupedDecks();
-        } else {
+        if (!userId) {
             setLoading(false);
+            return;
         }
+        fetchGroupedDecks()
+            .catch(() => {})    // errors already handled inside fetchGroupedDecks
+            .finally(() => setLoading(false));
     }, [userId, fetchGroupedDecks]);
 
     return (

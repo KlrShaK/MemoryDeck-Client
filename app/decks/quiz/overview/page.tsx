@@ -26,7 +26,7 @@ const UserInvitationPage: React.FC = () => {
   const [invitationModalVisible, setInvitationModalVisible] = useState(false);
   const [sendingInvitation, setSendingInvitation] = useState(false);
   const [waitingModalVisible, setWaitingModalVisible] = useState(false);
-  const [invitationSent, setInvitationSent] = useState(false);
+  const [, setInvitationSent] = useState(false);
   
 
   useEffect(() => {
@@ -121,7 +121,7 @@ const UserInvitationPage: React.FC = () => {
   
     setSendingInvitation(true);
     try {
-      const response = await apiService.post('/quiz/invitation', {
+      await apiService.post('/quiz/invitation', {
         fromUserId: currentUserId,
         toUserId: selectedUser.id,
         deckIds: [selectedDeckId],

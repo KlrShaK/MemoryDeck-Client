@@ -8,7 +8,7 @@ import { useApi } from "@/hooks/useApi";
 import { Flashcard } from "@/types/flashcard";
 import { Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { getApiDomain } from "@/utils/domain";
+// import { getApiDomain } from "@/utils/domain";
 //import Image from "next/image";
 import { Deck } from "@/types/deck";
 
@@ -161,7 +161,9 @@ const FlashcardsPage: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              flashcards.length > 0 && toggleFlip(currentIndex);
+              if (flashcards.length > 0) {
+                toggleFlip(currentIndex);
+              }
             }
           }}
         >
