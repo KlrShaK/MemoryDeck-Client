@@ -16,24 +16,26 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const router = useRouter();
   const apiService = useApi();
 
-
   useEffect(() => {
     if (!userId) return;
 
     const checkForInvitations = async () => {
       try {
-        const invitations: Invitation[] = await apiService.get(`/quiz/invitations?userId=${userId}`);
+        const invitations: Invitation[] = await apiService.get(`/quiz/invitation/receivers?toUserId=${userId}`);
         
         // Find the first pending invitation
         const pendingInvitation = invitations.find((inv: Invitation) => !inv.isAccepted);
         
         if (pendingInvitation && !invitation) {
           try {
+            // Get the sender's information
             const sender: User = await apiService.get(`/users/${pendingInvitation.fromUserId}`);
             
-            const deckInfo: Partial<Deck> = pendingInvitation.deckIds?.length ? 
-              await apiService.get(`/decks/${pendingInvitation.deckIds[0]}`) :
-              { id: "0", title: "Quiz Deck" };
+            // If there are deck IDs, get the first deck's information
+            let deckInfo: Partial<Deck> = { id: "0", title: "Quiz Deck" };
+            if (pendingInvitation.deckIds?.length) {
+              deckInfo = await apiService.get(`/decks/${pendingInvitation.deckIds[0]}`);
+            }
             
             setInvitation({
               ...pendingInvitation,
@@ -68,13 +70,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!invitation) return;
     
     try {
-      await apiService.put(`/quiz/respond`, {
-        quizId: invitation.id,
-        response: "Accepted"
-      });
+      await apiService.get(`/quiz/response/confirmation?invitationId=${invitation.id}`);
       message.success("Invitation accepted!");
       
-      router.push(`/quiz-play?quizId=${invitation.id}`);
+      // If there's a quizId, use it for navigation, otherwise use the invitation id
+      const quizIdForRoute = invitation.quizId || invitation.id;
+      router.push(`/decks/quiz/play/${quizIdForRoute}`);
       
       setInvitation(null);
     } catch (error) {
@@ -87,10 +88,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!invitation) return;
     
     try {
-      await apiService.put(`/quiz/respond`, {
-        quizId: invitation.id,
-        response: "Declined"
-      });
+      await apiService.delete(`/quiz/response/rejection?invitationId=${invitation.id}`);
       message.info("Invitation declined");
       
       // Reset invitation state

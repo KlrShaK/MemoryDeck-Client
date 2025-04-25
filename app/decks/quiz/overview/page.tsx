@@ -8,6 +8,7 @@ import { UserOutlined, SearchOutlined, UserSwitchOutlined, LoadingOutlined } fro
 import { useApi } from '@/hooks/useApi';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { User } from '@/types/user';
+import { Invitation } from '@/types/invitation';
 
 const { Search } = Input;
 
@@ -48,20 +49,20 @@ const UserInvitationPage: React.FC = () => {
     setSelectedDeckId(deckId);
 
     const fetchUsers = async () => {
-      /*
+      
       if (!currentUserId) {
         message.error("You must be logged in to access this page");
         router.push("/login");
         return;
       }
-      */
+      
       try {
         // Try to fetch from API first
-        // const response = await apiService.get<User[]>('/users');
+        const response = await apiService.get<User[]>('/users');
         
         // Use sample data for now
-        // const filteredResponse = response.filter(user => user.id !== currentUserId);
-        const filteredResponse = sampleUsers.filter(user => user.id !== currentUserId);
+        const filteredResponse = response.filter(user => user.id !== currentUserId);
+        //const filteredResponse = sampleUsers.filter(user => user.id !== currentUserId);
         
         setUsers(filteredResponse);
         setFilteredUsers(filteredResponse);
@@ -117,19 +118,15 @@ const UserInvitationPage: React.FC = () => {
       message.error('Missing required information');
       return;
     }
-
+  
     setSendingInvitation(true);
     try {
-      // In a real app, this would call your API
-      // await apiService.post('/quiz/invite', {
-      //   fromUserId: currentUserId,
-      //   toUserId: selectedUser.id,
-      //   flashcardIds: [selectedDeckId],
-      //   timeLimit: timeLimit
-      // });
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await apiService.post('/quiz/invitation', {
+        fromUserId: currentUserId,
+        toUserId: selectedUser.id,
+        deckIds: [selectedDeckId],
+        timeLimit: timeLimit
+      });
       
       message.success(`Invitation sent to ${selectedUser.username}`);
       setInvitationModalVisible(false);
@@ -138,12 +135,6 @@ const UserInvitationPage: React.FC = () => {
       setInvitationSent(true);
       setWaitingModalVisible(true);
       
-      // For demo, after 10 seconds, simulate acceptance and redirect to quiz
-      setTimeout(() => {
-        setWaitingModalVisible(false);
-        const quizId = "demo123"; // This would come from your API
-        router.push(`/decks/quiz/${quizId}`);
-      }, 10000); // 10 seconds
     } catch (error) {
       console.error('Failed to send invitation:', error);
       message.error('Failed to send invitation.');
@@ -152,12 +143,26 @@ const UserInvitationPage: React.FC = () => {
     }
   };
 
-  const handleCancelWaiting = () => {
-    // In a real app, you would cancel the invitation via API
-    // apiService.delete(`/quiz/invitations/${invitationId}`);
-    
-    setWaitingModalVisible(false);
-    router.push('/decks');
+  const handleCancelWaiting = async () => {
+    try {
+      // Delete the invitation if it exists
+      if (selectedUser && currentUserId) {
+        // Find pending invitations for the current user
+        const invitations = await apiService.get(`/quiz/invitation/senders?fromUserId=${currentUserId}`);
+        const pendingInvitation = invitations.find((inv: Invitation) => 
+          inv.toUserId === selectedUser.id && !inv.isAccepted
+        );
+        
+        if (pendingInvitation) {
+          await apiService.delete(`/quiz/invitation/delete/${pendingInvitation.id}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error canceling invitation:', error);
+    } finally {
+      setWaitingModalVisible(false);
+      router.push('/decks');
+    }
   };
 
   const handleCancel = () => {
