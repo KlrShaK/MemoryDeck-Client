@@ -66,9 +66,9 @@ const EditFlashcardPage: React.FC = () => {
 
         // Initialize wrongAnswers state
         setWrongAnswers([
-          flashcard?.wrongAnswers?.[0] || '',
-          flashcard?.wrongAnswers?.[1] || '',
-          flashcard?.wrongAnswers?.[2] || ''
+          flashcard?.wrongAnswers?.[0] ?? '',
+          flashcard?.wrongAnswers?.[1] ?? '',
+          flashcard?.wrongAnswers?.[2] ?? ''
         ]);
 
         // Set the image URL if available

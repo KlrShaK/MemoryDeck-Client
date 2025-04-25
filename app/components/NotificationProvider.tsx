@@ -39,8 +39,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             
             setInvitation({
               ...pendingInvitation,
-              senderName: sender.username || "Someone",
-              deckTitle: deckInfo.title || "Quiz Deck"
+              senderName: sender.username ?? "Someone",
+              deckTitle: deckInfo.title ?? "Quiz Deck"
             });
           } catch (error) {
             console.error("Error fetching invitation details:", error);
@@ -105,9 +105,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       <InvitationNotification
         visible={!!invitation}
-        senderName={invitation?.senderName || "Someone"}
-        deckTitle={invitation?.deckTitle || "Quiz Deck"}
-        timeLimit={invitation?.timeLimit || 60}
+        senderName={invitation?.senderName ?? "Someone"}
+        deckTitle={invitation?.deckTitle ?? "Quiz Deck"}
+        timeLimit={invitation?.timeLimit ?? 60}
         onAccept={handleAccept}
         onDecline={handleDecline}
       />

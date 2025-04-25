@@ -35,16 +35,14 @@ const AddDeckPage: React.FC = () => {
     const handleAddDeck = async (values: DeckFormValues) => {
         console.log("Submitted form values:", values);
         try {
-            if (values.isPublic == null) {
-                values.isPublic = false;
-            }
+            values.isPublic ??= false;
             const deckDTO = {
                 title: values.title,
                 deckCategory: values.deckCategory,
                 isPublic: values.isPublic,
                 isAiGenerated: values.isAiGenerated || false,
-                aiPrompt: values.aiPrompt || "",
-                numberofAICards: values.numberofAICards || null,
+                aiPrompt: values.aiPrompt ?? "",
+                numberofAICards: values.numberofAICards ?? null,
             };
 
             console.log("Sending deckDTO:", deckDTO);
