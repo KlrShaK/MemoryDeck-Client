@@ -1,7 +1,7 @@
 //decks home page
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Row, Col, Avatar, Dropdown, Spin, message } from "antd";
 import { EllipsisOutlined, UserOutlined } from "@ant-design/icons";
@@ -28,24 +28,19 @@ const DeckPage = () => {
     // CHANGED: start as null, not {}
     const [decks, setDecks] = useState<GroupedDecks | null>(null);
 
-    // We'll keep the loading if we want to differentiate "fetch in progress" from "no userId"
-    const [loading, setLoading] = useState(true);
 
-    const fetchGroupedDecks = async () => {
-        if (!userId) return; // no user ID? just exit.
-    
+
+    const fetchGroupedDecks = useCallback(async () => {
+        if (!userId) return;
+
         try {
-            // fetch all decks
             const deckList = await apiService.get<Deck[]>(`/decks?userId=${userId}`);
-    
             const grouped: GroupedDecks = {};
             for (const deck of deckList) {
                 grouped[String(deck.id)] = {
                     title: deck.title ?? "Untitled",
                     flashcards: [],
                 };
-    
-                // Now, fetch flashcards for each deck
                 const flashcards = await apiService
                     .get<Flashcard[]>(`/decks/${deck.id}/flashcards`)
                     .catch((err) => {
@@ -55,30 +50,27 @@ const DeckPage = () => {
                         }
                         throw err;
                     });
-    
-                // Add the fetched flashcards to the grouped deck
                 grouped[String(deck.id)].flashcards = flashcards;
             }
-    
             setDecks(grouped);
         } catch (error) {
             console.error("Failed to fetch decks or flashcards:", error);
             message.error("Failed to load decks.");
-            // If there's a fatal error, at least set an empty object so we don't remain null
             setDecks({});
-        } finally {
-            setLoading(false);
         }
-    };
-    
+    }, [userId, apiService]);
+
+
 
     useEffect(() => {
-        if (userId) {
-            fetchGroupedDecks();
-        } else {
-            setLoading(false);
+        if (!userId) {
+            return;
         }
-    }, [userId]);
+
+        (async () => {
+            await fetchGroupedDecks();
+        })();
+    }, [userId, fetchGroupedDecks]);
 
     // Deck actions
     const handleDeckClick = (deckId: number) => {
@@ -116,13 +108,6 @@ const DeckPage = () => {
     const handleTutorialClick = () => console.log("Tutorial button clicked");
     const handleProfileClick = () => console.log("Profile button clicked");
 
-    useEffect(() => {
-        if (userId) {
-            fetchGroupedDecks();
-        } else {
-            setLoading(false);
-        }
-    }, [userId]);
 
     return (
         <div style={{ backgroundColor: "#ccf0cc", minHeight: "100vh", padding: "0" }}>

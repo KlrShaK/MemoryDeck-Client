@@ -41,49 +41,44 @@
    const router = useRouter();
    const params = useParams();
    const deckId = params?.id;
-   if (!deckId) {
-    message.error("Invalid deck ID");
-    router.push("/decks");
-    return;
-  }
-   const apiService = useApi();
-   const [loading, setLoading] = useState(true);
-   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-   const [existingDeck, setExistingDeck] = useState<Deck | null>(null);
+     const apiService = useApi();
+     const [loading, setLoading] = useState(true);
+     const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+     const [existingDeck, setExistingDeck] = useState<Deck | null>(null);
 
 
-   useEffect(() => {
-     const fetchDeck = async () => {
-       if (!deckId) return;
+     useEffect(() => {
+         if (!deckId) return;
 
-       try {
-         const deck = await apiService.get<Deck>(`/decks/${deckId}`);
-         setExistingDeck(deck);
-         form.setFieldsValue({
-           title: deck.title,
-           deckCategory: deck.deckCategory,
-         });
+         (async () => {
+             try {
+                 const deck = await apiService.get<Deck>(`/decks/${deckId}`);
+                 setExistingDeck(deck);
+                 form.setFieldsValue({
+                     title: deck.title,
+                     deckCategory: deck.deckCategory,
+                 });
 
-         form.setFieldsValue({
-           title: deck.title,
-           deckCategory: deck.deckCategory,
-         });
+                 const flashcardList = await apiService.get<Flashcard[]>(`/decks/${deckId}/flashcards`);
+                 setFlashcards(flashcardList);
+             } catch (error) {
+                 message.error("Failed to load deck data.");
+                 console.error(error);
+             } finally {
+                 setLoading(false);
+             }
+         })();
+     }, [deckId, apiService, form]);
 
-         const flashcardList = await apiService.get<Flashcard[]>(`/decks/${deckId}/flashcards`);
 
-         setFlashcards(flashcardList);
-       } catch (error) {
-         message.error("Failed to load deck data.");
-         console.error(error);
-       } finally {
-         setLoading(false);
-       }
-     };
+     if (!deckId) {
+         message.error("Invalid deck ID");
+         router.push("/decks");
+         return;
+     }
 
-     fetchDeck();
-   }, [deckId]);
 
-   const handleSaveDeck = async (values: { title: string; deckCategory: string }) => {
+     const handleSaveDeck = async (values: { title: string; deckCategory: string }) => {
      try {
        if (!existingDeck) return;
 
