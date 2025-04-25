@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Card, Form, Input, Button, Upload, message } from "antd";
-import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
+import { UploadOutlined } from "@ant-design/icons";
 import { Flashcard } from "@/types/flashcard";
 import { useApi } from "@/hooks/useApi";
 import type { UploadChangeParam } from "antd/es/upload";

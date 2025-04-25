@@ -77,7 +77,7 @@
      };
 
      fetchDeck();
-   }, [deckId]);
+   }, [deckId, apiService, form, router]);
 
    const handleSaveDeck = async (values: { title: string; deckCategory: string }) => {
      try {

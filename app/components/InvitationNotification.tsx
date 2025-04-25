@@ -32,7 +32,7 @@ const InvitationNotification: React.FC<InvitationNotificationProps> = ({
     >
       <div style={{ padding: "10px 0", textAlign: "center" }}>
         <Text style={{ color: "black" }}>
-          <strong>{senderName}</strong> has invited you to take a quiz on deck "{deckTitle}"
+          <strong>{senderName}</strong> has invited you to take a quiz on deck &quot;{deckTitle}&quot;
         </Text>
         
         <div style={{ margin: "20px 0" }}>

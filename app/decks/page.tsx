@@ -78,7 +78,7 @@ const DeckPage = () => {
         } else {
             setLoading(false);
         }
-    }, [userId]);
+    }, [userId, fetchGroupedDecks]);
 
     // Deck actions
     const handleDeckClick = (deckId: number) => {

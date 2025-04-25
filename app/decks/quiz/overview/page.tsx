@@ -80,7 +80,7 @@ const UserInvitationPage: React.FC = () => {
     };
 
     fetchUsers();
-  }, [currentUserId, apiService, router]);
+  }, [currentUserId, apiService, router, sampleUsers]);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);

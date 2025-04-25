@@ -29,7 +29,10 @@ const Login: React.FC = () => {
         router.push("/decks"); // redirect to user dashboard or main page
       }
       setUserId(String(response.id));
-    } catch (error) {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      }
       form.setFields([
         {
           name: "username",

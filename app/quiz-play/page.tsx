@@ -74,7 +74,7 @@ const QuizPlayPage: React.FC = () => {
 
     useEffect(() => {
         start();
-    }, []);
+    }, [start]);
 
     const renderResults = () => {
         return (
