@@ -7,7 +7,7 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { useTimer } from "@/hooks/useTimer";
 import ProgressBar from "@/components/ProgressBar";
-import ScorePanel from "@/components/ScorePanel";
+//import ScorePanel from "@/components/ScorePanel";
 import OpponentProgress from "@/components/OpponentProgress";
 import Image from "next/image";
 import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
@@ -479,10 +479,11 @@ const QuizPlayPage: React.FC = () => {
                 </Text>
                 <Text>
                   {isCorrect 
-                    ? "Great job!"
-                    : `The correct answer is: ${currentFlashcard.answer}`
+                    ? "Great job!" 
+                    : `The correct answer is: ${currentFlashcard.answer}&#39;`
                   }
                 </Text>
+
               </div>
             )}
             

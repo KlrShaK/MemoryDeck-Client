@@ -36,47 +36,44 @@ interface Deck {
 }
 
 const EditDeckPage: React.FC = () => {
-  const [form] = Form.useForm();
   const router = useRouter();
   const params = useParams();
   const deckId = params?.id;
 
-  // Guard clause for invalid deckId
-  if (!deckId) {
-    message.error("Invalid deck ID");
-    router.push("/decks");
-    return null; // Early return if no deckId is found
-  }
-
+  const [form] = Form.useForm();
   const apiService = useApi(); // Always call hooks at the top
   const [loading, setLoading] = useState(true);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [existingDeck, setExistingDeck] = useState<Deck | null>(null);
 
+  // Guard clause for invalid deckId
   useEffect(() => {
-    const fetchDeck = async () => {
-      if (!deckId) return;
+    if (!deckId) {
+      message.error("Invalid deck ID");
+      router.push("/decks");
+    } else {
+      const fetchDeck = async () => {
+        try {
+          const deck = await apiService.get<Deck>(`/decks/${deckId}`);
+          setExistingDeck(deck);
+          form.setFieldsValue({
+            title: deck.title,
+            deckCategory: deck.deckCategory,
+          });
 
-      try {
-        const deck = await apiService.get<Deck>(`/decks/${deckId}`);
-        setExistingDeck(deck);
-        form.setFieldsValue({
-          title: deck.title,
-          deckCategory: deck.deckCategory,
-        });
+          const flashcardList = await apiService.get<Flashcard[]>(`/decks/${deckId}/flashcards`);
+          setFlashcards(flashcardList);
+        } catch (error) {
+          message.error("Failed to load deck data.");
+          console.error(error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-        const flashcardList = await apiService.get<Flashcard[]>(`/decks/${deckId}/flashcards`);
-        setFlashcards(flashcardList);
-      } catch (error) {
-        message.error("Failed to load deck data.");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDeck();
-  }, [deckId, apiService, form]); // Ensure all dependencies are added
+      fetchDeck();
+    }
+  }, [deckId, apiService, form, router]); // Ensure all dependencies are added
 
   const handleSaveDeck = async (values: { title: string; deckCategory: string }) => {
     try {
