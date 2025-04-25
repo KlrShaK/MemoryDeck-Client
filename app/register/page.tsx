@@ -12,32 +12,36 @@ const Register: React.FC = () => {
     const [form] = Form.useForm();
     const apiService = useApi();
     const router = useRouter();
+
     const { set: setToken } = useLocalStorage<string>("token", "");
+    const { set: setUserId } = useLocalStorage<string>("userId", ""); // ✅ KEEP THIS ONE
 
     const handleRegister = async (values: { username: string; name: string; password: string }) => {
         try {
-            const response = await apiService.post<User>("/users", {
+            const response = await apiService.post<User>("/register", {
                 username: values.username,
                 name: values.name,
-                // password: values.password, FOR LATER!
+                password: values.password,
             });
 
-            if (response.token) {
-                setToken(response.token);
-                router.push("/users");
-            }
-        } catch (error: any) {
-            const msg = error?.message || "";
+            // ❌ REMOVE this line:
+            // const { set: setUserId } = useLocalStorage<string>("userId", "");
 
-            if (msg.includes("username")) {
-                form.setFields([{ name: "username", errors: ["Username already exists."] }]);
-            } else if (msg.includes("name")) {
-                form.setFields([{ name: "name", errors: ["Name already exists."] }]);
-            } else {
-                form.setFields([{ name: "username", errors: ["Unexpected error. Please try again."] }]);
+            if (response.token && response.id) {
+                setToken(response.token);
+                setUserId(String(response.id)); // ✅ works because it's from the top level
+                router.push("/decks");
             }
+        } catch {
+            form.setFields([
+                {
+                    name: "username",
+                    errors: ["Registration failed. Please try again later."],
+                },
+            ]);
         }
     };
+
 
     return (
         <div className="register-container" style={{ maxWidth: 400, margin: "0 auto", paddingTop: 64 }}>
