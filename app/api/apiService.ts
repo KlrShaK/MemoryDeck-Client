@@ -2,8 +2,9 @@ import { getApiDomain } from "@/utils/domain";
 import { ApplicationError } from "@/types/error";
 
 export class ApiService {
-  private baseURL: string;
-  private defaultHeaders: HeadersInit;
+  private readonly defaultHeaders: HeadersInit;
+  private readonly baseURL: string = "...";
+
 
   constructor() {
     this.baseURL = getApiDomain();
@@ -51,7 +52,7 @@ export class ApiService {
       error.response = { status: res.status };
       throw error;
     }
-    // return res.json() as Promise<T>;
+
     return res.headers.get("Content-Type")?.includes("application/json")
         ? res.json() as Promise<T>
         : Promise.resolve(res as T);

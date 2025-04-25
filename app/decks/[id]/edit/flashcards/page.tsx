@@ -21,7 +21,7 @@ const FlashcardsPage: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [deck, setDeck] = useState<Deck | null>(null);
 
-  const apiUrl = getApiDomain();
+
   const [deckIdAsNumber, setDeckIdAsNumber] = useState<number | null>(null);
 
   // Parse deck ID from params

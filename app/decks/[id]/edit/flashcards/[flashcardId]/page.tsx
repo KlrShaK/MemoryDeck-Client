@@ -19,7 +19,6 @@ const EditFlashcardPage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [wrongAnswers, setWrongAnswers] = useState<string[]>(['', '', '']);
-  const apiUrl = getApiDomain();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -126,18 +125,18 @@ const EditFlashcardPage: React.FC = () => {
     }
   };
 
-  const handleDeleteImage = async () => {
-    if (imageUrl) {
-      try {
-        await apiService.delete(`/flashcards/delete-image?imageUrl=${encodeURIComponent(imageUrl)}`);
-        setImageUrl(null);
-        setFileList([]);
-        message.success("Image removed successfully");
-      } catch {
-        message.error("Failed to remove image.");
-      }
-    }
-  };
+  // const handleDeleteImage = async () => {
+  //   if (imageUrl) {
+  //     try {
+  //       await apiService.delete(`/flashcards/delete-image?imageUrl=${encodeURIComponent(imageUrl)}`);
+  //       setImageUrl(null);
+  //       setFileList([]);
+  //       message.success("Image removed successfully");
+  //     } catch {
+  //       message.error("Failed to remove image.");
+  //     }
+  //   }
+  // };
 
   return (
     <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
