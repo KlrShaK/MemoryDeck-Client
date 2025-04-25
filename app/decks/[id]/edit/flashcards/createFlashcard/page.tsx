@@ -142,15 +142,24 @@ const AddFlashcardPage: React.FC = () => {
 
       message.success(`Flashcard has been added to the "${deckName}" Deck`);
       router.push(`/decks/${id}/edit`);
-    } catch (error: any) {
-      console.error("Error adding flashcard:", error);
-
-      if (error.response?.status === 400 || error.response?.status === 422) {
-        message.error("Make sure all mandatory fields have been filled out correctly.");
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as any).response?.status === "number"
+      ) {
+        const status = (error as any).response.status;
+        if (status === 400 || status === 422) {
+          message.error("Make sure all mandatory fields have been filled out correctly.");
+        } else {
+          message.error("Something went wrong. Please try again.");
+        }
       } else {
         message.error("Something went wrong. Please try again.");
       }
     }
+    
   };
 
   return (

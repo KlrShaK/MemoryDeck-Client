@@ -9,7 +9,7 @@ import { Flashcard } from "@/types/flashcard";
 import { Button } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { getApiDomain } from "@/utils/domain";
-import Image from "next/image";
+//import Image from "next/image";
 import { Deck } from "@/types/deck";
 
 const FlashcardsPage: React.FC = () => {
@@ -21,7 +21,7 @@ const FlashcardsPage: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [deck, setDeck] = useState<Deck | null>(null);
 
-
+  //const apiUrl = getApiDomain();
   const [deckIdAsNumber, setDeckIdAsNumber] = useState<number | null>(null);
 
   // Parse deck ID from params
@@ -59,19 +59,19 @@ const FlashcardsPage: React.FC = () => {
           return;
         }
         setFlashcards(allFlashcards);
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching flashcards:", error);
         setFlashcards([]);
-      }
+      }      
     };
 
     const fetchDeck = async () => {
       try {
         const fetchedDeck = await apiService.get<Deck>(`/decks/${deckIdAsNumber}`);
         setDeck(fetchedDeck);
-      } catch (error: any) {
+      } catch (error) {
         console.error("Error fetching deck", error);
-      }
+      }      
     };
 
     if (deckIdAsNumber !== null) {
@@ -88,9 +88,9 @@ const FlashcardsPage: React.FC = () => {
     try {
       await apiService.delete(`/decks/${deckIdAsNumber}/flashcards/${flashcardId}`);
       setFlashcards((prev) => prev.filter((f) => f.id !== flashcardId));
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting flashcard:", error);
-    }
+    }    
   };
 
   const toggleFlip = (index: number) => {

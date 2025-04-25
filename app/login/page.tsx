@@ -29,10 +29,7 @@ const Login: React.FC = () => {
         router.push("/decks"); // redirect to user dashboard or main page
       }
       setUserId(String(response.id));
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err.message);
-      }
+    } catch {
       form.setFields([
         {
           name: "username",
@@ -69,9 +66,10 @@ const Login: React.FC = () => {
           </Form.Item>
 
           <p style={{ textAlign: "center" }}>
-          Don&apos;t have an account?{" "}
+            Don&apos;t have an account?{" "}
             <a onClick={() => router.push("/register")}>Register</a>
           </p>
+
         </Form>
       </div>
   );
