@@ -40,30 +40,26 @@
    const [form] = Form.useForm();
    const router = useRouter();
    const params = useParams();
-   const deckId = params?.id;
-   if (!deckId) {
-    message.error("Invalid deck ID");
-    router.push("/decks");
-    return;
-  }
    const apiService = useApi();
+   const deckId = params?.id;
    const [loading, setLoading] = useState(true);
    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
    const [existingDeck, setExistingDeck] = useState<Deck | null>(null);
 
 
    useEffect(() => {
-     const fetchDeck = async () => {
-       if (!deckId) return;
+
+    if (!deckId) {
+      message.error("Invalid deck ID");
+      router.push("/decks");
+      return;
+    }
+
+    const fetchDeck = async () => {
 
        try {
          const deck = await apiService.get<Deck>(`/decks/${deckId}`);
          setExistingDeck(deck);
-         form.setFieldsValue({
-           title: deck.title,
-           deckCategory: deck.deckCategory,
-         });
-
          form.setFieldsValue({
            title: deck.title,
            deckCategory: deck.deckCategory,
