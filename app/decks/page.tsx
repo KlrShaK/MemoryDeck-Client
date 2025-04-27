@@ -93,7 +93,7 @@ const DeckPage = () => {
     const handleSetReminderClick = () => console.log("Set Reminder button clicked");
     const handleQuizClick = () => {
         console.log("Quiz button clicked");
-        //router.push('/quiz-play');
+        router.push('/decks/quiz/select-decks');
     }
     const handleVersusClick = () => {
         console.log("Versus Mode button clicked");
