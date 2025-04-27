@@ -33,13 +33,7 @@ export default function useLocalStorage<T>(
     try {
       const stored = globalThis.localStorage.getItem(key);
       if (stored) {
-        try {
-          setValue(JSON.parse(stored) as T);
-        } catch (error) {
-          // If it's not valid JSON, use the raw string value
-          setValue(stored as unknown as T);
-          console.log(`Value for key "${key}" is not valid JSON, using raw value instead`);
-        }
+        setValue(JSON.parse(stored) as T);
       }
     } catch (error) {
       console.error(`Error reading localStorage key "${key}":`, error);
