@@ -14,7 +14,7 @@ type DeckFormValues = {
     isPublic?: boolean;
     isAiGenerated?: boolean;
     aiPrompt?: string;
-    numberofAICards?: number;
+    numberOfAICards?: number;
 };
 
 const AddDeckPage: React.FC = () => {
@@ -42,7 +42,7 @@ const AddDeckPage: React.FC = () => {
                 isPublic: values.isPublic,
                 isAiGenerated: values.isAiGenerated || false,
                 aiPrompt: values.aiPrompt ?? "",
-                numberofAICards: values.numberofAICards ?? null,
+                numberOfAICards: values.numberOfAICards ?? null,
             };
 
             console.log("Sending deckDTO:", deckDTO);
@@ -68,12 +68,12 @@ const AddDeckPage: React.FC = () => {
                             console.log("isAiGenerated changed:", changed.isAiGenerated);
                         }
                         if ("numberofAICards" in changed) {
-                            console.log("numberofAICards changed:", changed.numberofAICards);
+                            console.log("numberofAICards changed:", changed.numberOfAICards);
                         }
                         console.log("All form values:", all);
                     }}
                     layout="vertical"
-                    initialValues={{ numberofAICards: 5 }}
+                    initialValues={{ numberOfAICards: 5 }}
                 >
                     <Form.Item
                         label="Title"
