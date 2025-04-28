@@ -12,6 +12,14 @@ import { Invitation } from '@/types/invitation';
 
 const { Search } = Input;
 
+// Define interface for API response
+interface InvitationResponse {
+  id?: string;
+  invitationId?: string;
+  quizId?: string;
+  [key: string]: unknown; // Allow for other properties
+}
+
 const UserInvitationPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
@@ -26,8 +34,43 @@ const UserInvitationPage: React.FC = () => {
   const [invitationModalVisible, setInvitationModalVisible] = useState(false);
   const [sendingInvitation, setSendingInvitation] = useState(false);
   const [waitingModalVisible, setWaitingModalVisible] = useState(false);
-  const [, setInvitationSent] = useState(false);
-  
+  const [, setInvitationSent] = useState(false); // Using empty variable name to avoid unused var warning
+  const [currentInvitationId, setCurrentInvitationId] = useState<string | null>(null);
+
+  // Effect to poll for invitation acceptance
+  useEffect(() => {
+    // Only run the polling if we have an invitation and are waiting
+    if (!currentInvitationId || !waitingModalVisible) return;
+    
+    const checkInvitationStatus = async () => {
+      try {
+        // Check if the current invitation has been accepted
+        const response = await apiService.get<Invitation>(`/quiz/invitation/accepted?fromUserId=${currentUserId}`);
+        
+        // If we get a response with an accepted invitation that matches our current invitation
+        if (response && response.id === currentInvitationId && response.isAccepted) {
+          // Get the quiz ID from the response
+          const quizId = response.quizId;
+          
+          if (quizId) {
+            // Close the waiting modal
+            setWaitingModalVisible(false);
+            
+            // Navigate to the quiz play page
+            router.push(`/decks/quiz/play/${quizId}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking invitation status:", error);
+      }
+    };
+    
+    // Poll every 2 seconds
+    const intervalId = setInterval(checkInvitationStatus, 2000);
+    
+    // Clean up interval on unmount or when waiting modal closes
+    return () => clearInterval(intervalId);
+  }, [currentInvitationId, waitingModalVisible, currentUserId, apiService, router]);
 
   useEffect(() => {
     // Sample users for testing
@@ -121,7 +164,7 @@ const UserInvitationPage: React.FC = () => {
   
     setSendingInvitation(true);
     try {
-      await apiService.post('/quiz/invitation', {
+      const response = await apiService.post<InvitationResponse>('/quiz/invitation', {
         fromUserId: currentUserId,
         toUserId: selectedUser.id,
         deckIds: [selectedDeckId],
@@ -130,6 +173,19 @@ const UserInvitationPage: React.FC = () => {
       
       message.success(`Invitation sent to ${selectedUser.username}`);
       setInvitationModalVisible(false);
+      
+      // Check if response has an id
+      if (response && response.id) {
+        setCurrentInvitationId(response.id);
+      } else if (response) {
+        // Try to find id in common locations if the API structure is different
+        const possibleId = response.id || response.invitationId;
+        if (possibleId && typeof possibleId === 'string') {
+          setCurrentInvitationId(possibleId);
+        } else {
+          console.warn("Could not find invitation ID in response:", response);
+        }
+      }
       
       // Mark invitation as sent and show waiting screen
       setInvitationSent(true);
@@ -146,21 +202,14 @@ const UserInvitationPage: React.FC = () => {
   const handleCancelWaiting = async () => {
     try {
       // Delete the invitation if it exists
-      if (selectedUser && currentUserId) {
-        // Find pending invitations for the current user
-        const invitations = await apiService.get<Invitation[]>(`/quiz/invitation/senders?fromUserId=${currentUserId}`);
-        const pendingInvitation = invitations.find((inv: Invitation) => 
-          inv.toUserId === selectedUser.id && !inv.isAccepted
-        );
-        
-        if (pendingInvitation) {
-          await apiService.delete(`/quiz/invitation/delete/${pendingInvitation.id}`);
-        }
+      if (selectedUser && currentUserId && currentInvitationId) {
+        await apiService.delete(`/quiz/invitation/delete/${currentInvitationId}`);
       }
     } catch (error) {
       console.error('Error canceling invitation:', error);
     } finally {
       setWaitingModalVisible(false);
+      setCurrentInvitationId(null);
       router.push('/decks');
     }
   };
