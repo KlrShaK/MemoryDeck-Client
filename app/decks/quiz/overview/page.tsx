@@ -85,7 +85,7 @@ const UserInvitationPage: React.FC = () => {
     const deckId = localStorage.getItem('selected_quiz_deck_id');
     if (!deckId) {
       message.error('No deck selected. Please select a deck first.');
-      router.push('/decks/select-decks');
+      router.push('/decks/quiz/select-decks');
       return;
     }
     
