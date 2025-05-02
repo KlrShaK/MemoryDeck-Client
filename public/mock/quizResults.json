@@ -1,0 +1,5 @@
+[
+  { "timestamp": "2025-05-01T10:00:00Z", "score": 8, "total": 10 },
+  { "timestamp": "2025-05-02T11:30:00Z", "score": 9, "total": 10 },
+  { "timestamp": "2025-05-03T09:15:00Z", "score": 10, "total": 10 }
+]
