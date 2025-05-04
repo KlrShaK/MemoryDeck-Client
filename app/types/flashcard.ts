@@ -1,7 +1,7 @@
 export interface Flashcard {
     id: string;
     description: string | null;
-    date: Date;
+    date: string | Date | null;
     answer: string;
     wrongAnswers: string[];
     imageUrl: string | null;

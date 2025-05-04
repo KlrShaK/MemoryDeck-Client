@@ -1,171 +1,245 @@
 "use client";
 
-import React, { useState } from "react";
-import { Checkbox, Card, Form, Input, Button, Select, InputNumber, message } from "antd";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
-const { Option } = Select;
-
 type DeckFormValues = {
-    title: string;
-    deckCategory: string;
-    isPublic?: boolean;
-    isAiGenerated?: boolean;
-    aiPrompt?: string;
-    numberOfAICards?: number;
+  title: string;
+  deckCategory: string;
+  isPublic?: boolean;
+  isAiGenerated?: boolean;
+  aiPrompt?: string;
+  numberOfAICards?: number;
 };
 
 const AddDeckPage: React.FC = () => {
-    const [form] = Form.useForm();
-    const [isAiEnabled, setIsAiEnabled] = useState(false);
-    const router = useRouter();
-    const apiService = useApi();
+  const router = useRouter();
+  const apiService = useApi();
+  const { value: userId } = useLocalStorage<string>("userId", "");
+  const [userIdAsNumber, setUserIdAsNumber] = useState<number | null>(null);
 
-    const { value: user_id } = useLocalStorage<string>("user_id", "");
-    const userIdAsNumber = Number(user_id);
+  const [form, setForm] = useState<DeckFormValues>({
+    title: "",
+    deckCategory: "",
+    isPublic: false,
+    isAiGenerated: false,
+    aiPrompt: "",
+    numberOfAICards: 5,
+  });
 
-    if (isNaN(userIdAsNumber)) {
-        message.error("Invalid user id. Please log in again.");
-        router.push("/login");
-        return null;
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userId) {
+      const parsed = Number(userId);
+      if (!isNaN(parsed)) setUserIdAsNumber(parsed);
+      else router.push("/login");
+    }
+  }, [userId]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!form.title || !form.deckCategory) {
+      setError("Title and category are required.");
+      return;
     }
 
-    const handleAddDeck = async (values: DeckFormValues) => {
-        console.log("Submitted form values:", values);
-        try {
-            values.isPublic ??= false;
-            const deckDTO = {
-                title: values.title,
-                deckCategory: values.deckCategory,
-                isPublic: values.isPublic,
-                isAiGenerated: values.isAiGenerated || false,
-                aiPrompt: values.aiPrompt ?? "",
-                numberOfAICards: values.numberOfAICards ?? null,
-            };
+    if (form.isAiGenerated && (!form.aiPrompt || !form.numberOfAICards)) {
+      setError("AI prompt and card count are required when using AI.");
+      return;
+    }
 
-            console.log("Sending deckDTO:", deckDTO);
-            await apiService.post(`/decks/addDeck?userId=${userIdAsNumber}`, deckDTO);
-            message.success("Deck added successfully!");
-            router.push("/decks");
-        } catch (error) {
-            console.error("Error adding deck:", error);
-            message.error("Failed to add deck.");
-        }
-    };
+    try {
+      const deckDTO = {
+        title: form.title,
+        deckCategory: form.deckCategory,
+        isPublic: form.isPublic ?? false,
+        isAiGenerated: form.isAiGenerated ?? false,
+        aiPrompt: form.aiPrompt ?? "",
+        numberOfAICards: form.numberOfAICards ?? null,
+      };
 
+      await apiService.post(`/decks/addDeck?userId=${userIdAsNumber}`, deckDTO);
+      router.push("/decks");
+    } catch (err) {
+      setError("Failed to add deck.");
+    }
+  };
 
-    return (
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-            <Card title="Add New Deck" style={{ width: 400 }}>
-                <Form
-                    form={form}
-                    onFinish={handleAddDeck}
-                    onValuesChange={(changed, all) => {
-                        if ("isAiGenerated" in changed) {
-                            setIsAiEnabled(changed.isAiGenerated);
-                            console.log("isAiGenerated changed:", changed.isAiGenerated);
-                        }
-                        if ("numberofAICards" in changed) {
-                            console.log("numberofAICards changed:", changed.numberOfAICards);
-                        }
-                        console.log("All form values:", all);
-                    }}
-                    layout="vertical"
-                    initialValues={{ numberOfAICards: 5 }}
-                >
-                    <Form.Item
-                        label="Title"
-                        name="title"
-                        rules={[{ required: true, message: "Title is required" }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    git diff
-                    <Form.Item
-                        label="Deck Category"
-                        name="deckCategory"
-                        rules={[{ required: true, message: "Deck Category is required" }]}
-                    >
-                        <Select placeholder="Select a category">
-                            <Option value="MOMENTS">Moments</Option>
-                            <Option value="SPORTS">Sports</Option>
-                            <Option value="ANIMALS">Animals</Option>
-                            <Option value="PLACES">Places</Option>
-                            <Option value="FOODS">Foods</Option>
-                            <Option value="SCIENCE">Science</Option>
-                            <Option value="MATH">Math</Option>
-                            <Option value="HISTORY">History</Option>
-                            <Option value="LANGUAGE">Language</Option>
-                            <Option value="TECHNOLOGY">Technology</Option>
-                            <Option value="OTHERS">Others</Option>
-                            <Option value="MIXED">Mixed</Option>
-                        </Select>
-                    </Form.Item>
+  return (
+    <div
+      style={{
+        backgroundColor: "#b3edbc",
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: "'Poppins', sans-serif",
+        padding: "60px 20px",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "white",
+          padding: "48px",
+          borderRadius: "24px",
+          boxShadow: "0 8px 18px rgba(0,0,0,0.15)",
+          width: "100%",
+          maxWidth: "560px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: "36px",
+            fontWeight: 700,
+            marginBottom: "40px",
+            color: "#215F46",
+          }}
+        >
+          Create a New Deck
+        </h1>
 
-                    <Form.Item name="isPublic" valuePropName="checked">
-                        <Checkbox>Public</Checkbox>
-                    </Form.Item>
+        <form onSubmit={handleSubmit}>
+          <label style={labelStyle}>Title</label>
+          <input
+            type="text"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            style={inputStyle}
+            required
+          />
 
-                    <Form.Item name="isAiGenerated" valuePropName="checked">
-                        <Checkbox>Generate with AI</Checkbox>
-                    </Form.Item>
+          <label style={labelStyle}>Deck Category</label>
+          <select
+            value={form.deckCategory}
+            onChange={(e) => setForm({ ...form, deckCategory: e.target.value })}
+            style={inputStyle}
+            required
+          >
+            <option value="">Select a category</option>
+            {[
+              "MOMENTS", "SPORTS", "ANIMALS", "PLACES", "FOODS", "SCIENCE",
+              "MATH", "HISTORY", "LANGUAGE", "TECHNOLOGY", "OTHERS", "MIXED",
+            ].map((cat) => (
+              <option key={cat} value={cat}>
+                {cat[0] + cat.slice(1).toLowerCase()}
+              </option>
+            ))}
+          </select>
 
-                    {/* AI Prompt Field */}
-                    <Form.Item
-                        label="AI Prompt"
-                        name="aiPrompt"
-                        dependencies={['isAiGenerated']}
-                        rules={[
-                            ({ getFieldValue }) => ({
-                                validator(_, value) {
-                                    if (!getFieldValue("isAiGenerated") || (value && value.trim() !== "")) {
-                                        return Promise.resolve();
-                                    }
-                                    return Promise.reject(new Error("AI Prompt is required when generating with AI"));
-                                },
-                            }),
-                        ]}
-                    >
-                        <Input.TextArea placeholder="Enter your prompt for AI deck generation" disabled={!isAiEnabled} />
-                    </Form.Item>
+          <div style={checkboxGroupStyle}>
+            <label>
+              <input
+                type="checkbox"
+                checked={form.isPublic}
+                onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
+              />
+              <span style={checkboxLabelStyle}> Public</span>
+            </label>
 
-                    {/* Number of Cards Field */}
-                    <Form.Item
-                        label="Number of Cards to Generate"
-                        name="numberofAICards"
-                        dependencies={['isAiGenerated']}
-                        rules={[
-                            ({ getFieldValue }) => ({
-                                validator(_, value) {
-                                    if (!getFieldValue("isAiGenerated") || (value && value > 0)) {
-                                        return Promise.resolve();
-                                    }
-                                    return Promise.reject(new Error("Please specify number of cards to generate"));
-                                },
-                            }),
-                        ]}
-                    >
-                        <InputNumber
-                            min={1}
-                            style={{ width: "100%" }}
-                            disabled={!isAiEnabled}
-                            onChange={(value) => console.log("InputNumber onChange:", value)}
-                        />
-                    </Form.Item>
+            <label>
+              <input
+                type="checkbox"
+                checked={form.isAiGenerated}
+                onChange={(e) =>
+                  setForm({ ...form, isAiGenerated: e.target.checked })
+                }
+              />
+              <span style={checkboxLabelStyle}> Generate with AI</span>
+            </label>
+          </div>
 
-                    <Button type="primary" htmlType="submit">
-                        Save Deck
-                    </Button>
-                    <Button style={{ marginLeft: "10px" }} onClick={() => router.push("/decks")}>
-                        Cancel
-                    </Button>
-                </Form>
-            </Card>
+          {form.isAiGenerated && (
+            <>
+              <label style={labelStyle}>AI Prompt</label>
+              <textarea
+                value={form.aiPrompt}
+                onChange={(e) => setForm({ ...form, aiPrompt: e.target.value })}
+                placeholder="Enter prompt for AI to generate cards"
+                style={{ ...inputStyle, height: "100px" }}
+              />
 
-        </div>
-    );
+              <label style={labelStyle}>Number of Cards</label>
+              <input
+                type="number"
+                min={1}
+                value={form.numberOfAICards}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    numberOfAICards: Number(e.target.value),
+                  })
+                }
+                style={inputStyle}
+              />
+            </>
+          )}
+
+          {error && <p style={{ color: "red", marginTop: "12px" }}>{error}</p>}
+
+          <div style={{ marginTop: "40px", display: "flex", gap: "16px" }}>
+            <button type="submit" style={buttonStyle}>
+              Save Deck
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/decks")}
+              style={{ ...buttonStyle, backgroundColor: "#ccc", color: "#222" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: "18px",
+  fontWeight: "500",
+  color: "#333",
+  marginBottom: "8px",
+  display: "block",
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "16px",
+  marginBottom: "24px",
+  borderRadius: "10px",
+  border: "1.5px solid #ccc",
+  fontSize: "18px",
+  color: "#222", // fix: readable text
+  backgroundColor: "#f9f9f9",
+  outline: "none",
+};
+
+const checkboxGroupStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: "24px",
+  fontSize: "16px",
+};
+
+const checkboxLabelStyle: React.CSSProperties = {
+  fontSize: "16px",
+  color: "#215F46",
+};
+
+const buttonStyle: React.CSSProperties = {
+  padding: "14px 28px",
+  backgroundColor: "#2E8049",
+  color: "white",
+  border: "none",
+  borderRadius: "10px",
+  cursor: "pointer",
+  fontWeight: "600",
+  fontSize: "18px",
 };
 
 export default AddDeckPage;
