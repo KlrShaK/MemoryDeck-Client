@@ -7,7 +7,6 @@ import {
   Col,
   Form,
   Input,
-  message,
   Row,
   Select,
   Space,
@@ -33,13 +32,20 @@ import { Deck } from "@/types/deck";
 import { Flashcard } from "@/types/flashcard";
 import type { UploadChangeParam, UploadFile } from "antd/es/upload/interface";
 
-/* ---------- design tokens --------------------------------------- */
+/* -------------------------------------------------- */
+/*  1.  ANT‑DESIGN MESSAGE (hook version, no warning)  */
+/* -------------------------------------------------- */
+import { message as antdMessage } from "antd";
+const [msgApi, contextHolder] = antdMessage.useMessage();
+
+/* -------------------------------------------------- */
+/*  2.  DESIGN CONSTANTS                              */
+/* -------------------------------------------------- */
 const primaryColor = "#2E8049";
 const cardShadow = "0 8px 16px rgba(0,0,0,0.12)";
 const fontFamily = "'Poppins', sans-serif";
-
 const MAX_WRONG = 6;
-const defaultWrongArray = () => ["", "", ""]; // first 3 are mandatory
+const defaultWrongArray = () => ["", "", ""];
 
 /* =================================================================
    MAIN COMPONENT
@@ -49,13 +55,11 @@ const EditDeckPage: React.FC = () => {
   const router = useRouter();
   const api = useApi();
 
-  /* ---- antd message (hook) ------------------------------------- */
-  const [msgApi, contextHolder] = message.useMessage();
-
   /* ---- deck meta ------------------------------------------------ */
   const [deck, setDeck] = useState<Deck | null>(null);
   const [isEditingMeta, setIsEditingMeta] = useState(false);
   const [deckForm] = Form.useForm();
+  const [savingMeta, setSavingMeta] = useState(false);
 
   /* ---- flashcards ---------------------------------------------- */
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -70,11 +74,12 @@ const EditDeckPage: React.FC = () => {
   const [isBulkOpen, setIsBulkOpen] = useState(false);
   const [savingBulk, setSavingBulk] = useState(false);
 
+  /* ---- misc ----------------------------------------------------- */
   const [loading, setLoading] = useState(true);
 
-  /* ================================================================
+  /* ===============================================================
      LOAD DECK & CARDS
-     ================================================================ */
+     =============================================================== */
   useEffect(() => {
     if (!deckId) return;
     (async () => {
@@ -88,18 +93,18 @@ const EditDeckPage: React.FC = () => {
         const m: Record<string, Partial<Flashcard>> = {};
         cards.forEach((c) => (m[c.id] = { ...c }));
         setForms(m);
-      } catch {
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
         msgApi.error("Failed to load deck");
         router.push("/decks");
-      } finally {
-        setLoading(false);
       }
     })();
   }, [deckId, api, msgApi, router]);
 
-  /* ================================================================
+  /* ===============================================================
      EDIT DECK META
-     ================================================================ */
+     =============================================================== */
   useEffect(() => {
     if (isEditingMeta && deck) {
       deckForm.setFieldsValue({
@@ -111,6 +116,7 @@ const EditDeckPage: React.FC = () => {
 
   const saveMeta = async () => {
     try {
+      setSavingMeta(true);
       const vals = await deckForm.validateFields();
       await api.put(`/decks/${deckId}`, { ...deck, ...vals });
       setDeck((p) => (p ? { ...p, ...vals } : p));
@@ -119,14 +125,17 @@ const EditDeckPage: React.FC = () => {
       );
       msgApi.success("Deck updated");
       setIsEditingMeta(false);
-    } catch {
-      msgApi.error("Could not update deck");
+    } catch (err) {
+      console.error(err);
+      msgApi.error("Meta save failed");
+    } finally {
+      setSavingMeta(false);
     }
   };
 
-  /* ================================================================
+  /* ===============================================================
      CARD HELPERS
-     ================================================================ */
+     =============================================================== */
   const setCardField = (
     id: string,
     field: keyof Flashcard,
@@ -178,8 +187,9 @@ const EditDeckPage: React.FC = () => {
       .every((w) => w?.trim());
 
   const saveCard = async (card: Flashcard, data: Partial<Flashcard>) => {
+    console.log("saveCard called", card.id);
     if (!validateCard(data)) {
-      msgApi.warning("Please fill question, answer and 3 wrong answers");
+      msgApi.warning("Fill question, answer and 3 wrong answers");
       return;
     }
 
@@ -212,10 +222,11 @@ const EditDeckPage: React.FC = () => {
           )
         );
       }
-      msgApi.success("Saved");
+      msgApi.success("Flashcard saved");
       setEditingId(null);
-    } catch {
-      msgApi.error("Could not save flashcard");
+    } catch (err) {
+      console.error(err);
+      msgApi.error("Save failed");
     }
   };
 
@@ -227,7 +238,8 @@ const EditDeckPage: React.FC = () => {
       setFlashcards((p) => p.filter((c) => c.id !== card.id));
       setEditingId(null);
       msgApi.success("Deleted");
-    } catch {
+    } catch (err) {
+      console.error(err);
       msgApi.error("Delete failed");
     }
   };
@@ -258,9 +270,9 @@ const EditDeckPage: React.FC = () => {
     setEditingId(id);
   };
 
-  /* ================================================================
-     BULK ADD
-     ================================================================ */
+  /* ===============================================================
+     BULK PANEL
+     =============================================================== */
   useEffect(() => {
     if (isBulkOpen) bulkForm.setFieldsValue({ flashcards: [{}] });
   }, [isBulkOpen, bulkForm]);
@@ -291,24 +303,26 @@ const EditDeckPage: React.FC = () => {
 
       msgApi.success(`Added ${cards.length} cards`);
 
+      /* refresh list */
       const fresh = await api.get<Flashcard[]>(
         `/decks/${deckId}/flashcards`
       );
       setFlashcards(fresh);
-      const map: Record<string, Partial<Flashcard>> = {};
-      fresh.forEach((c) => (map[c.id] = { ...c }));
-      setForms(map);
+      const m: Record<string, Partial<Flashcard>> = {};
+      fresh.forEach((c) => (m[c.id] = { ...c }));
+      setForms(m);
       setIsBulkOpen(false);
-    } catch {
+    } catch (err) {
+      console.error(err);
       msgApi.error("Bulk save failed");
     } finally {
       setSavingBulk(false);
     }
   };
 
-  /* ================================================================
+  /* ===============================================================
      RENDER
-     ================================================================ */
+     =============================================================== */
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: 80 }}>
@@ -317,7 +331,7 @@ const EditDeckPage: React.FC = () => {
     );
   }
 
-  /* ---------- Deck Header --------------------------------------- */
+  /* ---- deck header UI ------------------------------------------ */
   const DeckHeader = (
     <Card
       style={{
@@ -368,15 +382,13 @@ const EditDeckPage: React.FC = () => {
           <Button
             type="primary"
             htmlType="submit"
+            loading={savingMeta}
             icon={<SaveOutlined />}
             style={{ background: primaryColor, border: "none" }}
           >
             Save
           </Button>
-          <Button
-            icon={<CloseOutlined />}
-            onClick={() => setIsEditingMeta(false)}
-          >
+          <Button onClick={() => setIsEditingMeta(false)} icon={<CloseOutlined />}>
             Cancel
           </Button>
         </Form>
@@ -437,7 +449,7 @@ const EditDeckPage: React.FC = () => {
     </Card>
   );
 
-  /* ---------- Single Card --------------------------------------- */
+  /* ---- single card UI ------------------------------------------ */
   const FlashcardCard = (card: Flashcard) => {
     const isEdit = editingId === card.id;
     const data = forms[card.id] ?? {};
@@ -598,15 +610,11 @@ const EditDeckPage: React.FC = () => {
     );
   };
 
-  /* ---------- Bulk Panel ---------------------------------------- */
+  /* ---------- bulk panel UI ------------------------------------- */
   const BulkPanel = isBulkOpen && (
     <Card style={{ marginBottom: 32, borderRadius: 16, boxShadow: cardShadow }}>
       <h3 style={{ fontFamily, marginBottom: 16 }}>Add multiple flashcards</h3>
-      <Form
-        form={bulkForm}
-        layout="vertical"
-        initialValues={{ flashcards: [{}] }}
-      >
+      <Form form={bulkForm} layout="vertical" initialValues={{ flashcards: [{}] }}>
         <Form.List name="flashcards">
           {(fields, { add, remove }) => (
             <>
@@ -757,7 +765,7 @@ const EditDeckPage: React.FC = () => {
     </Card>
   );
 
-  /* ---------- Final render -------------------------------------- */
+  /* ---------- final render -------------------------------------- */
   return (
     <>
       {contextHolder}
