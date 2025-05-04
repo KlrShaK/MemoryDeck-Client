@@ -21,8 +21,6 @@ const AddDeckPage: React.FC = () => {
     const [form] = Form.useForm();
     const [isAiEnabled, setIsAiEnabled] = useState(false);
     const router = useRouter();
-    const [isAiEnabled, setIsAiEnabled] = useState(false);
-    const router = useRouter();
     const apiService = useApi();
 
     const { value: user_id } = useLocalStorage<string>("user_id", "");
@@ -37,16 +35,14 @@ const AddDeckPage: React.FC = () => {
     const handleAddDeck = async (values: DeckFormValues) => {
         console.log("Submitted form values:", values);
         try {
-            if (values.isPublic == null) {
-                values.isPublic = false;
-            }
+            values.isPublic ??= false;
             const deckDTO = {
                 title: values.title,
                 deckCategory: values.deckCategory,
                 isPublic: values.isPublic,
                 isAiGenerated: values.isAiGenerated || false,
-                aiPrompt: values.aiPrompt || "",
-                numberofAICards: values.numberofAICards || null,
+                aiPrompt: values.aiPrompt ?? "",
+                numberofAICards: values.numberofAICards ?? null,
             };
 
             console.log("Sending deckDTO:", deckDTO);
@@ -58,11 +54,7 @@ const AddDeckPage: React.FC = () => {
             message.error("Failed to add deck.");
         }
     };
-        } catch (error) {
-            console.error("Error adding deck:", error);
-            message.error("Failed to add deck.");
-        }
-    };
+
 
     return (
         <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
@@ -90,7 +82,7 @@ const AddDeckPage: React.FC = () => {
                     >
                         <Input />
                     </Form.Item>
-
+                    git diff
                     <Form.Item
                         label="Deck Category"
                         name="deckCategory"
@@ -171,7 +163,7 @@ const AddDeckPage: React.FC = () => {
                     </Button>
                 </Form>
             </Card>
-            </Card>
+
         </div>
     );
 };

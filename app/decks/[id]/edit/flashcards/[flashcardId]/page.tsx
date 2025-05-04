@@ -4,12 +4,12 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Card, Form, Input, Button, Upload, message } from "antd";
-import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
+import { UploadOutlined } from "@ant-design/icons";
 import { Flashcard } from "@/types/flashcard";
 import { useApi } from "@/hooks/useApi";
 import type { UploadChangeParam } from "antd/es/upload";
 import type { UploadFile } from "antd/es/upload/interface";
-import { getApiDomain } from "@/utils/domain";
+//import { getApiDomain } from "@/utils/domain";
 import Image from "next/image";
 
 const EditFlashcardPage: React.FC = () => {
@@ -19,7 +19,6 @@ const EditFlashcardPage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [wrongAnswers, setWrongAnswers] = useState<string[]>(['', '', '']);
-  const apiUrl = getApiDomain();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -67,9 +66,9 @@ const EditFlashcardPage: React.FC = () => {
 
         // Initialize wrongAnswers state
         setWrongAnswers([
-          flashcard?.wrongAnswers?.[0] || '',
-          flashcard?.wrongAnswers?.[1] || '',
-          flashcard?.wrongAnswers?.[2] || ''
+          flashcard?.wrongAnswers?.[0] ?? '',
+          flashcard?.wrongAnswers?.[1] ?? '',
+          flashcard?.wrongAnswers?.[2] ?? ''
         ]);
 
         // Set the image URL if available
@@ -126,18 +125,18 @@ const EditFlashcardPage: React.FC = () => {
     }
   };
 
-  const handleDeleteImage = async () => {
-    if (imageUrl) {
-      try {
-        await apiService.delete(`/flashcards/delete-image?imageUrl=${encodeURIComponent(imageUrl)}`);
-        setImageUrl(null);
-        setFileList([]);
-        message.success("Image removed successfully");
-      } catch {
-        message.error("Failed to remove image.");
-      }
-    }
-  };
+  // const handleDeleteImage = async () => {
+  //   if (imageUrl) {
+  //     try {
+  //       await apiService.delete(`/flashcards/delete-image?imageUrl=${encodeURIComponent(imageUrl)}`);
+  //       setImageUrl(null);
+  //       setFileList([]);
+  //       message.success("Image removed successfully");
+  //     } catch {
+  //       message.error("Failed to remove image.");
+  //     }
+  //   }
+  // };
 
   return (
     <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>

@@ -3,7 +3,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Space, Card } from "antd";
+import { Button, Space} from "antd";
+//import { Card } from "antd";
 import { useTimer } from "@/hooks/useTimer";
 import ProgressBar from "@/components/ProgressBar";
 import ScorePanel from "@/components/ScorePanel";
@@ -74,7 +75,7 @@ const QuizPlayPage: React.FC = () => {
 
     useEffect(() => {
         start();
-    }, []);
+    }, [start]);
 
     const renderResults = () => {
         return (

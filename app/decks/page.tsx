@@ -1,7 +1,7 @@
 //decks home page
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Row, Col, Avatar, Dropdown, Spin, message } from "antd";
 import { EllipsisOutlined, UserOutlined } from "@ant-design/icons";
@@ -27,25 +27,21 @@ const DeckPage = () => {
     const { value: userId } = useLocalStorage<string>("userId", "");
     // CHANGED: start as null, not {}
     const [decks, setDecks] = useState<GroupedDecks | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
-    // We'll keep the loading if we want to differentiate "fetch in progress" from "no userId"
-    const [loading, setLoading] = useState(true);
 
-    const fetchGroupedDecks = async () => {
-        if (!userId) return; // no user ID? just exit.
-    
+
+    const fetchGroupedDecks = useCallback(async () => {
+        if (!userId) return;
+
         try {
-            // fetch all decks
             const deckList = await apiService.get<Deck[]>(`/decks?userId=${userId}`);
-    
             const grouped: GroupedDecks = {};
             for (const deck of deckList) {
                 grouped[String(deck.id)] = {
                     title: deck.title ?? "Untitled",
                     flashcards: [],
                 };
-    
-                // Now, fetch flashcards for each deck
                 const flashcards = await apiService
                     .get<Flashcard[]>(`/decks/${deck.id}/flashcards`)
                     .catch((err) => {
@@ -55,30 +51,19 @@ const DeckPage = () => {
                         }
                         throw err;
                     });
-    
-                // Add the fetched flashcards to the grouped deck
                 grouped[String(deck.id)].flashcards = flashcards;
             }
-    
             setDecks(grouped);
         } catch (error) {
             console.error("Failed to fetch decks or flashcards:", error);
             message.error("Failed to load decks.");
-            // If there's a fatal error, at least set an empty object so we don't remain null
             setDecks({});
-        } finally {
-            setLoading(false);
         }
-    };
-    
+    }, [userId, apiService]);
 
-    useEffect(() => {
-        if (userId) {
-            fetchGroupedDecks();
-        } else {
-            setLoading(false);
-        }
-    }, [userId]);
+
+
+
 
     // Deck actions
     const handleDeckClick = (deckId: number) => {
@@ -117,12 +102,14 @@ const DeckPage = () => {
     const handleProfileClick = () => console.log("Profile button clicked");
 
     useEffect(() => {
-        if (userId) {
-            fetchGroupedDecks();
-        } else {
+        if (!userId) {
             setLoading(false);
+            return;
         }
-    }, [userId]);
+        fetchGroupedDecks()
+            .catch(() => {})    // errors already handled inside fetchGroupedDecks
+            .finally(() => setLoading(false));
+    }, [userId, fetchGroupedDecks]);
 
     return (
         <div style={{ backgroundColor: "#ccf0cc", minHeight: "100vh", padding: "0" }}>
@@ -135,7 +122,7 @@ const DeckPage = () => {
                     onClick={handleProfileClick}
                 />
             </div>
-
+    
             <div style={{ display: "flex", padding: "0 20px" }}>
                 {/* Sidebar */}
                 <div style={{ width: "200px", marginRight: "20px" }}>
@@ -154,9 +141,9 @@ const DeckPage = () => {
                     >
                         Create
                     </Button>
-
+    
                     <div style={{ borderTop: '1px solid #a8e6a8', marginBottom: '20px' }}></div>
-
+    
                     <Button
                         type="default"
                         onClick={handlePerformanceClick}
@@ -170,7 +157,7 @@ const DeckPage = () => {
                     >
                         Performance
                     </Button>
-
+    
                     <Button
                         type="default"
                         onClick={handleSetReminderClick}
@@ -184,11 +171,11 @@ const DeckPage = () => {
                     >
                         Set Reminder
                     </Button>
-
+    
                     <div style={{ borderTop: '1px solid #a8e6a8', marginBottom: '20px' }}></div>
-
+    
                     <h3 style={{ margin: '20px 0px 30px 40px', color: '#333' }}>Gamemodes</h3>
-
+    
                     <Button
                         type="primary"
                         onClick={handleQuizClick}
@@ -204,7 +191,7 @@ const DeckPage = () => {
                     >
                         Start a quiz together!
                     </Button>
-
+    
                     <Button
                         type="primary"
                         onClick={handleVersusClick}
@@ -220,7 +207,7 @@ const DeckPage = () => {
                     >
                         Versus Mode
                     </Button>
-
+    
                     <div style={{ position: 'fixed', bottom: '20px' }}>
                         <Button
                             type="default"
@@ -236,16 +223,25 @@ const DeckPage = () => {
                         </Button>
                     </div>
                 </div>
-
+    
                 {/* Main Content */}
                 <div style={{ flex: 1 }}>
                     <h2 style={{ marginBottom: "20px", color: "#333" }}>Your Decks</h2>
-
-                    {/* CHANGED: We check if decks === null FIRST => means still loading */}
-                    {decks === null ? (
+    
+                    {/* Use the loading state here */}
+                    {loading ? (
                         <div style={{ textAlign: "center", padding: "40px" }}>
                             <Spin size="large" />
-                            <p style={{ marginTop: "16px", fontSize: "16px", color: "#555" }}>Loading decks...</p>
+                            <p style={{ marginTop: "16px", fontSize: "16px", color: "#555" }}>
+                                Loading decks...
+                            </p>
+                        </div>
+                    ) : decks === null ? (
+                        // You can also handle the null state here in case fetching fails
+                        <div style={{ textAlign: "center", padding: "40px" }}>
+                            <p style={{ marginTop: "16px", fontSize: "16px", color: "#555" }}>
+                                Failed to load decks. Please try again later.
+                            </p>
                         </div>
                     ) : Object.keys(decks).length > 0 ? (
                         // We have some decks
@@ -302,7 +298,7 @@ const DeckPage = () => {
                             })}
                         </Row>
                     ) : (
-                        // deck object is empty => "no decks"
+                        // If decks is empty
                         <div style={{ textAlign: "center", padding: "160px", color: "#ff0000", fontWeight: 700 }}>
                             You have no saved decks yet. To get started, please create decks from the menu.
                         </div>
@@ -311,6 +307,7 @@ const DeckPage = () => {
             </div>
         </div>
     );
+    
 };
 
 export default DeckPage;
