@@ -1,808 +1,422 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  Fragment,
+} from "react";
 import {
   Button,
-  Card,
-  Col,
-  Form,
   Input,
-  Row,
   Select,
-  Space,
+  Checkbox,
+  Card,
+  Row,
+  Col,
+  Modal,
+  Form,
+  Popconfirm,
   Spin,
-  Upload,
+  message,
 } from "antd";
 import {
-  CheckOutlined,
-  CloseOutlined,
-  CopyOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  MinusCircleOutlined,
   PlusOutlined,
-  SaveOutlined,
-  UploadOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined,
 } from "@ant-design/icons";
-import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
-
+import { useRouter, useParams } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import { Deck } from "@/types/deck";
-import { Flashcard } from "@/types/flashcard";
-import type { UploadChangeParam, UploadFile } from "antd/es/upload/interface";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
-/* -------------------------------------------------- */
-/*  1.  ANT‑DESIGN MESSAGE (hook version, no warning)  */
-/* -------------------------------------------------- */
-import { message as antdMessage } from "antd";
-const [msgApi, contextHolder] = antdMessage.useMessage();
+// ────────────────────────────────────────────────────────────────────────────────
+// Types
+// ────────────────────────────────────────────────────────────────────────────────
+interface Deck {
+  id: number;
+  title: string;
+  deckCategory: string;
+  isPublic: boolean;
+}
 
-/* -------------------------------------------------- */
-/*  2.  DESIGN CONSTANTS                              */
-/* -------------------------------------------------- */
-const primaryColor = "#2E8049";
-const cardShadow = "0 8px 16px rgba(0,0,0,0.12)";
-const fontFamily = "'Poppins', sans-serif";
-const MAX_WRONG = 6;
-const defaultWrongArray = () => ["", "", ""];
+interface Flashcard {
+  id?: number;
+  description: string;
+  answer: string;
+  wrongAnswers: string[];
+  imageUrl?: string | null;
+}
 
-/* =================================================================
-   MAIN COMPONENT
-   ================================================================= */
+const CATEGORY_OPTIONS = [
+  "MOMENTS",
+  "SPORTS",
+  "ANIMALS",
+  "PLACES",
+  "FOODS",
+  "SCIENCE",
+  "MATH",
+  "HISTORY",
+  "LANGUAGE",
+  "TECHNOLOGY",
+  "OTHERS",
+  "MIXED",
+];
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Main Page Component
+// ────────────────────────────────────────────────────────────────────────────────
 const EditDeckPage: React.FC = () => {
-  const { id: deckId } = useParams<{ id: string }>();
   const router = useRouter();
-  const api = useApi();
+  const { deckId } = useParams<{ deckId: string }>();
+  const apiService = useApi();
+  const { value: userId } = useLocalStorage<string>("userId", "");
 
-  /* ---- deck meta ------------------------------------------------ */
-  const [deck, setDeck] = useState<Deck | null>(null);
-  const [isEditingMeta, setIsEditingMeta] = useState(false);
-  const [deckForm] = Form.useForm();
-  const [savingMeta, setSavingMeta] = useState(false);
-
-  /* ---- flashcards ---------------------------------------------- */
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [forms, setForms] = useState<Record<string, Partial<Flashcard>>>({});
-  const [uploads, setUploads] = useState<
-    Record<string, { fileList: UploadFile[]; imageUrl: string | null }>
-  >({});
-
-  /* ---- bulk add ------------------------------------------------- */
-  const [bulkForm] = Form.useForm();
-  const [isBulkOpen, setIsBulkOpen] = useState(false);
-  const [savingBulk, setSavingBulk] = useState(false);
-
-  /* ---- misc ----------------------------------------------------- */
+  // ── State ────────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(true);
+  const [deck, setDeck] = useState<Deck | null>(null);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
 
-  /* ===============================================================
-     LOAD DECK & CARDS
-     =============================================================== */
+  const [deckForm, setDeckForm] = useState({
+    title: "",
+    deckCategory: "",
+    isPublic: false,
+  });
+
+  // Modal state
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(
+    null
+  );
+
+  // ── Fetch helpers ────────────────────────────────────────────────────────────
+  const fetchDeck = useCallback(async () => {
+    try {
+      const fetchedDeck = await apiService.get<Deck>(`/decks/${deckId}`);
+      setDeck(fetchedDeck);
+      setDeckForm({
+        title: fetchedDeck.title ?? "",
+        deckCategory: fetchedDeck.deckCategory ?? "",
+        isPublic: fetchedDeck.isPublic ?? false,
+      });
+    } catch (err) {
+      message.error("Failed to load deck details.");
+    }
+  }, [apiService, deckId]);
+
+  const fetchFlashcards = useCallback(async () => {
+    try {
+      const data = await apiService.get<Flashcard[]>(
+        `/decks/${deckId}/flashcards`
+      );
+      setFlashcards(data);
+    } catch (err) {
+      message.error("Failed to load flashcards.");
+    }
+  }, [apiService, deckId]);
+
   useEffect(() => {
     if (!deckId) return;
     (async () => {
-      try {
-        const d = await api.get<Deck>(`/decks/${deckId}`);
-        const cards = await api.get<Flashcard[]>(
-          `/decks/${deckId}/flashcards`
-        );
-        setDeck(d);
-        setFlashcards(cards);
-        const m: Record<string, Partial<Flashcard>> = {};
-        cards.forEach((c) => (m[c.id] = { ...c }));
-        setForms(m);
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        msgApi.error("Failed to load deck");
-        router.push("/decks");
-      }
+      setLoading(true);
+      await Promise.all([fetchDeck(), fetchFlashcards()]);
+      setLoading(false);
     })();
-  }, [deckId, api, msgApi, router]);
+  }, [deckId, fetchDeck, fetchFlashcards]);
 
-  /* ===============================================================
-     EDIT DECK META
-     =============================================================== */
-  useEffect(() => {
-    if (isEditingMeta && deck) {
-      deckForm.setFieldsValue({
-        title: deck.title,
-        deckCategory: deck.deckCategory,
+  // ── Deck handlers ────────────────────────────────────────────────────────────
+  const handleDeckSave = async () => {
+    if (!deck) return;
+    try {
+      await apiService.put(`/decks/${deck.id}`, {
+        title: deckForm.title,
+        deckCategory: deckForm.deckCategory,
+        isPublic: deckForm.isPublic,
       });
-    }
-  }, [isEditingMeta, deck, deckForm]);
-
-  const saveMeta = async () => {
-    try {
-      setSavingMeta(true);
-      const vals = await deckForm.validateFields();
-      await api.put(`/decks/${deckId}`, { ...deck, ...vals });
-      setDeck((p) => (p ? { ...p, ...vals } : p));
-      setFlashcards((p) =>
-        p.map((c) => ({ ...c, flashcardCategory: vals.deckCategory }))
-      );
-      msgApi.success("Deck updated");
-      setIsEditingMeta(false);
+      message.success("Deck updated successfully");
+      router.push("/decks");
     } catch (err) {
-      console.error(err);
-      msgApi.error("Meta save failed");
-    } finally {
-      setSavingMeta(false);
+      message.error("Failed to update deck");
     }
   };
 
-  /* ===============================================================
-     CARD HELPERS
-     =============================================================== */
-  const setCardField = (
-    id: string,
-    field: keyof Flashcard,
-    val: any
-  ) => setForms((p) => ({ ...p, [id]: { ...p[id], [field]: val } }));
-
-  const setWrongAnswer = (id: string, idx: number, val: string) => {
-    const arr = [...(forms[id].wrongAnswers ?? defaultWrongArray())];
-    arr[idx] = val;
-    setCardField(id, "wrongAnswers", arr);
+  // ── Flashcard handlers ───────────────────────────────────────────────────────
+  const openAddModal = () => {
+    setEditingFlashcard(null);
+    setIsModalVisible(true);
   };
 
-  const addWrongInput = (id: string) => {
-    const arr = [...(forms[id].wrongAnswers ?? defaultWrongArray())];
-    if (arr.length < MAX_WRONG) arr.push("");
-    setCardField(id, "wrongAnswers", arr);
+  const openEditModal = (card: Flashcard) => {
+    setEditingFlashcard(card);
+    setIsModalVisible(true);
   };
 
-  const onImageChange = async (
-    id: string,
-    info: UploadChangeParam<UploadFile>
-  ) => {
-    const { file, fileList } = info;
-    if (file.status === "removed") {
-      setUploads((p) => ({ ...p, [id]: { fileList, imageUrl: null } }));
-      setCardField(id, "imageUrl", null);
-      return;
-    }
-    if (file.originFileObj) {
-      try {
-        const url = await api.uploadImage(
-          "/flashcards/upload-image",
-          file.originFileObj as File
-        );
-        setUploads((p) => ({ ...p, [id]: { fileList, imageUrl: url } }));
-        setCardField(id, "imageUrl", url);
-        msgApi.success("Image uploaded");
-      } catch {
-        msgApi.error("Upload failed");
-      }
-    }
-  };
-
-  const validateCard = (d: Partial<Flashcard>) =>
-    d.description?.trim() &&
-    d.answer?.trim() &&
-    (d.wrongAnswers ?? defaultWrongArray())
-      .slice(0, 3)
-      .every((w) => w?.trim());
-
-  const saveCard = async (card: Flashcard, data: Partial<Flashcard>) => {
-    console.log("saveCard called", card.id);
-    if (!validateCard(data)) {
-      msgApi.warning("Fill question, answer and 3 wrong answers");
-      return;
-    }
-
-    const body = {
-      ...card,
-      ...data,
-      wrongAnswers: (data.wrongAnswers ?? defaultWrongArray()).filter(
-        (w) => w?.trim()
-      ),
-    };
-
+  const handleDeleteFlashcard = async (cardId?: number) => {
+    if (!cardId) return;
     try {
-      if (card.id.startsWith("new-")) {
-        const created = await api.post<Flashcard>(
-          `/decks/${deckId}/flashcards/addFlashcard`,
-          body
-        );
-        setFlashcards((p) =>
-          p.map((c) => (c.id === card.id ? created : c))
-        );
-        setForms((p) => {
-          const { [card.id]: _, ...rest } = p;
-          return { ...rest, [created.id]: { ...created } };
-        });
+      await apiService.delete(`/decks/${deckId}/flashcards/${cardId}`);
+      message.success("Flashcard deleted");
+      fetchFlashcards();
+    } catch {
+      message.error("Failed to delete flashcard");
+    }
+  };
+
+  const handleModalOk = async (values: Flashcard) => {
+    try {
+      if (editingFlashcard && editingFlashcard.id) {
+        // Update existing
+        await apiService.put(`/flashcards/${editingFlashcard.id}`, values);
       } else {
-        await api.put(`/flashcards/${card.id}`, body);
-        setFlashcards((p) =>
-          p.map((c) =>
-            c.id === card.id ? ({ ...c, ...body } as Flashcard) : c
-          )
-        );
+        // Create new
+        await apiService.post(`/decks/${deckId}/flashcards/addFlashcard`, values);
       }
-      msgApi.success("Flashcard saved");
-      setEditingId(null);
+      setIsModalVisible(false);
+      fetchFlashcards();
+      message.success("Flashcard saved");
     } catch (err) {
-      console.error(err);
-      msgApi.error("Save failed");
+      message.error("Failed to save flashcard");
     }
   };
 
-  const deleteCard = async (card: Flashcard) => {
-    try {
-      if (!card.id.startsWith("new-")) {
-        await api.delete(`/decks/${deckId}/flashcards/${card.id}`);
-      }
-      setFlashcards((p) => p.filter((c) => c.id !== card.id));
-      setEditingId(null);
-      msgApi.success("Deleted");
-    } catch (err) {
-      console.error(err);
-      msgApi.error("Delete failed");
-    }
-  };
-
-  const duplicateCard = (src: Flashcard) => {
-    const id = `new-${Date.now()}`;
-    const dup: Flashcard = { ...src, id, date: "" };
-    setFlashcards((p) => [...p, dup]);
-    setForms((p) => ({ ...p, [id]: { ...dup } }));
-    setEditingId(id);
-  };
-
-  const addCard = () => {
-    const id = `new-${Date.now()}`;
-    const temp: Flashcard = {
-      id,
-      description: "",
-      answer: "",
-      wrongAnswers: defaultWrongArray(),
-      date: "",
-      imageUrl: null,
-      flashcardCategory: deck?.deckCategory ?? "MIXED",
-      isPublic: false,
-      deck: { id: deckId, title: deck?.title ?? null },
-    };
-    setFlashcards((p) => [...p, temp]);
-    setForms((p) => ({ ...p, [id]: { ...temp } }));
-    setEditingId(id);
-  };
-
-  /* ===============================================================
-     BULK PANEL
-     =============================================================== */
-  useEffect(() => {
-    if (isBulkOpen) bulkForm.setFieldsValue({ flashcards: [{}] });
-  }, [isBulkOpen, bulkForm]);
-
-  const saveBulk = async () => {
-    try {
-      const vals = await bulkForm.validateFields();
-      const cards = vals.flashcards.filter(
-        (c: any) =>
-          c.description && c.answer && c.wrongAnswers?.some((w: string) => w)
-      );
-      if (!cards.length) {
-        msgApi.error("Please fill at least one card");
-        return;
-      }
-      setSavingBulk(true);
-
-      await Promise.all(
-        cards.map((c: any, i: number) =>
-          api.post(`/decks/${deckId}/flashcards/addFlashcard`, {
-            ...c,
-            wrongAnswers: c.wrongAnswers.filter((x: string) => x?.trim()),
-            imageUrl: uploads[`bulk-${i}`]?.imageUrl ?? null,
-            flashcardCategory: deck?.deckCategory ?? "MIXED",
-          })
-        )
-      );
-
-      msgApi.success(`Added ${cards.length} cards`);
-
-      /* refresh list */
-      const fresh = await api.get<Flashcard[]>(
-        `/decks/${deckId}/flashcards`
-      );
-      setFlashcards(fresh);
-      const m: Record<string, Partial<Flashcard>> = {};
-      fresh.forEach((c) => (m[c.id] = { ...c }));
-      setForms(m);
-      setIsBulkOpen(false);
-    } catch (err) {
-      console.error(err);
-      msgApi.error("Bulk save failed");
-    } finally {
-      setSavingBulk(false);
-    }
-  };
-
-  /* ===============================================================
-     RENDER
-     =============================================================== */
+  // ── Render ───────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div style={{ textAlign: "center", padding: 80 }}>
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Spin size="large" />
       </div>
     );
   }
 
-  /* ---- deck header UI ------------------------------------------ */
-  const DeckHeader = (
-    <Card
+  if (!deck) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "120px" }}>
+        <p>Deck not found.</p>
+        <Button type="primary" onClick={() => router.push("/decks")}>Go back</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div
       style={{
-        marginBottom: 24,
-        borderRadius: 16,
-        boxShadow: cardShadow,
-        border: "none",
-        fontFamily,
+        backgroundColor: "#b3edbc",
+        minHeight: "100vh",
+        padding: "40px 24px 120px",
+        fontFamily: "'Poppins', sans-serif",
       }}
     >
-      {isEditingMeta ? (
-        <Form
-          form={deckForm}
-          layout="inline"
-          onFinish={saveMeta}
-          style={{ flexWrap: "wrap", gap: 16 }}
-        >
-          <Form.Item
-            name="title"
-            rules={[{ required: true, message: "Title?" }]}
-          >
-            <Input placeholder="Deck title" style={{ width: 220 }} />
+      {/* Back button */}
+      <Button
+        style={{ marginBottom: "24px" }}
+        icon={<ArrowLeftOutlined />}
+        onClick={() => router.push("/decks")}
+      >
+        Back to decks
+      </Button>
+
+      {/* Deck form */}
+      <Card
+        style={{
+          maxWidth: 640,
+          margin: "0 auto 40px",
+          borderRadius: 24,
+          boxShadow: "0 8px 18px rgba(0,0,0,0.15)",
+        }}
+      >
+        <h2 style={{ marginBottom: 24, color: "#215F46" }}>Edit Deck</h2>
+        <Form layout="vertical" autoComplete="off">
+          <Form.Item label="Title" required>
+            <Input
+              value={deckForm.title}
+              onChange={(e) =>
+                setDeckForm((f) => ({ ...f, title: e.target.value }))
+              }
+            />
           </Form.Item>
-          <Form.Item
-            name="deckCategory"
-            rules={[{ required: true, message: "Category?" }]}
-          >
-            <Select style={{ width: 180 }}>
-              {[
-                "MOMENTS",
-                "SPORTS",
-                "ANIMALS",
-                "PLACES",
-                "FOODS",
-                "SCIENCE",
-                "MATH",
-                "HISTORY",
-                "LANGUAGE",
-                "TECHNOLOGY",
-                "OTHERS",
-                "MIXED",
-              ].map((c) => (
-                <Select.Option key={c}>{c}</Select.Option>
+
+          <Form.Item label="Category" required>
+            <Select
+              value={deckForm.deckCategory}
+              onChange={(val) =>
+                setDeckForm((f) => ({ ...f, deckCategory: val }))
+              }
+            >
+              {CATEGORY_OPTIONS.map((cat) => (
+                <Select.Option key={cat} value={cat}>
+                  {cat[0] + cat.slice(1).toLowerCase()}
+                </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={savingMeta}
-            icon={<SaveOutlined />}
-            style={{ background: primaryColor, border: "none" }}
-          >
-            Save
-          </Button>
-          <Button onClick={() => setIsEditingMeta(false)} icon={<CloseOutlined />}>
-            Cancel
-          </Button>
+          <Form.Item>
+            <Checkbox
+              checked={deckForm.isPublic}
+              onChange={(e) =>
+                setDeckForm((f) => ({ ...f, isPublic: e.target.checked }))
+              }
+            >
+              Public deck
+            </Checkbox>
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" onClick={handleDeckSave}>
+              Save deck changes
+            </Button>
+          </Form.Item>
         </Form>
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 12,
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h2 style={{ display: "inline-block", marginRight: 12 }}>
-              {deck?.title}
-            </h2>
-            <Button
-              icon={<EditOutlined />}
-              onClick={() => setIsEditingMeta(true)}
-            >
-              Edit
-            </Button>
-            <div style={{ color: "#555" }}>
-              Category:&nbsp;{deck?.deckCategory}
-            </div>
-          </div>
+      </Card>
 
-          <Space>
-            <Button
-              icon={<PlusOutlined />}
-              onClick={addCard}
+      {/* Flashcards section */}
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+        <h2 style={{ color: "#215F46", marginBottom: 24 }}>Flashcards</h2>
+        <Row gutter={[16, 16]}>
+          {/* Add card placeholder */}
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Card
+              hoverable
               style={{
-                background: primaryColor,
-                color: "white",
-                border: "none",
-                borderRadius: 24,
-                fontWeight: 600,
+                height: 140,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "2px dashed #2E8049",
+                borderRadius: 16,
               }}
+              onClick={openAddModal}
             >
-              Add Flashcard
-            </Button>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsBulkOpen(true)}
-              style={{
-                background: "#66ba7d",
-                border: "none",
-                borderRadius: 24,
-              }}
-            >
-              Bulk Add
-            </Button>
-          </Space>
-        </div>
-      )}
-    </Card>
-  );
+              <PlusOutlined style={{ fontSize: 32, color: "#2E8049" }} />
+            </Card>
+          </Col>
 
-  /* ---- single card UI ------------------------------------------ */
-  const FlashcardCard = (card: Flashcard) => {
-    const isEdit = editingId === card.id;
-    const data = forms[card.id] ?? {};
-
-    return (
-      <Col xs={24} sm={12} md={8} key={card.id}>
-        <Card
-          style={{
-            height: 440,
-            display: "flex",
-            flexDirection: "column",
-            borderRadius: 16,
-            boxShadow: cardShadow,
-            border: "none",
-            fontFamily,
-          }}
-          actions={
-            isEdit
-              ? [
-                  <SaveOutlined
-                    key="save"
-                    onClick={() => saveCard(card, data)}
-                    style={{ color: primaryColor }}
-                  />,
-                  <CloseOutlined
-                    key="cancel"
-                    onClick={() => setEditingId(null)}
-                    style={{ color: "#ff4d4f" }}
-                  />,
-                ]
-              : [
-                  <EditOutlined
-                    key="edit"
-                    onClick={() => setEditingId(card.id)}
-                  />,
-                  <CopyOutlined
-                    key="dup"
-                    onClick={() => duplicateCard(card)}
-                  />,
-                  <DeleteOutlined
-                    key="del"
-                    onClick={() => deleteCard(card)}
-                    style={{ color: "#ff4d4f" }}
-                  />,
-                ]
-          }
-        >
-          <div style={{ overflow: "auto", flex: 1 }}>
-            {isEdit ? (
-              <>
-                <Input.TextArea
-                  rows={2}
-                  placeholder="Question"
-                  value={data.description ?? ""}
-                  onChange={(e) =>
-                    setCardField(card.id, "description", e.target.value)
-                  }
-                  style={{ marginBottom: 8 }}
-                />
-
-                <Input
-                  placeholder="Correct answer"
-                  value={data.answer ?? ""}
-                  onChange={(e) =>
-                    setCardField(card.id, "answer", e.target.value)
-                  }
-                  style={{ marginBottom: 8 }}
-                />
-
-                {(data.wrongAnswers ?? defaultWrongArray()).map(
-                  (w, idx) => (
-                    <Input
-                      key={idx}
-                      placeholder={`Wrong answer ${idx + 1}`}
-                      value={w ?? ""}
-                      onChange={(e) =>
-                        setWrongAnswer(card.id, idx, e.target.value)
-                      }
-                      style={{ marginBottom: 6 }}
-                    />
-                  )
-                )}
-
-                {(
-                  data.wrongAnswers ?? defaultWrongArray()
-                ).length < MAX_WRONG && (
-                  <Button
-                    type="dashed"
-                    block
-                    icon={<PlusOutlined />}
-                    onClick={() => addWrongInput(card.id)}
-                    style={{ marginBottom: 8 }}
+          {flashcards.map((card) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={card.id}>
+              <Card
+                style={{ height: 140, borderRadius: 16 }}
+                actions={[
+                  <EditOutlined key="edit" onClick={() => openEditModal(card)} />,
+                  <Popconfirm
+                    title="Delete this flashcard?"
+                    onConfirm={() => handleDeleteFlashcard(card.id)}
+                    okText="Yes"
+                    cancelText="No"
                   >
-                    Add wrong answer
-                  </Button>
-                )}
+                    <DeleteOutlined key="delete" />
+                  </Popconfirm>,
+                ]}
+              >
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                  {card.description}
+                </div>
+                <div style={{ color: "#666", fontSize: 12 }}>
+                  Answer: {card.answer}
+                </div>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </div>
 
-                <Input
-                  type="date"
-                  value={typeof data.date === "string" ? data.date : ""}
-                  onChange={(e) =>
-                    setCardField(card.id, "date", e.target.value)
-                  }
-                  style={{ marginBottom: 8 }}
-                />
+      {/* Flashcard modal */}
+      <FlashcardModal
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        initial={editingFlashcard}
+        onOk={handleModalOk}
+      />
+    </div>
+  );
+};
 
-                <Upload
-                  fileList={uploads[card.id]?.fileList ?? []}
-                  beforeUpload={() => false}
-                  onChange={(info) => onImageChange(card.id, info)}
-                  listType="text"
-                >
-                  {uploads[card.id]?.fileList?.length ? null : (
-                    <Button icon={<UploadOutlined />}>Upload image</Button>
-                  )}
-                </Upload>
+// ────────────────────────────────────────────────────────────────────────────────
+// Flashcard Modal component
+// ────────────────────────────────────────────────────────────────────────────────
+interface ModalProps {
+  visible: boolean;
+  initial: Flashcard | null;
+  onOk: (vals: Flashcard) => void;
+  onCancel: () => void;
+}
 
-                {data.imageUrl && (
-                  <Image
-                    src={data.imageUrl}
-                    alt="img"
-                    width={100}
-                    height={100}
-                    style={{
-                      marginTop: 8,
-                      objectFit: "cover",
-                      borderRadius: 8,
-                    }}
-                    unoptimized
-                  />
-                )}
-              </>
-            ) : (
-              <>
-                <h4>{card.description}</h4>
-                <p>
-                  <strong>Answer:</strong> {card.answer}
-                </p>
-                {card.imageUrl && (
-                  <Image
-                    src={card.imageUrl}
-                    alt="img"
-                    width={110}
-                    height={110}
-                    style={{
-                      marginTop: 8,
-                      borderRadius: 8,
-                      objectFit: "cover",
-                    }}
-                    unoptimized
-                  />
-                )}
-              </>
-            )}
-          </div>
-        </Card>
-      </Col>
-    );
+const FlashcardModal: React.FC<ModalProps> = ({
+  visible,
+  initial,
+  onOk,
+  onCancel,
+}) => {
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    if (visible) {
+      form.setFieldsValue({
+        description: initial?.description ?? "",
+        answer: initial?.answer ?? "",
+        wrongAnswers: initial?.wrongAnswers?.join(", ") ?? "",
+      });
+    }
+  }, [visible, initial, form]);
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const payload: Flashcard = {
+        description: values.description,
+        answer: values.answer,
+        wrongAnswers: values.wrongAnswers
+          .split(/,\s*/)
+          .filter((s: string) => s),
+      };
+      onOk(payload);
+      form.resetFields();
+    } catch {
+      /* validation errors */
+    }
   };
 
-  /* ---------- bulk panel UI ------------------------------------- */
-  const BulkPanel = isBulkOpen && (
-    <Card style={{ marginBottom: 32, borderRadius: 16, boxShadow: cardShadow }}>
-      <h3 style={{ fontFamily, marginBottom: 16 }}>Add multiple flashcards</h3>
-      <Form form={bulkForm} layout="vertical" initialValues={{ flashcards: [{}] }}>
-        <Form.List name="flashcards">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map((f, i) => (
-                <Card
-                  key={f.key}
-                  title={`Card ${i + 1}`}
-                  style={{ marginBottom: 24, borderRadius: 12 }}
-                  extra={
-                    fields.length > 1 && (
-                      <Button
-                        type="link"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => remove(f.name)}
-                      >
-                        Remove
-                      </Button>
-                    )
-                  }
-                >
-                  <Form.Item
-                    name={[f.name, "description"]}
-                    label="Question"
-                    rules={[{ required: true }]}
-                  >
-                    <Input.TextArea rows={2} />
-                  </Form.Item>
-                  <Form.Item
-                    name={[f.name, "answer"]}
-                    label="Correct answer"
-                    rules={[{ required: true }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item label="Wrong answers">
-                    <Form.List
-                      name={[f.name, "wrongAnswers"]}
-                      initialValue={defaultWrongArray()}
-                    >
-                      {(subs, { add: addW, remove: remW }) => (
-                        <>
-                          {subs.map((s, j) => (
-                            <Form.Item
-                              key={s.key}
-                              name={[f.name, "wrongAnswers", s.name]}
-                            >
-                              <div style={{ display: "flex", gap: 8 }}>
-                                <Input placeholder={`Wrong ${j + 1}`} />
-                                {j >= 3 && (
-                                  <MinusCircleOutlined
-                                    onClick={() => remW(s.name)}
-                                    style={{ color: "#ff4d4f" }}
-                                  />
-                                )}
-                              </div>
-                            </Form.Item>
-                          ))}
-                          {subs.length < MAX_WRONG && (
-                            <Button
-                              type="dashed"
-                              icon={<PlusOutlined />}
-                              onClick={() => addW()}
-                            >
-                              Add wrong answer
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </Form.List>
-                  </Form.Item>
-                  <Form.Item name={[f.name, "date"]} label="Date (optional)">
-                    <Input type="date" />
-                  </Form.Item>
-                  <Form.Item label="Image (optional)">
-                    <Upload
-                      fileList={uploads[`bulk-${i}`]?.fileList ?? []}
-                      beforeUpload={() => false}
-                      onChange={(info) => {
-                        const { file, fileList } = info;
-                        if (file.status === "removed") {
-                          setUploads((p) => ({
-                            ...p,
-                            [`bulk-${i}`]: { fileList, imageUrl: null },
-                          }));
-                          return;
-                        }
-                        if (file.originFileObj) {
-                          api
-                            .uploadImage(
-                              "/flashcards/upload-image",
-                              file.originFileObj as File
-                            )
-                            .then((url) => {
-                              setUploads((p) => ({
-                                ...p,
-                                [`bulk-${i}`]: { fileList, imageUrl: url },
-                              }));
-                              msgApi.success("Image uploaded");
-                            })
-                            .catch(() => msgApi.error("Upload failed"));
-                        }
-                      }}
-                      listType="text"
-                    >
-                      {uploads[`bulk-${i}`]?.fileList?.length ? null : (
-                        <Button icon={<UploadOutlined />}>Upload</Button>
-                      )}
-                    </Upload>
-                    {uploads[`bulk-${i}`]?.imageUrl && (
-                      <Image
-                        src={uploads[`bulk-${i}`]!.imageUrl!}
-                        alt="bulk"
-                        width={90}
-                        height={90}
-                        style={{ marginTop: 8, borderRadius: 6 }}
-                        unoptimized
-                      />
-                    )}
-                  </Form.Item>
-                </Card>
-              ))}
-              <Button
-                block
-                type="dashed"
-                icon={<PlusOutlined />}
-                onClick={() => add()}
-              >
-                Add another flashcard
-              </Button>
-            </>
-          )}
-        </Form.List>
-        <div style={{ textAlign: "center", marginTop: 24 }}>
-          <Space>
-            <Button
-              type="primary"
-              icon={<CheckOutlined />}
-              loading={savingBulk}
-              onClick={saveBulk}
-            >
-              Save All
-            </Button>
-            <Button onClick={() => setIsBulkOpen(false)}>Cancel</Button>
-          </Space>
-        </div>
-      </Form>
-    </Card>
-  );
-
-  /* ---------- final render -------------------------------------- */
   return (
-    <>
-      {contextHolder}
-      <div
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: 24,
-          fontFamily,
-        }}
-      >
-        {DeckHeader}
-        {BulkPanel}
+    <Modal
+      open={visible}
+      title={initial ? "Edit Flashcard" : "Add Flashcard"}
+      onCancel={onCancel}
+      onOk={handleSubmit}
+      okText="Save"
+      destroyOnClose
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item
+          label="Question / Description"
+          name="description"
+          rules={[{ required: true, message: "Description is required" }]}
+        >
+          <Input.TextArea rows={3} />
+        </Form.Item>
 
-        <h3 style={{ marginBottom: 16, color: "#215F46" }}>Flashcards</h3>
+        <Form.Item
+          label="Correct Answer"
+          name="answer"
+          rules={[{ required: true, message: "Answer is required" }]}
+        >
+          <Input />
+        </Form.Item>
 
-        <Row gutter={[24, 24]}>
-          {flashcards.map((c) => FlashcardCard(c))}
-        </Row>
-
-        {!flashcards.length && !isBulkOpen && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: 80,
-              color: "#ff0000",
-              fontWeight: 700,
-            }}
-          >
-            No flashcards yet. Click&nbsp;
-            <Button type="link" icon={<PlusOutlined />} onClick={addCard}>
-              Add Flashcard
-            </Button>
-          </div>
-        )}
-      </div>
-    </>
+        <Form.Item
+          label="Wrong Answers (comma‑separated)"
+          name="wrongAnswers"
+          rules={[{ required: true, message: "Please provide wrong answers" }]}
+        >
+          <Input />
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 };
 

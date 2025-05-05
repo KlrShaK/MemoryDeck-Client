@@ -1,769 +1,800 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
+  Affix,
   Button,
   Card,
   Col,
+  Drawer,
+  Divider,
   Form,
   Input,
   message,
+  Modal,
+  Popconfirm,
   Row,
   Select,
+  Skeleton,
   Space,
-  Spin,
+  Switch,
+  Typography,
   Upload,
-} from "antd";
+} from 'antd';
 import {
-  CheckOutlined,
-  CloseOutlined,
-  CopyOutlined,
   DeleteOutlined,
   EditOutlined,
+  ExclamationCircleOutlined,
+  LeftOutlined,
   MinusCircleOutlined,
   PlusOutlined,
   SaveOutlined,
   UploadOutlined,
-} from "@ant-design/icons";
-import Image from "next/image";
-import { useRouter, useParams } from "next/navigation";
+} from '@ant-design/icons';
+import Image from 'next/image';
+import type { UploadChangeParam, UploadFile } from 'antd/es/upload/interface';
 
-import { useApi } from "@/hooks/useApi";
-import { Deck } from "@/types/deck";
-import { Flashcard } from "@/types/flashcard";
-import type {
-  UploadChangeParam,
-  UploadFile,
-} from "antd/es/upload/interface";
+import { useApi } from '@/hooks/useApi';
+import useLocalStorage from '@/hooks/useLocalStorage';
+import { getApiDomain } from '@/utils/domain';
+import { Deck } from '@/types/deck';
+import { Flashcard } from '@/types/flashcard';
 
+const { Title, Text } = Typography;
 const { Option } = Select;
+const { TextArea } = Input;
+const { confirm } = Modal;
 
-/* ------------------------------------------------------------------ */
-/*                            Main Page                               */
-/* ------------------------------------------------------------------ */
-const EditDeckPage: React.FC = () => {
-  /* ---------- routing / api -------------------------------------- */
+/* ----------  design tokens ---------- */
+const TOKENS = {
+  primary: '#2E8049',
+  pageBg: '#aef5c4',    // whole viewport
+  contentBg: '#d4ffdd', // inner container
+  radius: 24,
+  shadow: '0 8px 16px rgba(0,0,0,0.12)',
+};
+
+const DEFAULT_WRONG_ANSWERS = ['', '', ''];
+
+interface FlashcardFormData {
+  description: string;
+  answer: string;
+  wrongAnswers: string[];
+  date?: string;
+  imageUrl?: string;
+}
+
+const DeckEditPage: React.FC = () => {
+  /* ----------  routing & hooks ---------- */
+  const { id: deckIdParam } = useParams<{ id: string }>();
+  const deckId = String(deckIdParam);
   const router = useRouter();
-  const { id: deckId } = useParams<{ id: string }>();
-  const api = useApi();
+  const apiService = useApi();
+  const { value: userId } = useLocalStorage<string>('userId', '');
+  const userIdNumber = userId ? Number(userId) : null;
 
-  /* ---------- deck meta ------------------------------------------ */
+  /* ----------  state ---------- */
   const [deck, setDeck] = useState<Deck | null>(null);
-  const [isEditingMeta, setIsEditingMeta] = useState(false);
-  const [deckForm] = Form.useForm();
-
-  /* ---------- flashcards ----------------------------------------- */
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [cardForms, setCardForms] = useState<
-    Record<string, Partial<Flashcard>>
-  >({});
-  const [uploads, setUploads] = useState<
-    Record<string, { fileList: UploadFile[]; imageUrl: string | null }>
-  >({});
-
-  /* ---------- bulk add ------------------------------------------- */
-  const [bulkForm] = Form.useForm();
-  const [isBulkOpen, setIsBulkOpen] = useState(false);
-  const [savingBulk, setSavingBulk] = useState(false);
-
-  /* ---------- misc ----------------------------------------------- */
   const [loading, setLoading] = useState(true);
 
-  /* =============================================================== */
-  /*                         data loading                            */
-  /* =============================================================== */
-  useEffect(() => {
-    if (!deckId) return;
-    (async () => {
-      try {
-        const d = await api.get<Deck>(`/decks/${deckId}`);
-        const cards = await api.get<Flashcard[]>(
-          `/decks/${deckId}/flashcards`
-        );
-        setDeck(d);
-        setFlashcards(cards);
+  /* deck‑detail edit */
+  const [isEditingDeckDetails, setIsEditingDeckDetails] = useState(false);
+  const [savingDeck, setSavingDeck] = useState(false);
+  const [deckForm] = Form.useForm();
 
-        /* prime per‑card form cache */
-        const map: Record<string, Partial<Flashcard>> = {};
-        cards.forEach((c) => (map[c.id] = { ...c }));
-        setCardForms(map);
-      } catch (e) {
-        message.error("Failed to load deck");
-        router.push("/decks");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [deckId, api, router]);
+  /* flashcard edit */
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
+  const [savingCard, setSavingCard] = useState(false);
+  const [cardForm] = Form.useForm();
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [imageUrl, setImageUrl] = useState<string | undefined>();
 
-  /* =============================================================== */
-  /*                       deck meta editing                         */
-  /* =============================================================== */
-  /* populate the form only *after* the edit panel is open */
-  useEffect(() => {
-    if (isEditingMeta && deck) {
-      deckForm.setFieldsValue({
-        title: deck.title,
-        deckCategory: deck.deckCategory,
-      });
-    }
-  }, [isEditingMeta, deck, deckForm]);
+  /* ----------  helpers ---------- */
+  const apiBaseUrl = getApiDomain(); 
+  const isNewCard = editingCardId === 'new';
 
-  const saveDeckMeta = async () => {
+  const showError = (msg: string) => message.error(msg);
+  const showSuccess = (msg: string) => message.success(msg);
+
+  /* ----------  data fetch ---------- */
+  const fetchDeckAndCards = useCallback(async () => {
+    if (!userIdNumber) return;
+
     try {
-      const values = await deckForm.validateFields();
-      await api.put(`/decks/${deckId}`, {
+      const [deckData, cardsData] = await Promise.all([
+        apiService.get<Deck>(`/decks/${deckId}`),
+        apiService.get<Flashcard[]>(`/decks/${deckId}/flashcards`),
+      ]);
+
+      setDeck(deckData);
+      setFlashcards(cardsData ?? []);
+
+      deckForm.setFieldsValue({
+        title: deckData.title ?? '',
+        deckCategory: deckData.deckCategory,
+        isPublic: deckData.isPublic,
+      });
+    } catch (err) {
+      showError('Failed to load deck data.');
+      router.push('/decks');
+    } finally {
+      setLoading(false);
+    }
+  }, [apiService, deckForm, deckId, router, userIdNumber]);
+
+  useEffect(() => {
+    if (!deckId) {
+      showError('Invalid deck ID');
+      router.push('/decks');
+      return;
+    }
+    fetchDeckAndCards();
+  }, [deckId, fetchDeckAndCards, router]);
+
+  /* ----------  deck handlers ---------- */
+  const handleDeckSave = async (values: any) => {
+    if (!deck) return;
+    setSavingDeck(true);
+    try {
+      await apiService.put(`/decks/${deckId}`, {
         ...deck,
         title: values.title,
         deckCategory: values.deckCategory,
+        isPublic: values.isPublic,
       });
-      setDeck((prev) =>
-        prev ? { ...prev, ...values } : prev
-      );
-      /* cascade category change down to each card */
-      setFlashcards((prev) =>
-        prev.map((c) => ({
-          ...c,
-          flashcardCategory: values.deckCategory,
-        }))
-      );
-      message.success("Deck updated");
-      setIsEditingMeta(false);
+      await fetchDeckAndCards();
+      showSuccess('Deck updated');
+      setIsEditingDeckDetails(false);
     } catch {
-      message.error("Failed to update deck");
+      showError('Failed to save deck');
+    } finally {
+      setSavingDeck(false);
     }
   };
 
-  /* =============================================================== */
-  /*                  per‑card helpers (edit flow)                   */
-  /* =============================================================== */
-  const updateCardField = (
-    id: string,
-    field: keyof Flashcard,
-    value: any
-  ) => {
-    setCardForms((p) => ({ ...p, [id]: { ...p[id], [field]: value } }));
+  const handleDeleteDeck = () => {
+    confirm({
+      title: 'Delete this deck?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'All flashcards will be removed. This action is irreversible.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      async onOk() {
+        try {
+          await apiService.delete(`/decks/${deckId}`);
+          showSuccess('Deck deleted');
+          router.push('/decks');
+        } catch {
+          showError('Failed to delete deck');
+        }
+      },
+    });
   };
 
-  const updateWrongAnswer = (
-    id: string,
-    idx: number,
-    value: string
-  ) => {
-    const wrong = [...(cardForms[id].wrongAnswers ?? [])];
-    wrong[idx] = value;
-    updateCardField(id, "wrongAnswers", wrong);
+  /* ----------  flashcard handlers ---------- */
+  const openDrawerForCard = (card?: Flashcard) => {
+    setDrawerOpen(true);
+    if (card) {
+      /* edit existing */
+      setEditingCardId(card.id);
+      cardForm.setFieldsValue({
+        description: card.description,
+        answer: card.answer,
+        wrongAnswers:
+          card.wrongAnswers?.length >= 3 ? card.wrongAnswers : DEFAULT_WRONG_ANSWERS,
+        date: typeof card.date === 'string' ? card.date : '',
+      });
+      setImageUrl(card.imageUrl ?? undefined);
+      setFileList(
+        card.imageUrl
+          ? [
+              {
+                uid: '-1',
+                name: 'image',
+                status: 'done',
+                url: card.imageUrl,
+              },
+            ]
+          : [],
+      );
+    } else {
+      /* new card */
+      setEditingCardId('new');
+      cardForm.resetFields();
+      cardForm.setFieldsValue({ wrongAnswers: DEFAULT_WRONG_ANSWERS });
+      setImageUrl(undefined);
+      setFileList([]);
+    }
   };
 
-  const onImageChange = (
-    id: string,
-    info: UploadChangeParam<UploadFile>
-  ) => {
-    const { file, fileList } = info;
+  const saveFlashcard = async () => {
+    try {
+      await cardForm.validateFields();
+      const values = cardForm.getFieldsValue() as FlashcardFormData;
 
-    if (file.status === "removed") {
-      setUploads((p) => ({ ...p, [id]: { fileList, imageUrl: null } }));
-      updateCardField(id, "imageUrl", null);
+      const wrongAnswers = (values.wrongAnswers ?? [])
+        .map((w) => w.trim())
+        .filter(Boolean);
+
+      if (wrongAnswers.length < 3) {
+        showError('Provide at least 3 wrong answers');
+        return;
+      }
+      if (wrongAnswers.includes(values.answer.trim())) {
+        showError('Correct answer must not be in wrong answers');
+        return;
+      }
+
+      const payload = {
+        description: values.description.trim(),
+        answer: values.answer.trim(),
+        wrongAnswers,
+        date: values.date || null,
+        imageUrl: imageUrl ?? null,
+        flashcardCategory: deck?.deckCategory,
+      };
+
+      setSavingCard(true);
+      if (isNewCard) {
+        await apiService.post(`/decks/${deckId}/flashcards/addFlashcard`, payload);
+        showSuccess('Flashcard created');
+      } else {
+        await apiService.put(`/flashcards/${editingCardId}`, payload);
+        showSuccess('Flashcard updated');
+      }
+      await fetchDeckAndCards();
+      setDrawerOpen(false);
+    } catch {
+      /* form validation errors are shown automatically */
+    } finally {
+      setSavingCard(false);
+    }
+  };
+
+  const handleDeleteFlashcard = async (id: string) => {
+    try {
+      await apiService.delete(`/decks/${deckId}/flashcards/${id}`);
+      setFlashcards((prev) => prev.filter((c) => c.id !== id));
+      showSuccess('Flashcard deleted');
+    } catch {
+      showError('Delete failed');
+    }
+  };
+
+  /* ----------  upload ---------- */
+  const handleImageChange = async (info: UploadChangeParam<UploadFile>) => {
+    const { file, fileList: newFileList } = info;
+    setFileList(newFileList);
+
+    if (file.status === 'removed') {
+      // user clicked X on the thumbnail
+      setImageUrl(undefined);
       return;
     }
+
     if (file.originFileObj) {
-      (async () => {
-        try {
-          const url = await api.uploadImage(
-            "/flashcards/upload-image",
-            file.originFileObj as File
-          );
-          setUploads((p) => ({ ...p, [id]: { fileList, imageUrl: url } }));
-          updateCardField(id, "imageUrl", url);
-          message.success("Image uploaded");
-        } catch {
-          message.error("Upload failed");
-        }
-      })();
-    }
-  };
-
-  const saveCard = async (card: Flashcard, formData: Partial<Flashcard>) => {
-    /* distinguish existing vs brand‑new card (temp id starts with "new‑") */
-    const body = {
-      ...card,
-      ...formData,
-      wrongAnswers: (formData.wrongAnswers ?? []).filter((x) => x?.trim()),
-    };
-
-    try {
-      if (card.id.startsWith("new-")) {
-        const created = await api.post<Flashcard>(
-          `/decks/${deckId}/flashcards/addFlashcard`,
-          body
-        );
-        /* replace temp card with server card */
-        setFlashcards((prev) =>
-          prev.map((c) => (c.id === card.id ? created : c))
-        );
-        setCardForms((p) => {
-          const { [card.id]: _, ...rest } = p;
-          return { ...rest, [created.id]: { ...created } };
-        });
-      } else {
-        await api.put(`/flashcards/${card.id}`, body);
-        setFlashcards((prev) =>
-          prev.map((c) => (c.id === card.id ? ({ ...c, ...body } as Flashcard) : c))
-        );
-      }
-      message.success("Flashcard saved");
-      setEditingId(null);
-    } catch {
-      message.error("Could not save flashcard");
-    }
-  };
-
-  const deleteCard = async (card: Flashcard) => {
-    if (!card.id.startsWith("new-")) {
       try {
-        await api.delete(
-          `/decks/${deckId}/flashcards/${card.id}`
+        const url = await apiService.uploadImage(
+          '/flashcards/upload-image',
+          file.originFileObj,
         );
+        setImageUrl(url);
+        showSuccess('Image uploaded');
       } catch {
-        message.error("Delete failed");
-        return;
+        showError('Upload failed');
+        setFileList([]);
       }
     }
-    setFlashcards((p) => p.filter((c) => c.id !== card.id));
-    setEditingId(null);
-    message.success("Deleted");
   };
 
-  const duplicateCard = (src: Flashcard) => {
-    const tempId = `new-${Date.now()}`;
-    setFlashcards((p) => [
-      ...p,
-      { ...src, id: tempId, date: "" },
-    ]);
-    setCardForms((p) => ({
-      ...p,
-      [tempId]: {
-        ...src,
-        id: tempId,
-        date: "",
-      },
-    }));
-    setEditingId(tempId);
-  };
+  /* ----------  memo ---------- */
+  const deckTitle = useMemo(() => deck?.title ?? 'Untitled deck', [deck]);
 
-  const addNewCard = () => {
-    const tempId = `new-${Date.now()}`;
-    setFlashcards((p) => [
-      ...p,
-      {
-        id: tempId,
-        description: "",
-        answer: "",
-        wrongAnswers: ["", "", ""],
-        date: "",
-        imageUrl: null,
-        flashcardCategory: deck?.deckCategory ?? "MIXED",
-      } as unknown as Flashcard,
-    ]);
-    setCardForms((p) => ({
-      ...p,
-      [tempId]: {
-        description: "",
-        answer: "",
-        wrongAnswers: ["", "", ""],
-        date: "",
-        imageUrl: null,
-      },
-    }));
-    setEditingId(tempId);
-  };
-
-  /* =============================================================== */
-  /*                        bulk add  (optional)                     */
-  /* =============================================================== */
-  useEffect(() => {
-    if (isBulkOpen) bulkForm.setFieldsValue({ flashcards: [{}] });
-  }, [isBulkOpen, bulkForm]);
-
-  const saveBulk = async () => {
-    try {
-      const vals = await bulkForm.validateFields();
-      const cards = vals.flashcards.filter(
-        (c: any) =>
-          c.description && c.answer && c.wrongAnswers?.some((w: string) => w)
-      );
-      if (!cards.length) {
-        message.error("Please fill at least one card");
-        return;
-      }
-      setSavingBulk(true);
-      await Promise.all(
-        cards.map((c: any, i: number) =>
-          api.post(`/decks/${deckId}/flashcards/addFlashcard`, {
-            ...c,
-            wrongAnswers: c.wrongAnswers.filter((x: string) => x?.trim()),
-            imageUrl: uploads[`bulk-${i}`]?.imageUrl ?? null,
-            flashcardCategory: deck?.deckCategory ?? "MIXED",
-          })
-        )
-      );
-      message.success(`Added ${cards.length} cards`);
-      /* reload list */
-      const fresh = await api.get<Flashcard[]>(
-        `/decks/${deckId}/flashcards`
-      );
-      setFlashcards(fresh);
-      const map: Record<string, Partial<Flashcard>> = {};
-      fresh.forEach((c) => (map[c.id] = { ...c }));
-      setCardForms(map);
-      setIsBulkOpen(false);
-    } catch {
-      message.error("Bulk save failed");
-    } finally {
-      setSavingBulk(false);
-    }
-  };
-
-  /* =============================================================== */
-  /*                                UI                               */
-  /* =============================================================== */
+  /* ----------  render ---------- */
   if (loading) {
     return (
-      <div style={{ padding: 80, textAlign: "center" }}>
-        <Spin size="large" />
+      <div
+        style={{
+          background: TOKENS.pageBg,
+          minHeight: '100vh',
+          padding: '40px 20px',
+        }}
+      >
+        <Skeleton active paragraph={{ rows: 6 }} />
       </div>
     );
   }
 
-  /* -------- deck header ----------------------------------------- */
-  const DeckHeader = (
-    <Card style={{ marginBottom: 24 }}>
-      {isEditingMeta ? (
-        <Form
-          form={deckForm}
-          layout="inline"
-          onFinish={saveDeckMeta}
-          style={{ flexWrap: "wrap", gap: 16 }}
-        >
-          <Form.Item
-            name="title"
-            rules={[{ required: true, message: "Title?" }]}
-          >
-            <Input placeholder="Deck title" style={{ width: 220 }} />
-          </Form.Item>
-          <Form.Item
-            name="deckCategory"
-            rules={[{ required: true, message: "Category?" }]}
-          >
-            <Select style={{ width: 180 }}>
-              {[
-                "MOMENTS",
-                "SPORTS",
-                "ANIMALS",
-                "PLACES",
-                "FOODS",
-                "SCIENCE",
-                "MATH",
-                "HISTORY",
-                "LANGUAGE",
-                "TECHNOLOGY",
-                "OTHERS",
-                "MIXED",
-              ].map((c) => (
-                <Option key={c}>{c}</Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            icon={<SaveOutlined />}
-          >
-            Save
-          </Button>
-          <Button
-            onClick={() => setIsEditingMeta(false)}
-            icon={<CloseOutlined />}
-          >
-            Cancel
-          </Button>
-        </Form>
-      ) : (
+  return (
+    <div
+      style={{
+        background: TOKENS.pageBg,
+        minHeight: '100vh',
+        fontFamily: "'Poppins', sans-serif",
+      }}
+    >
+      {/* ----------  sticky header ---------- */}
+      <Affix offsetTop={0}>
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '8px 16px',
+            background: '#fff',
+            boxShadow: TOKENS.shadow,
           }}
         >
-          <div>
-            <h2 style={{ display: "inline-block", marginRight: 12 }}>
-              {deck?.title}
-            </h2>
-            <Button
-              icon={<EditOutlined />}
-              onClick={() => setIsEditingMeta(true)}
-            >
-              Edit
-            </Button>
-            <div style={{ color: "#666" }}>
-              Category: {deck?.deckCategory}
-            </div>
-          </div>
-
           <Space>
             <Button
-              type="default"
-              icon={<PlusOutlined />}
-              onClick={addNewCard}
+              type="text"
+              icon={<LeftOutlined />}
+              onClick={() => router.push('/decks')}
+            />
+            <Title level={4} style={{ margin: 0, color: 'black' }}>
+              {deckTitle}
+            </Title>
+          </Space>
+
+          {!isEditingDeckDetails && (
+            <Popconfirm
+              placement="left"
+              title="Delete deck?"
+              description="All flashcards will be removed"
+              onConfirm={handleDeleteDeck}
+              okType="danger"
             >
-              Add Flashcard
-            </Button>
+              <Button danger icon={<DeleteOutlined />}>
+                Delete
+              </Button>
+            </Popconfirm>
+          )}
+        </div>
+      </Affix>
+
+      {/* ----------  main content ---------- */}
+      <div
+        style={{
+          background: TOKENS.contentBg,
+          minHeight: '100%',
+          padding: '80px 20px 40px',
+        }}
+      >
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <Row gutter={24}>
+            {/* -------  left: deck details ------- */}
+            <Col xs={24} md={8}>
+              <Card
+                style={{
+                  marginBottom: 24,
+                  borderRadius: TOKENS.radius,
+                  boxShadow: TOKENS.shadow,
+                  background: 'white',   
+                }}
+                bodyStyle={{ padding: 24 }}
+              >
+                {isEditingDeckDetails ? (
+                  <Form
+                    form={deckForm}
+                    layout="vertical"
+                    onFinish={handleDeckSave}
+                  >
+                    <Form.Item
+                      name="title"
+                      label={<span style={{ color: 'black' }}>Deck Title</span>}
+                      rules={[{ required: true }]}
+                    >
+                      <Input style={{ backgroundColor: 'white', color: 'black', borderRadius: 10 }} />
+                    </Form.Item>
+
+                    <Form.Item
+                      name="deckCategory"
+                      label={<span style={{ color: 'black' }}>Category</span>}
+                      rules={[{ required: true }]}
+                    >
+                      <Select 
+                      placeholder="Category" 
+                      popupMatchSelectWidth={false} 
+                      style={{
+                        backgroundColor: 'white',
+                        color: 'black',
+                        borderRadius: 10,
+                      }}
+                      dropdownStyle={{
+                        backgroundColor: 'white',
+                      }}
+                      >
+                        {[
+                          'MOMENTS',
+                          'SPORTS',
+                          'ANIMALS',
+                          'PLACES',
+                          'FOODS',
+                          'SCIENCE',
+                          'MATH',
+                          'HISTORY',
+                          'LANGUAGE',
+                          'TECHNOLOGY',
+                          'OTHERS',
+                          'MIXED',
+                        ].map((c) => (
+                          <Option key={c} value={c} style={{
+                            color: 'black',            
+                            backgroundColor: 'white', 
+                          }}>
+                            {c}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      name="isPublic"
+                      valuePropName="checked"
+                      label={<span style={{ color: 'black' }}>Public</span>}
+                    >
+                      <Switch />
+                    </Form.Item>
+
+                    <Space>
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={savingDeck}
+                        icon={<SaveOutlined />}
+                        style={{
+                          background: TOKENS.primary,
+                          borderColor: TOKENS.primary,
+                        }}
+                      >
+                        Save
+                      </Button>
+                      <Button onClick={() => setIsEditingDeckDetails(false)}>
+                        Cancel
+                      </Button>
+                    </Space>
+                  </Form>
+                ) : (
+                  <>
+                    <Space direction="vertical" size={4} style={{ fontSize: 16 }}>
+                      <Text type="secondary">
+                        Category: {deck?.deckCategory}
+                      </Text>
+                      <Text type="secondary">
+                        Status: {deck?.isPublic ? 'Public' : 'Private'}
+                      </Text>
+                    </Space>
+                    <Divider />
+                    <Button
+                      icon={<EditOutlined />}
+                      onClick={() => setIsEditingDeckDetails(true)}
+                    >
+                      Edit deck details
+                    </Button>
+                  </>
+                )}
+              </Card>
+            </Col>
+
+            {/* -------  right: flashcards grid ------- */}
+            <Col xs={24} md={16}>
+              {!isEditingDeckDetails && (
+                <>
+                  <Space
+                    style={{ marginBottom: 16 }}
+                    align="center"
+                    className="w-full justify-between"
+                  >
+                    <Title level={4} style={{ margin: 0, color: "black" }}>
+                      Flashcards ({flashcards.length})
+                    </Title>
+
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      style={{
+                        background: TOKENS.primary,
+                        borderColor: TOKENS.primary,
+                      }}
+                      onClick={() => openDrawerForCard()}
+                    >
+                      Add flashcard
+                    </Button>
+                  </Space>
+
+                  <Row gutter={[16, 16]}>
+                    {flashcards.length ? (
+                      flashcards.map((card) => (
+                        <Col xs={24} sm={12} lg={8} key={card.id}>
+                            <Card
+                              hoverable
+                              style={{
+                                height: 240,
+                                borderRadius: TOKENS.radius,
+                                boxShadow: TOKENS.shadow,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                background: 'white',
+                                transition: 'transform 0.2s',
+                              }}
+                              onClick={() => openDrawerForCard(card)}
+                              cover={
+                                card.imageUrl && (
+                                  <div
+                                    style={{
+                                      height: 120,
+                                      overflow: 'hidden',
+                                      display: 'flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      background: '#f5f5f5',
+                                      borderTopLeftRadius: TOKENS.radius,
+                                      borderTopRightRadius: TOKENS.radius,
+                                    }}
+                                  >
+                                    <Image
+                                      src={card.imageUrl}
+                                      alt="cover"
+                                      width={140}
+                                      height={120}
+                                      style={{ objectFit: 'cover' }}
+                                      unoptimized
+                                    />
+                                  </div>
+                                )
+                              }
+                            >
+                              <div style={{ flex: 1, overflow: 'hidden' }}>
+                                <Text
+                                  strong
+                                  style={{
+                                    WebkitLineClamp: 2,
+                                    display: '-webkit-box',
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    color: 'black',
+                                  }}
+                                >
+                                  {card.description}
+                                </Text>
+                                <br />
+                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                  Answer: {card.answer}
+                                </Text>
+                              </div>
+
+                              {/* custom footer with white icon buttons */}
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  marginTop: 12,
+                                }}
+                              >
+                                <span
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openDrawerForCard(card);
+                                  }}
+                                  style={{
+                                    background: 'white',
+                                    borderRadius: '50%',
+                                    padding: 8,
+                                    display: 'inline-flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    boxShadow: TOKENS.shadow,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  <EditOutlined style={{ color: '#2E8049' }}/>
+                                </span>
+
+                                <Popconfirm
+                                  title="Delete flashcard?"
+                                  onConfirm={() => handleDeleteFlashcard(card.id)}
+                                  okType="danger"
+                                >
+                                  <span
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                      background: 'white',
+                                      borderRadius: '50%',
+                                      padding: 8,
+                                      display: 'inline-flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      boxShadow: TOKENS.shadow,
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <DeleteOutlined style={{ color: 'red' }} />
+                                  </span>
+                                </Popconfirm>
+                              </div>
+                            </Card>
+                          </Col>
+
+                      ))
+                    ) : (
+                      <Col span={24}>
+                        <Card
+                          style={{
+                            textAlign: 'center',
+                            padding: '60px 0',
+                            borderRadius: TOKENS.radius,
+                          }}
+                        >
+                          <Title level={4}>No flashcards yet</Title>
+                          <Text type="secondary">
+                            Get started by adding your first flashcard
+                          </Text>
+                          <div style={{ marginTop: 24 }}>
+                            <Button
+                              type="primary"
+                              icon={<PlusOutlined />}
+                              style={{
+                                background: TOKENS.primary,
+                                borderColor: TOKENS.primary,
+                              }}
+                              onClick={() => openDrawerForCard()}
+                            >
+                              Add your first flashcard
+                            </Button>
+                          </div>
+                        </Card>
+                      </Col>
+                    )}
+                  </Row>
+                </>
+              )}
+            </Col>
+          </Row>
+        </div>
+      </div>
+
+      {/* ----------  drawer for add/edit ---------- */}
+      <Drawer
+        destroyOnClose
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        width={460}
+        title={isNewCard ? 'Add flashcard' : 'Edit flashcard'}
+        extra={
+          <Space>
+            <Button onClick={() => setDrawerOpen(false)}>Cancel</Button>
             <Button
               type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsBulkOpen(true)}
+              loading={savingCard}
+              icon={<SaveOutlined />}
+              onClick={saveFlashcard}
+              style={{
+                background: TOKENS.primary,
+                borderColor: TOKENS.primary,
+              }}
             >
-              Bulk Add
+              {isNewCard ? 'Create' : 'Save'}
             </Button>
           </Space>
-        </div>
-      )}
-    </Card>
-  );
+        }
+      >
+        <Form layout="vertical" form={cardForm}>
+          <Form.Item
+            label="Question"
+            name="description"
+            rules={[{ required: true }]}
+          >
+            <TextArea rows={3} placeholder="Enter question" />
+          </Form.Item>
 
-  /* -------- individual flashcard card --------------------------- */
-  const renderCard = (card: Flashcard) => {
-    const isEdit = editingId === card.id;
-    const data = cardForms[card.id] ?? {};
+          <Form.Item
+            label="Correct answer"
+            name="answer"
+            rules={[{ required: true }]}
+          >
+            <Input />
+          </Form.Item>
 
-    return (
-      <Col xs={24} sm={12} md={8} key={card.id}>
-        <Card
-          style={{
-            height: 420,
-            display: "flex",
-            flexDirection: "column",
-          }}
-          actions={
-            isEdit
-              ? [
-                  <SaveOutlined
-                    key="save"
-                    onClick={() => saveCard(card, data)}
-                    style={{ color: "#52c41a" }}
-                  />,
-                  <CloseOutlined
-                    key="cancel"
-                    onClick={() => setEditingId(null)}
-                    style={{ color: "#ff4d4f" }}
-                  />,
-                ]
-              : [
-                  <EditOutlined
-                    key="edit"
-                    onClick={() => setEditingId(card.id)}
-                  />,
-                  <CopyOutlined
-                    key="dup"
-                    onClick={() => duplicateCard(card)}
-                  />,
-                  <DeleteOutlined
-                    key="del"
-                    onClick={() => deleteCard(card)}
-                    style={{ color: "#ff4d4f" }}
-                  />,
-                ]
-          }
-        >
-          <div style={{ overflow: "auto", flex: 1 }}>
-            {isEdit ? (
+          <Divider orientation="left">Wrong answers (min 3)</Divider>
+
+          <Form.List name="wrongAnswers">
+            {(fields, { add, remove }) => (
               <>
-                <Input.TextArea
-                  rows={2}
-                  placeholder="Question"
-                  value={data.description}
-                  onChange={(e) =>
-                    updateCardField(card.id, "description", e.target.value)
-                  }
-                  style={{ marginBottom: 8 }}
-                />
-                <Input
-                  placeholder="Correct answer"
-                  value={data.answer}
-                  onChange={(e) =>
-                    updateCardField(card.id, "answer", e.target.value)
-                  }
-                  style={{ marginBottom: 8 }}
-                />
-                {(data.wrongAnswers ?? []).map((w, idx) => (
-                  <Input
-                    key={idx}
-                    placeholder={`Wrong answer ${idx + 1}`}
-                    value={w}
-                    onChange={(e) =>
-                      updateWrongAnswer(card.id, idx, e.target.value)
-                    }
-                    style={{ marginBottom: 6 }}
-                  />
+                {fields.map((field, index) => (
+                  <Form.Item
+                    key={field.key}
+                    required={index < 3}
+                    label={`Wrong answer ${index + 1}`}
+                  >
+                    <Input.Group compact style={{ display: 'flex' }}>
+                      <Form.Item
+                        {...field}
+                        noStyle
+                        rules={[
+                          { required: index < 3, message: 'Required' },
+                          { whitespace: true },
+                        ]}
+                      >
+                        <Input
+                          placeholder={`Wrong answer ${index + 1}`}
+                          style={{ flex: 1 }}
+                        />
+                      </Form.Item>
+                      {index >= 3 && (
+                        <MinusCircleOutlined
+                          style={{
+                            color: 'red',
+                            marginLeft: 8,
+                            fontSize: 16,
+                          }}
+                          onClick={() => remove(field.name)}
+                        />
+                      )}
+                    </Input.Group>
+                  </Form.Item>
                 ))}
-                <Input
-                  type="date"
-                  value={data.date}
-                  onChange={(e) =>
-                    updateCardField(card.id, "date", e.target.value)
-                  }
-                  style={{ marginBottom: 8 }}
-                />
-                <Upload
-                  fileList={uploads[card.id]?.fileList ?? []}
-                  beforeUpload={() => false}
-                  onChange={(info) => onImageChange(card.id, info)}
-                  listType="text"
-                >
-                  {uploads[card.id]?.fileList?.length ? null : (
-                    <Button icon={<UploadOutlined />}>Upload image</Button>
-                  )}
-                </Upload>
-                {data.imageUrl && (
-                  <Image
-                    src={data.imageUrl}
-                    alt="img"
-                    width={90}
-                    height={90}
-                    style={{
-                      marginTop: 8,
-                      objectFit: "cover",
-                      borderRadius: 6,
-                    }}
-                    unoptimized
-                  />
-                )}
-              </>
-            ) : (
-              <>
-                <h4>{card.description}</h4>
-                <p>
-                  <strong>Answer:</strong> {card.answer}
-                </p>
-                {card.imageUrl && (
-                  <Image
-                    src={card.imageUrl}
-                    alt="img"
-                    width={100}
-                    height={100}
-                    style={{
-                      marginTop: 8,
-                      borderRadius: 6,
-                      objectFit: "cover",
-                    }}
-                    unoptimized
-                  />
+                {fields.length < 6 && (
+                  <Button
+                    type="dashed"
+                    icon={<PlusOutlined />}
+                    onClick={() => add()}
+                    block
+                  >
+                    Add wrong answer
+                  </Button>
                 )}
               </>
             )}
-          </div>
-        </Card>
-      </Col>
-    );
-  };
+          </Form.List>
 
-  /* -------- bulk add panel -------------------------------------- */
-  const BulkPanel = isBulkOpen && (
-    <Card style={{ marginBottom: 32 }}>
-      <h3>Add multiple flashcards</h3>
-      <Form form={bulkForm} layout="vertical" initialValues={{ flashcards: [{}] }}>
-        <Form.List name="flashcards">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map((f, i) => (
-                <Card
-                  key={f.key}
-                  title={`Card ${i + 1}`}
-                  style={{ marginBottom: 24 }}
-                  extra={
-                    fields.length > 1 && (
-                      <Button
-                        type="link"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => remove(f.name)}
-                      >
-                        Remove
-                      </Button>
-                    )
-                  }
-                >
-                  <Form.Item
-                    name={[f.name, "description"]}
-                    label="Question"
-                    rules={[{ required: true }]}
-                  >
-                    <Input.TextArea rows={2} />
-                  </Form.Item>
-                  <Form.Item
-                    name={[f.name, "answer"]}
-                    label="Correct answer"
-                    rules={[{ required: true }]}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item label="Wrong answers">
-                    <Form.List
-                      name={[f.name, "wrongAnswers"]}
-                      initialValue={["", "", ""]}
-                    >
-                      {(subs, { add: addW, remove: remW }) => (
-                        <>
-                          {subs.map((s, j) => (
-                            <Form.Item
-                              key={s.key}
-                              name={[f.name, "wrongAnswers", s.name]}
-                            >
-                              <div style={{ display: "flex", gap: 8 }}>
-                                <Input placeholder={`Wrong ${j + 1}`} />
-                                {j >= 3 && (
-                                  <MinusCircleOutlined
-                                    onClick={() => remW(s.name)}
-                                    style={{ color: "#ff4d4f" }}
-                                  />
-                                )}
-                              </div>
-                            </Form.Item>
-                          ))}
-                          {subs.length < 6 && (
-                            <Button
-                              type="dashed"
-                              onClick={() => addW()}
-                              icon={<PlusOutlined />}
-                            >
-                              Add wrong answer
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </Form.List>
-                  </Form.Item>
-                  <Form.Item
-                    name={[f.name, "date"]}
-                    label="Date (optional)"
-                  >
-                    <Input type="date" />
-                  </Form.Item>
-                  <Form.Item label="Image (optional)">
-                    <Upload
-                      fileList={uploads[`bulk-${i}`]?.fileList ?? []}
-                      beforeUpload={() => false}
-                      onChange={(info) => {
-                        const { file, fileList } = info;
-                        if (file.status === "removed") {
-                          setUploads((p) => ({
-                            ...p,
-                            [`bulk-${i}`]: { fileList, imageUrl: null },
-                          }));
-                          return;
-                        }
-                        if (file.originFileObj) {
-                          api
-                            .uploadImage(
-                              "/flashcards/upload-image",
-                              file.originFileObj as File
-                            )
-                            .then((url) => {
-                              setUploads((p) => ({
-                                ...p,
-                                [`bulk-${i}`]: { fileList, imageUrl: url },
-                              }));
-                              message.success("Image uploaded");
-                            })
-                            .catch(() =>
-                              message.error("Upload failed")
-                            );
-                        }
-                      }}
-                      listType="text"
-                    >
-                      {uploads[`bulk-${i}`]?.fileList?.length ? null : (
-                        <Button icon={<UploadOutlined />}>Upload</Button>
-                      )}
-                    </Upload>
-                    {uploads[`bulk-${i}`]?.imageUrl && (
-                      <Image
-                        src={uploads[`bulk-${i}`]!.imageUrl!}
-                        alt="bulk"
-                        width={90}
-                        height={90}
-                        style={{ marginTop: 8, borderRadius: 6 }}
-                        unoptimized
-                      />
-                    )}
-                  </Form.Item>
-                </Card>
-              ))}
-              <Button
-                block
-                type="dashed"
-                onClick={() => add()}
-                icon={<PlusOutlined />}
-              >
-                Add another flashcard
-              </Button>
-            </>
-          )}
-        </Form.List>
-        <div style={{ textAlign: "center", marginTop: 24 }}>
-          <Space>
-            <Button
-              type="primary"
-              icon={<CheckOutlined />}
-              loading={savingBulk}
-              onClick={saveBulk}
+          <Form.Item label="Date (optional)" name="date">
+            <Input type="date" />
+          </Form.Item>
+
+          <Form.Item label="Image (optional)">
+            <Upload
+              accept="image/*"
+              listType="picture"
+              fileList={fileList}
+              onChange={handleImageChange}
+              onRemove={() => {
+                setImageUrl(undefined);
+                setFileList([]);
+              }}
+              beforeUpload={() => false /* manual */}
+              maxCount={1}
             >
-              Save All
-            </Button>
-            <Button onClick={() => setIsBulkOpen(false)}>Cancel</Button>
-          </Space>
-        </div>
-      </Form>
-    </Card>
-  );
+              <Button icon={<UploadOutlined />}>
+                {imageUrl ? 'Change image' : 'Upload image'}
+              </Button>
+            </Upload>
 
-  /* -------- final render ---------------------------------------- */
-  return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: 24 }}>
-      {DeckHeader}
-
-      {BulkPanel}
-
-      <h3 style={{ marginBottom: 16 }}>Flashcards</h3>
-      <Row gutter={[16, 16]}>
-        {flashcards.map((c) => renderCard(c))}
-      </Row>
-
-      {!flashcards.length && !isBulkOpen && (
-        <div
-          style={{
-            marginTop: 32,
-            padding: 48,
-            textAlign: "center",
-            background: "#fafafa",
-            borderRadius: 8,
-          }}
-        >
-          <p>No flashcards yet.</p>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={addNewCard}
-          >
-            Add First Flashcard
-          </Button>
-        </div>
-      )}
+            {imageUrl && (
+              <div style={{ marginTop: 8 }}>
+                <Image
+                  src={imageUrl}
+                  alt="preview"
+                  width={260}
+                  height={180}
+                  style={{
+                    objectFit: 'cover',
+                    borderRadius: 8,
+                    border: '1px solid #eee',
+                  }}
+                  unoptimized
+                />
+              </div>
+            )}
+          </Form.Item>
+        </Form>
+      </Drawer>
     </div>
   );
 };
 
-export default EditDeckPage;
+export default DeckEditPage;

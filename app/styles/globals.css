@@ -113,6 +113,15 @@ a {
   background-color: rgb(41, 44, 59);
 }
 
+.ant-select-selector {
+  background-color: white !important;
+  color: black !important;
+}
+
+.ant-select-item-option-content {
+  color: black !important;
+}
+
 h1 {
   color: var(--dark-green); /* Dark green for h1 */
 }

@@ -1,4 +1,3 @@
-//View all available decks and select one of those decks to start a quiz.
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -7,7 +6,9 @@ import { Card, Row, Col, Spin, message, Button } from 'antd';
 import { useApi } from '@/hooks/useApi';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { Deck } from '@/types/deck';
+import { Flashcard } from '@/types/flashcard';
 
+// Sample decks for fallback if API fails
 const sampleDecks = [
   {
     id: "1",
@@ -51,27 +52,48 @@ const sampleDecks = [
   }
 ];
 
-
-
 const DeckSelectionPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const { value: userId } = useLocalStorage<string>('user_id', '');
+  // Fix: Use 'userId' as the key to match other components
+  const { value: userId } = useLocalStorage<string>('userId', '');
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
     const fetchDecks = async () => {
-      /*if (!userId) {
+      const cleanUserId = userId.replace(/^"|"$/g, '');
+      console.log("Cleaned userId:", cleanUserId);
+
+      if (!cleanUserId) {
         message.error("You must be logged in to access this page");
         router.push("/login");
         return;
-      }*/
-
+      }
       try {
-        const response = await apiService.get<Deck[]>(`/decks?userId=${userId}`);
-        setDecks(response);
+        // First, fetch all decks
+        const deckList = await apiService.get<Deck[]>(`/decks?userId=${cleanUserId}`);
+        
+        // Create a copy to avoid mutating the response directly
+        const decksWithFlashcards = [...deckList];
+        
+        // Then, fetch flashcards for each deck
+        for (let i = 0; i < decksWithFlashcards.length; i++) {
+          try {
+            const flashcards = await apiService.get<Flashcard[]>(`/decks/${decksWithFlashcards[i].id}/flashcards`);
+            decksWithFlashcards[i].flashcards = flashcards;
+          } catch (error) {
+            console.error(`Failed to fetch flashcards for deck ${decksWithFlashcards[i].id}:`, error);
+            decksWithFlashcards[i].flashcards = [];
+          }
+        }
+        
+        setDecks(decksWithFlashcards);
       } catch (error) {
         console.error('Failed to fetch decks:', error);
         message.error('Failed to load decks.');

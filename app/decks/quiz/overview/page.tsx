@@ -74,6 +74,8 @@ const UserInvitationPage: React.FC = () => {
 
   useEffect(() => {
     // Sample users for testing
+    if (!currentUserId) return;
+
     const sampleUsers = [
       { id: "1", username: "johndoe", name: "John Doe", status: "ONLINE", token: "sample-token-1"},
       { id: "2", username: "janedoe", name: "Jane Doe", status: "ONLINE", token: "sample-token-2"},
