@@ -2,102 +2,56 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Row, Col, Spin, message, Button } from 'antd';
+import { Card, Row, Col, Spin, message, Button, Typography } from 'antd';
 import { useApi } from '@/hooks/useApi';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { Deck } from '@/types/deck';
 import { Flashcard } from '@/types/flashcard';
 
-// Sample decks for fallback if API fails
-const sampleDecks = [
-  {
-    id: "1",
-    title: "Memory Basics",
-    deckCategory: "SCIENCE",
-    isPublic: true,
-    flashcards: Array(5).fill(null).map((_, i) => ({ 
-      id: `f${i+1}`, 
-      description: `Sample flashcard ${i+1}`,
-      answer: `Answer ${i+1}`
-    }))
-  },
-  {
-    id: "2",
-    title: "Family Photos",
-    deckCategory: "MOMENTS",
-    isPublic: false,
-    flashcards: Array(3).fill(null).map((_, i) => ({ 
-      id: `f${i+10}`, 
-      description: `Family memory ${i+1}`,
-      answer: `Description ${i+1}`
-    }))
-  },
-  {
-    id: "3",
-    title: "Historical Events",
-    deckCategory: "HISTORY",
-    isPublic: true,
-    flashcards: [] // Empty flashcards array to test "No flashcards" display
-  },
-  {
-    id: "4",
-    title: "Medical Terms",
-    deckCategory: "SCIENCE",
-    isPublic: true,
-    flashcards: Array(8).fill(null).map((_, i) => ({ 
-      id: `f${i+20}`, 
-      description: `Medical term ${i+1}`,
-      answer: `Definition ${i+1}`
-    }))
-  }
-];
+const { Title, Text } = Typography;
+
+const TOKENS = {
+  primary: '#2E8049',
+  bg: '#c3fad4',
+  cardBg: '#ffffff',
+  shadow: '0 4px 12px rgba(0,0,0,0.08)',
+  radius: 16,
+};
 
 const DeckSelectionPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  // Fix: Use 'userId' as the key to match other components
   const { value: userId } = useLocalStorage<string>('userId', '');
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!userId) {
-      return;
-    }
+    if (!userId) return;
 
     const fetchDecks = async () => {
       const cleanUserId = userId.replace(/^"|"$/g, '');
-      console.log("Cleaned userId:", cleanUserId);
-
       if (!cleanUserId) {
         message.error("You must be logged in to access this page");
         router.push("/login");
         return;
       }
+
       try {
-        // First, fetch all decks
         const deckList = await apiService.get<Deck[]>(`/decks?userId=${cleanUserId}`);
-        
-        // Create a copy to avoid mutating the response directly
-        const decksWithFlashcards = [...deckList];
-        
-        // Then, fetch flashcards for each deck
-        for (let i = 0; i < decksWithFlashcards.length; i++) {
-          try {
-            const flashcards = await apiService.get<Flashcard[]>(`/decks/${decksWithFlashcards[i].id}/flashcards`);
-            decksWithFlashcards[i].flashcards = flashcards;
-          } catch (error) {
-            console.error(`Failed to fetch flashcards for deck ${decksWithFlashcards[i].id}:`, error);
-            decksWithFlashcards[i].flashcards = [];
-          }
-        }
-        
+        const decksWithFlashcards = await Promise.all(
+          deckList.map(async (deck) => {
+            try {
+              const flashcards = await apiService.get<Flashcard[]>(`/decks/${deck.id}/flashcards`);
+              return { ...deck, flashcards };
+            } catch {
+              return { ...deck, flashcards: [] };
+            }
+          })
+        );
         setDecks(decksWithFlashcards);
-      } catch (error) {
-        console.error('Failed to fetch decks:', error);
+      } catch {
         message.error('Failed to load decks.');
-        setDecks(sampleDecks as unknown as Deck[]);
       } finally {
         setLoading(false);
       }
@@ -111,15 +65,8 @@ const DeckSelectionPage: React.FC = () => {
   };
 
   const handleContinue = () => {
-    if (!selectedDeckId) {
-      message.warning('Please select a deck first');
-      return;
-    }
-    
-    // Store the selected deck ID in localStorage to access it on the next page
+    if (!selectedDeckId) return message.warning('Please select a deck first');
     localStorage.setItem('selected_quiz_deck_id', selectedDeckId);
-    
-    // Navigate to the user selection page
     router.push('/decks/quiz/overview');
   };
 
@@ -128,60 +75,53 @@ const DeckSelectionPage: React.FC = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#ccf0cc', minHeight: '100vh', padding: '20px' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <h2 style={{ marginBottom: '20px', color: '#333' }}>Select a Deck for Quiz</h2>
-        
+    <div style={{ background: TOKENS.bg, minHeight: '100vh', padding: '40px 20px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <Title level={3} style={{ color: '#215F46', marginBottom: 24 }}>Select a Deck for Quiz</Title>
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>
             <Spin size="large" />
           </div>
         ) : decks.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#ff0000', fontWeight: 700 }}>
-            You have no saved decks yet. Please create decks first before starting a quiz.
+          <div style={{ textAlign: 'center', padding: '60px', color: '#ff0000', fontWeight: 700 }}>
+            You have no saved decks yet. Please create one first.
           </div>
         ) : (
           <>
-            <Row gutter={[16, 16]}>
+            <Row gutter={[20, 20]}>
               {decks.map((deck) => (
                 <Col xs={24} sm={12} md={8} key={deck.id}>
                   <Card
-                    style={{
-                      height: '150px',
-                      borderRadius: '12px',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                      borderColor: selectedDeckId === deck.id ? '#285c28' : undefined,
-                      borderWidth: selectedDeckId === deck.id ? '2px' : '1px',
-                    }}
+                    hoverable
                     onClick={() => handleDeckSelect(deck.id)}
+                    style={{
+                      height: 160,
+                      borderRadius: TOKENS.radius,
+                      boxShadow: TOKENS.shadow,
+                      background: TOKENS.cardBg,
+                      border: selectedDeckId === deck.id ? `2px solid ${TOKENS.primary}` : undefined,
+                    }}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                      <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{deck.title}</div>
-                      <div style={{ color: '#666' }}>Category: {deck.deckCategory}</div>
-                      <div style={{ color: '#888', fontSize: '14px' }}>
-                        {deck.flashcards && deck.flashcards.length > 0 
-                          ? `${deck.flashcards.length} flashcards` 
-                          : 'No flashcards'}
-                      </div>
+                      <Text strong style={{ fontSize: 16, color: 'black' }}>{deck.title}</Text>
+                      <Text type="secondary">Category: {deck.deckCategory}</Text>
+                      <Text type="secondary" style={{ fontSize: 13 }}>
+                        {deck.flashcards?.length ? `${deck.flashcards.length} flashcards` : 'No flashcards'}
+                      </Text>
                     </div>
                   </Card>
                 </Col>
               ))}
             </Row>
-            
-            <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <Button onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button 
-                type="primary" 
-                onClick={handleContinue} 
+
+            <div style={{ marginTop: 40, display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+              <Button onClick={handleCancel}>Cancel</Button>
+              <Button
+                type="primary"
+                onClick={handleContinue}
                 disabled={!selectedDeckId}
-                style={{
-                  backgroundColor: '#285c28',
-                  borderColor: '#285c28',
-                }}
+                style={{ backgroundColor: TOKENS.primary, borderColor: TOKENS.primary }}
               >
                 Continue to Select Players
               </Button>

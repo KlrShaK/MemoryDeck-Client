@@ -245,7 +245,7 @@ const UserInvitationPage: React.FC = () => {
 
   return (
     <App> {/* Wrap with App component for message context */}
-      <div style={{ backgroundColor: '#ccf0cc', minHeight: '100vh', padding: '20px' }}>
+      <div style={{ backgroundColor: '#c3fad4', minHeight: '100vh', padding: '20px' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <h2 style={{ marginBottom: '20px', color: '#333' }}>Select a Player for Quiz</h2>
           
