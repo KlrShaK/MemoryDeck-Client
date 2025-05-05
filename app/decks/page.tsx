@@ -27,8 +27,7 @@ const DeckPage = () => {
     const { value: userId } = useLocalStorage<string>("userId", "");
     // CHANGED: start as null, not {}
     const [decks, setDecks] = useState<GroupedDecks | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-
+    const [loading, setLoading] = useState(true);
 
 
     const fetchGroupedDecks = useCallback(async () => {
@@ -63,7 +62,15 @@ const DeckPage = () => {
 
 
 
+    useEffect(() => {
+        if (!userId) {
+            return;
+        }
 
+        (async () => {
+            await fetchGroupedDecks();
+        })();
+    }, [userId, fetchGroupedDecks]);
 
     // Deck actions
     const handleDeckClick = (deckId: number) => {
@@ -99,16 +106,20 @@ const DeckPage = () => {
         console.log("Versus Mode button clicked");
         router.push('/quiz-play');}
     const handleTutorialClick = () => console.log("Tutorial button clicked");
-    const handleProfileClick = () => console.log("Profile button clicked");
+    const handleProfileClick = () => {
+        if (userId) {
+          router.push(`/users/${userId}`);
+        } else {
+          console.warn("User ID not found.");
+        }
+      };
 
     useEffect(() => {
-        if (!userId) {
+        if (userId) {
+            fetchGroupedDecks();
+        } else {
             setLoading(false);
-            return;
         }
-        fetchGroupedDecks()
-            .catch(() => {})    // errors already handled inside fetchGroupedDecks
-            .finally(() => setLoading(false));
     }, [userId, fetchGroupedDecks]);
 
     return (
