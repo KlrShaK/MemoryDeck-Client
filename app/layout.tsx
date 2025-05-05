@@ -61,7 +61,7 @@ export default function RootLayout({
           }}
         >
           <AntdRegistry>
-            <AntdApp>           {/* ← ②  Ant‑Design “App” wrapper */}
+            <AntdApp>           
               <NotificationProvider>{children}</NotificationProvider>
             </AntdApp>
           </AntdRegistry>

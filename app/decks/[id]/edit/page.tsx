@@ -685,22 +685,22 @@ const DeckEditPage: React.FC = () => {
       >
         <Form layout="vertical" form={cardForm}>
           <Form.Item
-            label="Question"
+            label={<span style={{ color: 'black' }}>Question</span>}
             name="description"
             rules={[{ required: true }]}
           >
-            <TextArea rows={3} placeholder="Enter question" />
+            <TextArea rows={3} placeholder="Enter question" style={{ backgroundColor: 'white', color: 'black', borderRadius: 8 }}/>
           </Form.Item>
 
           <Form.Item
-            label="Correct answer"
+            label={<span style={{ color: 'black' }}>Correct Answer</span>}
             name="answer"
             rules={[{ required: true }]}
           >
-            <Input />
+            <Input style={{ backgroundColor: 'white', color: 'black', borderRadius: 8 }}/>
           </Form.Item>
 
-          <Divider orientation="left">Wrong answers (min 3)</Divider>
+          <Divider orientation="left">Wrong answers (min 3) </Divider>
 
           <Form.List name="wrongAnswers">
             {(fields, { add, remove }) => (
@@ -709,7 +709,7 @@ const DeckEditPage: React.FC = () => {
                   <Form.Item
                     key={field.key}
                     required={index < 3}
-                    label={`Wrong answer ${index + 1}`}
+                    label={<span style={{ color: 'black' }}>{`Wrong answer ${index + 1}`}</span>}
                   >
                     <Input.Group compact style={{ display: 'flex' }}>
                       <Form.Item
@@ -722,7 +722,7 @@ const DeckEditPage: React.FC = () => {
                       >
                         <Input
                           placeholder={`Wrong answer ${index + 1}`}
-                          style={{ flex: 1 }}
+                          style={{ flex: 1, backgroundColor: 'white', color: 'black', borderRadius: 8 }}
                         />
                       </Form.Item>
                       {index >= 3 && (
@@ -753,7 +753,7 @@ const DeckEditPage: React.FC = () => {
           </Form.List>
 
           <Form.Item label="Date (optional)" name="date">
-            <Input type="date" />
+            <Input type="date" style={{ backgroundColor: 'white', color: 'black', borderRadius: 8 }}/>
           </Form.Item>
 
           <Form.Item label="Image (optional)">
