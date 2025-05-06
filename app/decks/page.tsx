@@ -96,7 +96,7 @@ const DeckPage = () => {
         console.log("Create Deck button clicked");
         router.push('/decks/create');
       };
-    const handlePerformanceClick = () => console.log("Performance button clicked");
+    const handlePerformanceClick = () => router.push("/statistics");
     const handleSetReminderClick = () => console.log("Set Reminder button clicked");
     const handleQuizClick = () => {
         console.log("Quiz button clicked");
