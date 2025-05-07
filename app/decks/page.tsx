@@ -70,6 +70,37 @@ const DeckPage = () => {
     }
   }, [userId, apiService]);
 
+
+
+    useEffect(() => {
+        if (!userId) {
+            return;
+        }
+
+        (async () => {
+            await fetchGroupedDecks();
+        })();
+    }, [userId, fetchGroupedDecks]);
+
+    // Deck actions
+    const handleDeckClick = (deckId: number) => {
+        router.push(`/decks/${deckId}/edit/flashcards`);
+    };
+
+    const handleEditDeck = (deckId: number) => {
+        router.push(`/decks/${deckId}/edit`);
+    };
+
+    const handleDeleteDeck = async (deckId: number) => {
+        try {
+            await apiService.delete(`/decks/${deckId}`);
+            message.success(`Deleted deck #${deckId}`);
+            fetchGroupedDecks();
+        } catch (err) {
+            console.error(err);
+            message.error("Failed to delete deck.");
+        }
+    };
   const handleDeckClick = (deckId: number) => router.push(`/decks/${deckId}/edit/flashcards`);
   const handleEditDeck = (deckId: number) => router.push(`/decks/${deckId}/edit`);
   const handleDeleteDeck = async (deckId: number) => {

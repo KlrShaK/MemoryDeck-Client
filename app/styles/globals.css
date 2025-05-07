@@ -212,3 +212,46 @@ h3 {
 }
 
 
+/* === LIGHT SELECT DROPDOWN === */
+.light-select-dropdown .ant-select-item-option-content {
+  color: #000 !important;
+}
+
+.light-select-dropdown .ant-select-item {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+.light-select-dropdown .ant-select-item-option-active {
+  background-color: #e6f7ff !important;
+}
+
+.light-select-dropdown .ant-select-item-option-selected {
+  background-color: #bae7ff !important;
+  font-weight: 600;
+}
+
+/* === LIGHT RANGE PICKER === */
+.light-range-calendar .ant-picker-panel {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+.light-range-calendar .ant-picker-cell-inner {
+  color: #000 !important;
+}
+
+.light-range-calendar .ant-picker-header {
+  background-color: #f5f5f5 !important;
+  color: #000 !important;
+}
+
+.light-range-calendar .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+  background-color: #1890ff !important;
+  color: #fff !important;
+}
+
+.light-range-calendar .ant-picker-cell-inner:hover {
+  background-color: #e6f7ff !important;
+  color: #000 !important;
+}
