@@ -82,25 +82,6 @@ const DeckPage = () => {
         })();
     }, [userId, fetchGroupedDecks]);
 
-    // Deck actions
-    const handleDeckClick = (deckId: number) => {
-        router.push(`/decks/${deckId}/edit/flashcards`);
-    };
-
-    const handleEditDeck = (deckId: number) => {
-        router.push(`/decks/${deckId}/edit`);
-    };
-
-    const handleDeleteDeck = async (deckId: number) => {
-        try {
-            await apiService.delete(`/decks/${deckId}`);
-            message.success(`Deleted deck #${deckId}`);
-            fetchGroupedDecks();
-        } catch (err) {
-            console.error(err);
-            message.error("Failed to delete deck.");
-        }
-    };
   const handleDeckClick = (deckId: number) => router.push(`/decks/${deckId}/edit/flashcards`);
   const handleEditDeck = (deckId: number) => router.push(`/decks/${deckId}/edit`);
   const handleDeleteDeck = async (deckId: number) => {
@@ -119,7 +100,13 @@ const DeckPage = () => {
   const handleQuizClick = () => router.push("/decks/quiz/select-decks");
   const handleVersusClick = () => router.push("/quiz-play");
   const handleTutorialClick = () => {};
-  const handleProfileClick = () => {};
+  const handleProfileClick = () => {
+    if (userId) {
+      router.push(`/users/${userId}`);
+    } else {
+      console.warn("User ID not found.");
+    }
+  };
 
   useEffect(() => {
     if (!userId) {

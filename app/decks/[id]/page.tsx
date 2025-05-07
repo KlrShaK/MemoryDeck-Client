@@ -30,9 +30,8 @@ import { useRouter, useParams } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
-// ────────────────────────────────────────────────────────────────────────────────
+
 // Types
-// ────────────────────────────────────────────────────────────────────────────────
 interface Deck {
   id: number;
   title: string;
@@ -63,16 +62,15 @@ const CATEGORY_OPTIONS = [
   "MIXED",
 ];
 
-// ────────────────────────────────────────────────────────────────────────────────
+
 // Main Page Component
-// ────────────────────────────────────────────────────────────────────────────────
 const EditDeckPage: React.FC = () => {
   const router = useRouter();
   const { deckId } = useParams<{ deckId: string }>();
   const apiService = useApi();
   const { value: userId } = useLocalStorage<string>("userId", "");
 
-  // ── State ────────────────────────────────────────────────────────────────────
+  // State 
   const [loading, setLoading] = useState(true);
   const [deck, setDeck] = useState<Deck | null>(null);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -89,7 +87,7 @@ const EditDeckPage: React.FC = () => {
     null
   );
 
-  // ── Fetch helpers ────────────────────────────────────────────────────────────
+  // Fetch helpers 
   const fetchDeck = useCallback(async () => {
     try {
       const fetchedDeck = await apiService.get<Deck>(`/decks/${deckId}`);
@@ -124,7 +122,7 @@ const EditDeckPage: React.FC = () => {
     })();
   }, [deckId, fetchDeck, fetchFlashcards]);
 
-  // ── Deck handlers ────────────────────────────────────────────────────────────
+  // Deck handlers
   const handleDeckSave = async () => {
     if (!deck) return;
     try {
@@ -140,7 +138,7 @@ const EditDeckPage: React.FC = () => {
     }
   };
 
-  // ── Flashcard handlers ───────────────────────────────────────────────────────
+  // Flashcard handlers 
   const openAddModal = () => {
     setEditingFlashcard(null);
     setIsModalVisible(true);
@@ -179,7 +177,7 @@ const EditDeckPage: React.FC = () => {
     }
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // Render 
   if (loading) {
     return (
       <div
@@ -337,9 +335,7 @@ const EditDeckPage: React.FC = () => {
   );
 };
 
-// ────────────────────────────────────────────────────────────────────────────────
 // Flashcard Modal component
-// ────────────────────────────────────────────────────────────────────────────────
 interface ModalProps {
   visible: boolean;
   initial: Flashcard | null;
