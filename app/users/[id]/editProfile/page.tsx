@@ -57,13 +57,6 @@ const EditUserProfilePage = () => {
       return;
     }
   
-    // Validate old password is correct
-    if (values.oldPassword !== user.password) {
-      message.error("Old password is incorrect.");
-      setUpdateFailed(true);
-      return;
-    }
-  
     // Validate new password is different from old
     if (values.newPassword === values.oldPassword) {
       message.error("New password must be different from the old password.");
@@ -72,19 +65,11 @@ const EditUserProfilePage = () => {
     }
   
     try {
-      // Create the updatedUserDTO with all the necessary fields
-      const updatedUserDTO = {
-        name: user.name, // Keep the name the same if not updating it
-        username: user.username,
-        password: values.newPassword, // Update password
-        birthday: user.birthday, // Keep the birthday the same if not updating it
-      };
-  
-      // Send the PUT request with the updatedUserDTO
-      await apiService.put(`/users/${id}`, updatedUserDTO);
-  
-      // Update the user state with the new password
-      setUser({ ...user, password: values.newPassword });
+
+      await apiService.put(`/users/${Number(id)}/password`, {
+        oldPassword: values.oldPassword,
+        newPassword: values.newPassword,
+      });
   
       // Reset the form fields
       form.resetFields(["oldPassword", "newPassword"]);
