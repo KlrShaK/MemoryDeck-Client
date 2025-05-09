@@ -120,16 +120,16 @@ reason).
 ## Contributions Week 6 - [05.05.2025] to [12.05.2025]
 
 
-| **Student**      | **Date**  | **Link to Commit**          | **Description**                     | **Relevance**                          |
-|-------------------|-----------|-----------------------------|-------------------------------------|-----------------------------------------|
-| **[@melihsrn]** | [20.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/a81e557dd4dadeb83e0619dcc284cc4ef9d2e8ae]          | [FUTURE WORK: Create tests for all of the Mappers]     | [It is very important to test functionality of our server.]     |
-|                   | [20.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/c442952ea8135aa9e643ad72807a04f3e58bb0db]          | [FUTURE WORK: Create tests for FlashcardService and GCS Service]     | [It is very important to test functionality of our server.]     |
-|                   | [20.04.2025]    | [https://github.com/KlrShaK/MemoryDeck-Server/commit/d7210ab54d7b7c6810485d2340d90bc0dbe02f53]          | [FUTURE WORK: Create tests for Quiz Invitation REST APIs and their corresponding service methods]     | [It is very important to test functionality of our server.]     |
-| **[@githubUser2]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
-|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
-| **[@githubUser3]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
-|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
-| **[@githubUser4]** | [date]    | [Link to Commit 1]          | [Brief description of the task]     | [Why this contribution is relevant]     |
-|                   | [date]    | [Link to Commit 2]          | [Brief description of the task]     | [Why this contribution is relevant]     |
+| **Student**        | **Date**      | **Link to Commit**          | **Description**                                                                                   | **Relevance**                                                              |
+|--------------------|---------------|-----------------------------|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| **[@melihsrn]**    | [20.04.2025]  | [https://github.com/KlrShaK/MemoryDeck-Server/commit/a81e557dd4dadeb83e0619dcc284cc4ef9d2e8ae]          | [FUTURE WORK: Create tests for all of the Mappers]                                                | [It is very important to test functionality of our server.]                |
+|                    | [20.04.2025]  | [https://github.com/KlrShaK/MemoryDeck-Server/commit/c442952ea8135aa9e643ad72807a04f3e58bb0db]          | [FUTURE WORK: Create tests for FlashcardService and GCS Service]                                  | [It is very important to test functionality of our server.]                |
+|                    | [20.04.2025]  | [https://github.com/KlrShaK/MemoryDeck-Server/commit/d7210ab54d7b7c6810485d2340d90bc0dbe02f53]          | [FUTURE WORK: Create tests for Quiz Invitation REST APIs and their corresponding service methods] | [It is very important to test functionality of our server.]                |
+| **[@sarahnab]**    | [May 9, 2025] | [https://github.com/KlrShaK/MemoryDeck-Client/commit/f49cc72cbdbc3a3a059acc91128c15e006a3358e]          | [Created the FA and tutorials page]                                                               | [Without this users would not have a page to go to when they are lost]     |
+|                    | [May 9, 2025]        | [https://github.com/KlrShaK/MemoryDeck-Client/commit/a1280ccd670a7a403e4a41f8c15790263a5ec36d]          | [Created a support form that users can fill out if they still have questions ]                    | [Without this users wouldn't be able to contact us if they have questions] |
+| **[@githubUser3]** | [date]        | [Link to Commit 1]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
+|                    | [date]        | [Link to Commit 2]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
+| **[@githubUser4]** | [date]        | [Link to Commit 1]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
+|                    | [date]        | [Link to Commit 2]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
 
 ---
