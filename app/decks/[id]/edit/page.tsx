@@ -359,7 +359,7 @@ const DeckEditPage: React.FC = () => {
       {/* ----------  main content ---------- */}
       <div
         style={{
-          background: TOKENS.contentBg,
+          
           minHeight: '100%',
           padding: '80px 20px 40px',
         }}
@@ -461,10 +461,10 @@ const DeckEditPage: React.FC = () => {
                 ) : (
                   <>
                     <Space direction="vertical" size={4} style={{ fontSize: 16 }}>
-                      <Text type="secondary">
+                      <Text type="secondary" style={{ color: 'black' }}>
                         Category: {deck?.deckCategory}
                       </Text>
-                      <Text type="secondary">
+                      <Text type="secondary" style={{ color: 'black' }}>
                         Status: {deck?.isPublic ? 'Public' : 'Private'}
                       </Text>
                     </Space>
@@ -628,9 +628,11 @@ const DeckEditPage: React.FC = () => {
                             textAlign: 'center',
                             padding: '60px 0',
                             borderRadius: TOKENS.radius,
+                            background: "white",
+                            boxShadow: TOKENS.shadow,
                           }}
                         >
-                          <Title level={4}>No flashcards yet</Title>
+                          <Title level={4} style={{ color: 'black' }}>No flashcards yet</Title>
                           <Text type="secondary">
                             Get started by adding your first flashcard
                           </Text>

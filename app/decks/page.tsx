@@ -95,7 +95,7 @@ const DeckPage = () => {
   };
 
   const handleCreateClick = () => router.push("/decks/create");
-  const handlePerformanceClick = () => {};
+  const handlePerformanceClick = () => router.push("/statistics");
   const handleSetReminderClick = () => {};
   const handleQuizClick = () => router.push("/decks/quiz/select-decks");
   const handleVersusClick = () => router.push("/quiz-play");
