@@ -134,10 +134,36 @@ reason).
 |                    | [May 9, 2025]        | [https://github.com/KlrShaK/MemoryDeck-Client/commit/a1280ccd670a7a403e4a41f8c15790263a5ec36d]          | [Created a support form that users can fill out if they still have questions ]                    | [Without this users wouldn't be able to contact us if they have questions] |
 | **[@leylakhasieva]** | [May 12, 2025]        | [Link to Commit 1(https://github.com/KlrShaK/MemoryDeck-Client/commit/5c73dde19b8be192fd3d372e1a84240333bd5eaf)]          | [Improved the edit profile page and implemented input validation checks for the fields]                                                                   | [It is important to enforce certain input rules on users to guide them to enter valid information to keep the database clean and also guide them toward the correct input with relevant messages]                                        |
 |                    | [date]        | [Link to Commit 2]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
-| **[@githubUser4]** | [date]        | [Link to Commit 1]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
-|                    | [date]        | [Link to Commit 2]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
+| **[@KlrShaK]** | [May 12, 2025]        | [Link to Commit 1](https://github.com/KlrShaK/MemoryDeck-Server/commit/37c6c0fb5dbb53c1e3e0beb014fc5c50979b0e77)          | [Closes #73 , Created a Quiz Architecture and implementation]                                                                   | [Taking the Quiz is an essential part of the app and the code attached facilitates the use of Quiz by providing all the backend code required for the implementation]                                        |
+|                    | [May 12, 2025]        | [Link to Commit 2](https://github.com/KlrShaK/MemoryDeck-Server/commit/a8d6e1cedb1f5f25a83b9f993d918343c6a58db7)          | [created DTO and rest endpoints for Quiz logistics]                                                                   | [This code serves as a bridge between front-end and backend and allows the front-end to access improtant data about the quiz]                                        |
 
 ---
 
-## Contributions Week 7 - [12.05.2025] to [19.05.2025]
+## Contributions Week 8 - [12.05.2025] to [19.05.2025]
+| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
+| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
+| **[@KlrShaK]** | [May 12, 2025]   | [Link to Commit 1](https://github.com/KlrShaK/MemoryDeck-Server/commit/f6565e2e1af24d073e66ee4727088edaafcc5f7e) | [Closes #83 , Created statistics entity and related controllers and services to help with storing data about quiz and their history] | [FUTURE WORK: This work provides a method via an entity for the user to store the history of their performance in Quizes, hence it is an important part of progress as this data is essential in helping users improve] |
+|                    | [May 12, 2025]   | [Link to Commit 2](https://github.com/KlrShaK/MemoryDeck-Server/commit/6c39e871267d5b031494ee234299d4b6de4d0fff) | [Closes #76 Closes #77 makes appropriate changes to User Controller, Deck and Quiz files to make them compatible with quiz and invitation logic] | [FUTURE WORK: THis commit is essential in making sure all the files, User, deck, etc work together to handle Quiz, invitations and statistics ] |
+| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
+---
+
+## Contributions Week 9 - [19.05.2025] to [23.05.2025]
+| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
+| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
+| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
+---
 
