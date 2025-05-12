@@ -8,7 +8,7 @@ import { Spin, Input, Button, Form, message, Typography } from "antd";
 
 const { Title, Text } = Typography;
 
-const EditUserProfilePage = () => {
+const EditUserPasswordPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const apiService = useApi();
@@ -138,4 +138,4 @@ const EditUserProfilePage = () => {
   );
 };
 
-export default EditUserProfilePage;
+export default EditUserPasswordPage;

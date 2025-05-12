@@ -28,6 +28,20 @@ const UserProfileDisplay = () => {
   const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
   const [editField, setEditField] = useState<string | null>(null);
+  const [isSaveDisabled, setIsSaveDisabled] = useState(true);
+  const watchedFieldValue = Form.useWatch(editField || "", form);
+
+
+  // Check validity whenever the field value changes
+  useEffect(() => {
+    if (editField) {
+      const errors = form.getFieldError(editField);
+      const isTouched = form.isFieldTouched(editField);
+      const hasErrors = errors.length > 0;
+      setIsSaveDisabled(!isTouched || hasErrors);
+    }
+  }, [editField, form, watchedFieldValue]);
+  
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -48,9 +62,15 @@ const UserProfileDisplay = () => {
 
   const handleSave = async (field: string) => {
     if (!user) return;
-    const value = form.getFieldValue(field);
+    let value = form.getFieldValue(field);
+  
+    // If it's a date field, convert to YYYY-MM-DD string
+    if (field.includes("date") || field === "birthday") {
+      value = dayjs(value).format("YYYY-MM-DD");
+    }
+  
     const updatedUser = { ...user, [field]: value };
-
+  
     try {
       await apiService.put(`/users/${user.id}`, updatedUser);
       const updatedData = await apiService.get<User>(`/users/${user.id}`);
@@ -63,7 +83,7 @@ const UserProfileDisplay = () => {
       message.error("Failed to update field.");
     }
   };
-
+  
   const handleEditClick = (field: string) => {
     setEditField(field);
   };
@@ -78,12 +98,19 @@ const UserProfileDisplay = () => {
       </div>
     );
 
-  const fields = [
+  const fields: Array<{ label: string; name: keyof User; editable: boolean }> = [
     { label: "Username", name: "username", editable: true },
     { label: "Name", name: "name", editable: true },
     { label: "Birthday", name: "birthday", editable: true },
     { label: "Creation Date", name: "creationDate", editable: false },
   ];
+    
+  // Helper function to format dates consistently
+  const formatDate = (dateValue: any): string => {
+    if (!dateValue) return "—";
+    const date = dayjs(dateValue);
+    return date.isValid() ? date.format("DD.MM.YYYY") : "—";
+  };
 
   return (
     <div style={{ background: "#c3fad4", minHeight: "100vh", padding: 40 }}>
@@ -99,7 +126,7 @@ const UserProfileDisplay = () => {
           <Title level={2} style={{ textAlign: "center", color: "#215F46" }}>
             User Profile
           </Title>
-
+  
           <Form form={form} layout="vertical">
             {fields.map((field) => (
               <Row
@@ -113,9 +140,49 @@ const UserProfileDisplay = () => {
                 </Col>
                 <Col span={12}>
                   {field.editable && editField === field.name ? (
-                    <Form.Item name={field.name} style={{ margin: 0 }}>
-                      <Input type={field.name.includes("date") ? "date" : "text"} />
-                    </Form.Item>
+                  <Form.Item
+                    name={field.name}
+                    style={{ margin: 0 }}
+                    rules={
+                      field.name === "username"
+                        ? [
+                            { required: true, message: "Username is required" },
+                            {
+                              min: 5,
+                              message: "Username must be at least 5 characters",
+                            },
+                          ]
+                        : field.name === "birthday"
+                        ? [
+                            { required: true, message: "Birthday is required" },
+                            {
+                              validator: (_, value) => {
+                                const isValidDate = !isNaN(Date.parse(value));
+                                const today = dayjs().startOf("day");
+                                if (isValidDate) {
+                                  const selectedDate = dayjs(value);
+                                  if (selectedDate.isAfter(today)) {
+                                    return Promise.reject("Birthday cannot be in the future.");
+                                  }
+                                  return Promise.resolve();
+                                }
+                                return Promise.reject("Enter a valid date.");
+                              },
+                            },
+                          ]
+                        : []
+                    }
+                    >
+                      <Input
+                        type={
+                          field.name.includes("date") || field.name === "birthday"
+                            ? "date"
+                            : "text"
+                        }
+                        max={field.name === "birthday" ? dayjs().format("YYYY-MM-DD") : undefined}
+                      />
+                  </Form.Item>
+                  
                   ) : (
                     <div
                       style={{
@@ -126,9 +193,9 @@ const UserProfileDisplay = () => {
                         color: "black",
                       }}
                     >
-                      {field.name.includes("date")
-                        ? dayjs(user[field.name as keyof User] as string).format("YYYY-MM-DD")
-                        : user[field.name as keyof User] || "—"}
+                      {field.name === "creationDate" || field.name === "birthday"
+                        ? formatDate(user[field.name as keyof User])
+                        : user[field.name as keyof User] ?? "—"}
                     </div>
                   )}
                 </Col>
@@ -136,12 +203,13 @@ const UserProfileDisplay = () => {
                   <Col span={6}>
                     {editField === field.name ? (
                       <Button
-                        type="primary"
-                        onClick={() => handleSave(field.name)}
-                        style={{ background: "#2E8049", borderColor: "#2E8049" }}
-                      >
-                        Save
-                      </Button>
+                      type="primary"
+                      onClick={() => handleSave(field.name)}
+                      style={{ background: "#2E8049", borderColor: "#2E8049" }}
+                      disabled={isSaveDisabled}
+                    >
+                      Save
+                    </Button>
                     ) : (
                       <Button onClick={() => handleEditClick(field.name)}>Edit</Button>
                     )}
@@ -150,7 +218,7 @@ const UserProfileDisplay = () => {
               </Row>
             ))}
           </Form>
-
+  
           <div style={{ textAlign: "center", marginTop: 32 }}>
             <Button onClick={handleBack} style={{ marginRight: 12 }}>
               Back to Home
@@ -167,6 +235,7 @@ const UserProfileDisplay = () => {
       </div>
     </div>
   );
+  
 };
 
 export default UserProfileDisplay;
