@@ -113,6 +113,15 @@ a {
   background-color: rgb(41, 44, 59);
 }
 
+.ant-select-selector {
+  background-color: white !important;
+  color: black !important;
+}
+
+.ant-select-item-option-content {
+  color: black !important;
+}
+
 h1 {
   color: var(--dark-green); /* Dark green for h1 */
 }
@@ -202,4 +211,81 @@ h3 {
   text-decoration: underline;
 }
 
+
+/* === LIGHT SELECT DROPDOWN === */
+.light-select-dropdown .ant-select-item-option-content {
+  color: #000 !important;
+}
+
+.light-select-dropdown .ant-select-item {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+.light-select-dropdown .ant-select-item-option-active {
+  background-color: #e6f7ff !important;
+}
+
+.light-select-dropdown .ant-select-item-option-selected {
+  background-color: #bae7ff !important;
+  font-weight: 600;
+}
+
+/* === LIGHT RANGE PICKER === */
+.light-range-calendar .ant-picker-panel {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+.light-range-calendar .ant-picker-content th,
+.light-range-calendar .ant-picker-header button,
+.light-range-calendar .ant-picker-header > div {
+  color: #000 !important;
+}
+
+.light-range-calendar .ant-picker-cell-inner {
+  color: #000 !important;
+}
+
+.light-range-calendar .ant-picker-header {
+  background-color: #f5f5f5 !important;
+  color: #000 !important;
+  border-bottom: 1px solid #e8e8e8 !important;
+}
+
+.light-range-calendar .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner {
+  background-color: #2E8049 !important;
+  color: #fff !important;
+}
+
+.light-range-calendar .ant-picker-cell-today .ant-picker-cell-inner::before {
+  border: 1px solid #2E8049 !important;
+}
+
+.light-range-calendar .ant-picker-cell-inner:hover {
+  background-color: #e6f7ff !important;
+  color: #000 !important;
+}
+
+.light-range-calendar .ant-picker-time-panel-column > li.ant-picker-time-panel-cell .ant-picker-time-panel-cell-inner {
+  color: #000 !important;
+}
+
+.light-range-calendar .ant-picker-ranges {
+  background-color: #fff !important;
+}
+
+.light-range-calendar .ant-picker-footer {
+  background-color: #fff !important;
+  border-top: 1px solid #e8e8e8 !important;
+}
+
+.light-range-calendar .ant-picker-now-btn {
+  color: #2E8049 !important;
+}
+
+.light-range-calendar .ant-picker-ok button {
+  background-color: #2E8049 !important;
+  border-color: #2E8049 !important;
+}
 

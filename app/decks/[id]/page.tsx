@@ -1,284 +1,421 @@
-// app/decks/[id]/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import {
+  Button,
+  Input,
+  Select,
+  Checkbox,
+  Card,
+  Row,
+  Col,
+  Modal,
+  Form,
+  Popconfirm,
+  Spin,
+  message,
+} from "antd";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
 import { useRouter, useParams } from "next/navigation";
-import { Button, Card, Spin, message } from "antd";
 import { useApi } from "@/hooks/useApi";
-import { Flashcard } from "@/types/flashcard";
-import Image from "next/image";
 
-const QuizPage: React.FC = () => {
-    const router = useRouter();
-    const params = useParams();
-    // useParams() can return string | string[] | undefined
-    const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
-    const deckId = rawId ? parseInt(rawId, 10) : NaN;
 
-    const apiService = useApi();
+// Types
+interface Deck {
+  id: number;
+  title: string;
+  deckCategory: string;
+  isPublic: boolean;
+}
 
-    const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-    const [currentCardIndex, setCurrentCardIndex] = useState(0);
-    const [score, setScore] = useState(0);
-    const [quizCompleted, setQuizCompleted] = useState(false);
-    const [loading, setLoading] = useState(true);
+interface Flashcard {
+  id?: number;
+  description: string;
+  answer: string;
+  wrongAnswers: string[];
+  imageUrl?: string | null;
+}
 
-    // 1) Redirect if `id` is missing or invalid
-    useEffect(() => {
-        if (!rawId || isNaN(deckId)) {
-            message.error("Invalid deck ID");
-            router.push("/decks");
-            return;
-        }
+const CATEGORY_OPTIONS = [
+  "MOMENTS",
+  "SPORTS",
+  "ANIMALS",
+  "PLACES",
+  "FOODS",
+  "SCIENCE",
+  "MATH",
+  "HISTORY",
+  "LANGUAGE",
+  "TECHNOLOGY",
+  "OTHERS",
+  "MIXED",
+];
 
-        // 2) Fetch flashcards
-        const fetchFlashcards = async () => {
-            try {
-                const data = await apiService.get<Flashcard[]>(
-                    `/flashcards?deckId=${deckId}`
-                );
-                setFlashcards(data);
-            } catch (err) {
-                console.error("Failed to fetch flashcards", err);
-                message.error("Failed to load flashcards.");
-            } finally {
-                setLoading(false);
-            }
-        };
 
-        fetchFlashcards();
-    }, [rawId, deckId, apiService, router]);
+// Main Page Component
+const EditDeckPage: React.FC = () => {
+  const router = useRouter();
+  const { deckId } = useParams<{ deckId: string }>();
+  const apiService = useApi();
 
-    // While redirecting, don’t render anything
-    if (!rawId || isNaN(deckId)) {
-        return null;
+  // State 
+  const [loading, setLoading] = useState(true);
+  const [deck, setDeck] = useState<Deck | null>(null);
+  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
+
+  const [deckForm, setDeckForm] = useState({
+    title: "",
+    deckCategory: "",
+    isPublic: false,
+  });
+
+  // Modal state
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(
+    null
+  );
+
+  // Fetch helpers 
+  const fetchDeck = useCallback(async () => {
+    try {
+      const fetchedDeck = await apiService.get<Deck>(`/decks/${deckId}`);
+      setDeck(fetchedDeck);
+      setDeckForm({
+        title: fetchedDeck.title ?? "",
+        deckCategory: fetchedDeck.deckCategory ?? "",
+        isPublic: fetchedDeck.isPublic ?? false,
+      });
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to load deck details.");
     }
+  }, [apiService, deckId]);
 
-    // 3) Answer handler
-    const handleAnswer = (selectedAnswer: string) => {
-        const current = flashcards[currentCardIndex];
-        if (selectedAnswer === current.answer) {
-            setScore((s) => s + 1);
-        }
-        if (currentCardIndex + 1 < flashcards.length) {
-            setCurrentCardIndex((i) => i + 1);
-        } else {
-            setQuizCompleted(true);
-        }
-    };
-
-    // 4) Retry
-    const handleRetryQuiz = () => {
-        setScore(0);
-        setCurrentCardIndex(0);
-        setQuizCompleted(false);
-    };
-
-    // 5) Loading state
-    if (loading) {
-        return (
-            <div style={{ textAlign: "center", padding: 40 }}>
-                <Spin size="large" />
-                <p style={{ marginTop: 16 }}>Loading quiz...</p>
-            </div>
-        );
+  const fetchFlashcards = useCallback(async () => {
+    try {
+      const data = await apiService.get<Flashcard[]>(
+        `/decks/${deckId}/flashcards`
+      );
+      setFlashcards(data);
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to load flashcards.");
     }
+  }, [apiService, deckId]);
 
-    // 6) Completed state
-    if (quizCompleted) {
-        const percentage = Math.round((score / flashcards.length) * 100);
-        return (
-            <div style={{ padding: 40, textAlign: "center" }}>
-                <h2>Quiz Completed!</h2>
-                <p>
-                    Your score: {score} / {flashcards.length} ({percentage}%)
-                </p>
-                <Button onClick={handleRetryQuiz}>Retry Quiz</Button>
-                <Button
-                    style={{ marginLeft: 10 }}
-                    onClick={() => router.push("/decks")}
-                >
-                    Back to Decks
-                </Button>
-            </div>
-        );
+  useEffect(() => {
+    if (!deckId) return;
+    (async () => {
+      setLoading(true);
+      await Promise.all([fetchDeck(), fetchFlashcards()]);
+      setLoading(false);
+    })();
+  }, [deckId, fetchDeck, fetchFlashcards]);
+
+  // Deck handlers
+  const handleDeckSave = async () => {
+    if (!deck) return;
+    try {
+      await apiService.put(`/decks/${deck.id}`, {
+        title: deckForm.title,
+        deckCategory: deckForm.deckCategory,
+        isPublic: deckForm.isPublic,
+      });
+      message.success("Deck updated successfully");
+      router.push("/decks");
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to update deck");
     }
+  };
 
-    // 7) Main quiz UI
-    const currentFlashcard = flashcards[currentCardIndex];
+  // Flashcard handlers 
+  const openAddModal = () => {
+    setEditingFlashcard(null);
+    setIsModalVisible(true);
+  };
+
+  const openEditModal = (card: Flashcard) => {
+    setEditingFlashcard(card);
+    setIsModalVisible(true);
+  };
+
+  const handleDeleteFlashcard = async (cardId?: number) => {
+    if (!cardId) return;
+    try {
+      await apiService.delete(`/decks/${deckId}/flashcards/${cardId}`);
+      message.success("Flashcard deleted");
+      fetchFlashcards();
+    } catch {
+      message.error("Failed to delete flashcard");
+    }
+  };
+
+  const handleModalOk = async (values: Flashcard) => {
+    try {
+      if (editingFlashcard && editingFlashcard.id) {
+        // Update existing
+        await apiService.put(`/flashcards/${editingFlashcard.id}`, values);
+      } else {
+        // Create new
+        await apiService.post(`/decks/${deckId}/flashcards/addFlashcard`, values);
+      }
+      setIsModalVisible(false);
+      fetchFlashcards();
+      message.success("Flashcard saved");
+    } catch (err) {
+      console.error(err);
+      message.error("Failed to save flashcard");
+    }
+  };
+
+  // Render 
+  if (loading) {
     return (
-        <div style={{ padding: 40, textAlign: "center" }}>
-            <h2>
-                Question {currentCardIndex + 1} / {flashcards.length}
-            </h2>
-            <Card
-                style={{
-                    marginBottom: 20,
-                    padding: 20,
-                    fontSize: 18,
-                    textAlign: "center",
-                    borderRadius: 12,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                }}
-            >
-                <div>{currentFlashcard.description}</div>
-                <div>
-                    <Button
-                        type="primary"
-                        style={{ marginTop: 20 }}
-                        onClick={() => handleAnswer(currentFlashcard.answer)}
-                    >
-                        {currentFlashcard.answer}
-                    </Button>
-                    {currentFlashcard.imageUrl && (
-                        <div>
-                            <Image
-                                src={currentFlashcard.imageUrl}
-                                alt="Question image"
-                                width={500}
-                                height={300}
-                                style={{ marginTop: 20, objectFit: "contain", maxWidth: "100%" }}
-                                unoptimized
-                            />
-                        </div>
-                    )}
-                </div>
-            </Card>
-        </div>
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Spin size="large" />
+      </div>
     );
+  }
+
+  if (!deck) {
+    return (
+      <div style={{ textAlign: "center", marginTop: "120px" }}>
+        <p>Deck not found.</p>
+        <Button type="primary" onClick={() => router.push("/decks")}>Go back</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        backgroundColor: "#b3edbc",
+        minHeight: "100vh",
+        padding: "40px 24px 120px",
+        fontFamily: "'Poppins', sans-serif",
+      }}
+    >
+      {/* Back button */}
+      <Button
+        style={{ marginBottom: "24px" }}
+        icon={<ArrowLeftOutlined />}
+        onClick={() => router.push("/decks")}
+      >
+        Back to decks
+      </Button>
+
+      {/* Deck form */}
+      <Card
+        style={{
+          maxWidth: 640,
+          margin: "0 auto 40px",
+          borderRadius: 24,
+          boxShadow: "0 8px 18px rgba(0,0,0,0.15)",
+        }}
+      >
+        <h2 style={{ marginBottom: 24, color: "#215F46" }}>Edit Deck</h2>
+        <Form layout="vertical" autoComplete="off">
+          <Form.Item label="Title" required>
+            <Input
+              value={deckForm.title}
+              onChange={(e) =>
+                setDeckForm((f) => ({ ...f, title: e.target.value }))
+              }
+            />
+          </Form.Item>
+
+          <Form.Item label="Category" required>
+            <Select
+              value={deckForm.deckCategory}
+              onChange={(val) =>
+                setDeckForm((f) => ({ ...f, deckCategory: val }))
+              }
+            >
+              {CATEGORY_OPTIONS.map((cat) => (
+                <Select.Option key={cat} value={cat}>
+                  {cat[0] + cat.slice(1).toLowerCase()}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item>
+            <Checkbox
+              checked={deckForm.isPublic}
+              onChange={(e) =>
+                setDeckForm((f) => ({ ...f, isPublic: e.target.checked }))
+              }
+            >
+              Public deck
+            </Checkbox>
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" onClick={handleDeckSave}>
+              Save deck changes
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+
+      {/* Flashcards section */}
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+        <h2 style={{ color: "#215F46", marginBottom: 24 }}>Flashcards</h2>
+        <Row gutter={[16, 16]}>
+          {/* Add card placeholder */}
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Card
+              hoverable
+              style={{
+                height: 140,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "2px dashed #2E8049",
+                borderRadius: 16,
+              }}
+              onClick={openAddModal}
+            >
+              <PlusOutlined style={{ fontSize: 32, color: "#2E8049" }} />
+            </Card>
+          </Col>
+
+          {flashcards.map((card) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={card.id}>
+              <Card
+                style={{ height: 140, borderRadius: 16 }}
+                actions={[
+                  <EditOutlined key="edit" onClick={() => openEditModal(card)} />,
+                  <Popconfirm
+                    key="delete"
+                    title="Delete this flashcard?"
+                    onConfirm={() => handleDeleteFlashcard(card.id)}
+                    okText="Yes"
+                    cancelText="No"
+                  >
+                    <DeleteOutlined />
+                  </Popconfirm>,
+                ]}
+              >
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                  {card.description}
+                </div>
+                <div style={{ color: "#666", fontSize: 12 }}>
+                  Answer: {card.answer}
+                </div>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </div>
+
+      {/* Flashcard modal */}
+      <FlashcardModal
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        initial={editingFlashcard}
+        onOk={handleModalOk}
+      />
+    </div>
+  );
 };
 
-export default QuizPage;
+// Flashcard Modal component
+interface ModalProps {
+  visible: boolean;
+  initial: Flashcard | null;
+  onOk: (vals: Flashcard) => void;
+  onCancel: () => void;
+}
 
+const FlashcardModal: React.FC<ModalProps> = ({
+  visible,
+  initial,
+  onOk,
+  onCancel,
+}) => {
+  const [form] = Form.useForm();
 
-// // Deck quiz view (take the quiz)
-// "use client";
-//
-// import React, { useEffect, useState } from "react";
-// import { useRouter } from "next/navigation";
-// import { Button, Card, Spin, message } from "antd";
-// import { useApi } from "@/hooks/useApi";
-// import { Flashcard } from "@/types/flashcard";
-// import Image from "next/image";
-//
-// interface PageProps {
-//     params: { id: string };
-// }
-//
-// const QuizPage = ({ params }: PageProps) => {
-//   const router = useRouter();
-//   const apiService = useApi();
-//   const deckId = parseInt(params.id);
-//   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-//   const [currentCardIndex, setCurrentCardIndex] = useState(0);
-//   const [score, setScore] = useState(0);
-//   const [quizCompleted, setQuizCompleted] = useState(false);
-//   const [loading, setLoading] = useState(true);
-//
-//   // Fetch the flashcards for this specific deck
-//     useEffect(() => {
-//         const fetchFlashcards = async () => {
-//             try {
-//                 const response = await apiService.get<Flashcard[]>(`/flashcards?deckId=${deckId}`);
-//                 setFlashcards(response);
-//             } catch (error) {
-//                 console.error("Failed to fetch flashcards", error);
-//                 message.error("Failed to load flashcards.");
-//             } finally {
-//                 setLoading(false);
-//             }
-//         };
-//
-//         fetchFlashcards();
-//     }, [deckId, apiService]);
-//
-//     // Handle answer selection
-//   const handleAnswer = (selectedAnswer: string) => {
-//     const currentFlashcard = flashcards[currentCardIndex];
-//     const isCorrect = selectedAnswer === currentFlashcard.answer;
-//
-//     if (isCorrect) {
-//       setScore(score + 1);
-//     }
-//
-//     // Move to the next card
-//     if (currentCardIndex + 1 < flashcards.length) {
-//       setCurrentCardIndex(currentCardIndex + 1);
-//     } else {
-//       setQuizCompleted(true); // End quiz when all flashcards are answered
-//     }
-//   };
-//
-//   const handleRetryQuiz = () => {
-//     setScore(0);
-//     setCurrentCardIndex(0);
-//     setQuizCompleted(false);
-//   };
-//
-//   if (loading) {
-//     return (
-//       <div style={{ textAlign: "center", padding: "40px" }}>
-//         <Spin size="large" />
-//         <p style={{ marginTop: "16px" }}>Loading quiz...</p>
-//       </div>
-//     );
-//   }
-//
-//   if (quizCompleted) {
-//     const percentage = Math.round((score / flashcards.length) * 100);
-//     return (
-//       <div style={{ padding: "40px", textAlign: "center" }}>
-//         <h2>Quiz Completed!</h2>
-//         <p>
-//           Your score: {score} / {flashcards.length} ({percentage}%)
-//         </p>
-//         <Button onClick={handleRetryQuiz}>Retry Quiz</Button>
-//         <Button style={{ marginLeft: "10px" }} onClick={() => router.push("/decks")}>Back to Decks</Button>
-//       </div>
-//     );
-//   }
-//
-//   const currentFlashcard = flashcards[currentCardIndex];
-//
-//   return (
-//     <div style={{ padding: "40px", textAlign: "center" }}>
-//       <h2>Question {currentCardIndex + 1} / {flashcards.length}</h2>
-//       <Card
-//         style={{
-//           marginBottom: "20px",
-//           padding: "20px",
-//           fontSize: "18px",
-//           textAlign: "center",
-//           borderRadius: "12px",
-//           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-//         }}
-//       >
-//         <div>{currentFlashcard.description}</div>
-//         <div>
-//           <Button
-//             type="primary"
-//             style={{ marginTop: "20px" }}
-//             onClick={() => handleAnswer(currentFlashcard.answer)}
-//           >
-//             {currentFlashcard.answer}
-//           </Button>
-//             {currentFlashcard.imageUrl && (
-//                 <div>
-//                     <Image
-//                         src={currentFlashcard.imageUrl}
-//                         alt="Question image"
-//                         width={500}
-//                         height={300}
-//                         style={{ marginTop: "20px", objectFit: "contain", maxWidth: "100%" }}
-//                         unoptimized
-//                     />
-//                 </div>
-//             )}
-//
-//         </div>
-//       </Card>
-//     </div>
-//   );
-// };
-//
-// export default QuizPage;
+  useEffect(() => {
+    if (visible) {
+      form.setFieldsValue({
+        description: initial?.description ?? "",
+        answer: initial?.answer ?? "",
+        wrongAnswers: initial?.wrongAnswers?.join(", ") ?? "",
+      });
+    }
+  }, [visible, initial, form]);
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      const payload: Flashcard = {
+        description: values.description,
+        answer: values.answer,
+        wrongAnswers: values.wrongAnswers
+          .split(/,\s*/)
+          .filter((s: string) => s),
+      };
+      onOk(payload);
+      form.resetFields();
+    } catch {
+      /* validation errors */
+    }
+  };
+
+  return (
+    <Modal
+      open={visible}
+      title={initial ? "Edit Flashcard" : "Add Flashcard"}
+      onCancel={onCancel}
+      onOk={handleSubmit}
+      okText="Save"
+      destroyOnClose
+    >
+      <Form form={form} layout="vertical">
+        <Form.Item
+          label="Question / Description"
+          name="description"
+          rules={[{ required: true, message: "Description is required" }]}
+        >
+          <Input.TextArea rows={3} />
+        </Form.Item>
+
+        <Form.Item
+          label="Correct Answer"
+          name="answer"
+          rules={[{ required: true, message: "Answer is required" }]}
+        >
+          <Input />
+        </Form.Item>
+
+        <Form.Item
+          label="Wrong Answers (comma‑separated)"
+          name="wrongAnswers"
+          rules={[{ required: true, message: "Please provide wrong answers" }]}
+        >
+          <Input />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
+export default EditDeckPage;

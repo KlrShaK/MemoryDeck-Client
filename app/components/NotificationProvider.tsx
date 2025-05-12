@@ -10,56 +10,66 @@ import { Invitation } from '@/types/invitation';
 import { User } from '@/types/user';
 import { Deck } from '@/types/deck';
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [invitation, setInvitation] = useState<Invitation | null>(null);
   const { value: userId } = useLocalStorage<string>("userId", "");
   const router = useRouter();
   const apiService = useApi();
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || userId.trim() === "" || userId === "1") return;
 
     const checkForInvitations = async () => {
+      if (!userId || userId.trim() === "" || userId === "1") return;
       try {
-        const invitations: Invitation[] = await apiService.get(`/quiz/invitation/receivers?toUserId=${userId}`);
+        const invitations = await apiService.get<Invitation[]>(`/quiz/invitation/receivers?toUserId=${userId}`);
         
-        // Find the first pending invitation
-        const pendingInvitation = invitations.find((inv: Invitation) => !inv.isAccepted);
+        // Find pending invitations
+        const pendingInvitation = invitations.find(inv => !inv.isAccepted);
         
         if (pendingInvitation && !invitation) {
+          // Set default values first
+          const enhancedInvitation = {
+            ...pendingInvitation,
+            senderName: "Another user",
+            deckTitle: "Quiz Deck"
+          };
+          
+          // Try to enhance with sender info, but don't fail if this doesn't work
           try {
-            // Get the sender's information
-            const sender: User = await apiService.get(`/users/${pendingInvitation.fromUserId}`);
-            
-            // If there are deck IDs, get the first deck's information
-            let deckInfo: Partial<Deck> = { id: "0", title: "Quiz Deck" };
-            if (pendingInvitation.deckIds?.length) {
-              deckInfo = await apiService.get(`/decks/${pendingInvitation.deckIds[0]}`);
+            const sender = await apiService.get<User>(`/users/${pendingInvitation.fromUserId}`);
+            if (sender && sender.username) {
+              enhancedInvitation.senderName = sender.username;
             }
-            
-            setInvitation({
-              ...pendingInvitation,
-              senderName: sender.username ?? "Someone",
-              deckTitle: deckInfo.title ?? "Quiz Deck"
-            });
           } catch (error) {
-            console.error("Error fetching invitation details:", error);
-            // Set with default values if details fail
-            setInvitation({
-              ...pendingInvitation,
-              senderName: "Someone",
-              deckTitle: "Quiz Deck"
-            });
+            console.log("Could not fetch sender info, using default name", error);
           }
+          
+          // Try to enhance with deck info, but don't fail if this doesn't work
+          if (pendingInvitation.deckIds?.length) {
+            try {
+              const deckInfo = await apiService.get<Deck>(`/decks/${pendingInvitation.deckIds[0]}`);
+              if (deckInfo && deckInfo.title) {
+                enhancedInvitation.deckTitle = deckInfo.title;
+              }
+            } catch (error) {
+              console.log("Could not fetch deck info, using default title", error);
+            }
+          }
+          
+          // Set the invitation with whatever info we could gather
+          setInvitation(enhancedInvitation);
         }
       } catch (error) {
         console.error("Error checking for invitations:", error);
+        // Don't show error messages to user for background checks
       }
     };
 
+    // Initial check
     checkForInvitations();
     
-    // check every 10 seconds
+    // Set interval for periodic checks
     const intervalId = setInterval(checkForInvitations, 10000);
     
     // Clean up interval on unmount
@@ -73,10 +83,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       await apiService.get(`/quiz/response/confirmation?invitationId=${invitation.id}`);
       message.success("Invitation accepted!");
       
-      // If there's a quizId, use it for navigation, otherwise use the invitation id
+      // Navigate to quiz play page
       const quizIdForRoute = invitation.quizId || invitation.id;
       router.push(`/decks/quiz/play/${quizIdForRoute}`);
       
+      // Reset invitation state
       setInvitation(null);
     } catch (error) {
       console.error("Error accepting invitation:", error);
@@ -105,9 +116,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       
       <InvitationNotification
         visible={!!invitation}
-        senderName={invitation?.senderName ?? "Someone"}
-        deckTitle={invitation?.deckTitle ?? "Quiz Deck"}
-        timeLimit={invitation?.timeLimit ?? 60}
+        senderName={invitation?.senderName || "Another user"}
+        deckTitle={invitation?.deckTitle || "Quiz Deck"}
+        timeLimit={invitation?.timeLimit || 60}
         onAccept={handleAccept}
         onDecline={handleDecline}
       />

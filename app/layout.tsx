@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConfigProvider, theme, App as AntdApp } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import NotificationProvider from '@/components/NotificationProvider';
+import NotificationProvider from "@/components/NotificationProvider";
 import "@/styles/globals.css";
+import "antd/dist/reset.css";          
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,20 +16,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+
 export const metadata: Metadata = {
   title: "Student XX-XXX-XXX",
   description: "sopra-fs25-template-client",
 };
 
+
 export default function RootLayout({
-                                     children,
-                                   }: Readonly<{
+  children,
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-      <html lang="en">
+    <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-      <ConfigProvider
+        <ConfigProvider
           theme={{
             algorithm: theme.defaultAlgorithm,
             token: {
@@ -56,16 +59,14 @@ export default function RootLayout({
               Card: {},
             },
           }}
-      >
-        <AntdRegistry>
-          <AntdApp>
-            <NotificationProvider>
-              {children}
-            </NotificationProvider>
-          </AntdApp>
-        </AntdRegistry>
-      </ConfigProvider>
+        >
+          <AntdRegistry>
+            <AntdApp>           
+              <NotificationProvider>{children}</NotificationProvider>
+            </AntdApp>
+          </AntdRegistry>
+        </ConfigProvider>
       </body>
-      </html>
+    </html>
   );
 }
