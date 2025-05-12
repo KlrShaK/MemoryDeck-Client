@@ -119,7 +119,7 @@ const UserProfileDisplay = () => {
   ];
     
   // Helper function to format dates consistently
-  const formatDate = (dateValue: any): string => {
+  const formatDate = (dateValue: string | Date | dayjs.Dayjs | null | undefined): string => {
     if (!dateValue) return "—";
     const date = dayjs(dateValue);
     return date.isValid() ? date.format("DD.MM.YYYY") : "—";

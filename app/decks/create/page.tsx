@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -13,6 +12,7 @@ import useLocalStorage from "@/hooks/useLocalStorage";
  *  - Save button is disabled and shows a loading state while the API request is in flight
  */
 
+const MIN_AI_CARDS = 1;
 const MAX_AI_CARDS = 20;
 
 type DeckFormValues = {
@@ -37,7 +37,7 @@ const AddDeckPage: React.FC = () => {
     isPublic: false,
     isAiGenerated: false,
     aiPrompt: "",
-    numberOfAICards: 5,
+    numberOfAICards: 5, // Default value between MIN and MAX
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -50,7 +50,7 @@ const AddDeckPage: React.FC = () => {
       if (!isNaN(parsed)) setUserIdAsNumber(parsed);
       else router.push("/login");
     }
-  }, [userId]);
+  }, [userId, router]);
 
   /* ------------------------------------------------------------------ */
   /*                           HANDLERS                                 */
@@ -74,10 +74,10 @@ const AddDeckPage: React.FC = () => {
       }
       if (
         form.numberOfAICards === undefined ||
-        form.numberOfAICards < 1 ||
+        form.numberOfAICards < MIN_AI_CARDS ||
         form.numberOfAICards > MAX_AI_CARDS
       ) {
-        setError(`Number of cards must be between 1 and ${MAX_AI_CARDS}.`);
+        setError(`Number of cards must be between ${MIN_AI_CARDS} and ${MAX_AI_CARDS}.`);
         return;
       }
     }
@@ -102,6 +102,18 @@ const AddDeckPage: React.FC = () => {
       setError("Failed to add deck. Please try again later.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    // Enforce min/max limits on input change
+    if (value < MIN_AI_CARDS) {
+      setForm({ ...form, numberOfAICards: MIN_AI_CARDS });
+    } else if (value > MAX_AI_CARDS) {
+      setForm({ ...form, numberOfAICards: MAX_AI_CARDS });
+    } else {
+      setForm({ ...form, numberOfAICards: value });
     }
   };
 
@@ -235,21 +247,21 @@ const AddDeckPage: React.FC = () => {
                 required
               />
 
-              <label style={labelStyle}>Number of Cards</label>
+              <label style={labelStyle}>
+                Number of Cards ({MIN_AI_CARDS}-{MAX_AI_CARDS})
+              </label>
               <input
                 type="number"
-                min={1}
+                min={MIN_AI_CARDS}
                 max={MAX_AI_CARDS}
                 value={form.numberOfAICards}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    numberOfAICards: Number(e.target.value),
-                  })
-                }
+                onChange={handleNumberChange}
                 style={inputStyle}
                 required
               />
+              <div style={{ marginTop: "-20px", marginBottom: "20px", fontSize: "14px", color: "#666" }}>
+                You can generate between {MIN_AI_CARDS} and {MAX_AI_CARDS} flashcards with AI.
+              </div>
             </>
           )}
 
