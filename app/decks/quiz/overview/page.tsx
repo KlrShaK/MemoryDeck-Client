@@ -341,9 +341,9 @@ const UserInvitationPage: React.FC = () => {
               style: { backgroundColor: '#285c28', borderColor: '#285c28' }
             }}
           >
-            <p>Send a quiz invitation to {selectedUser?.username}?</p>
+            <p style={{ color: "black" }}>Send a quiz invitation to {selectedUser?.username}?</p>
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: "black" }}>
                 Time limit per question (seconds):
               </label>
               <Input
@@ -358,7 +358,7 @@ const UserInvitationPage: React.FC = () => {
           
           {/* Waiting for Response Modal */}
           <Modal
-            title="Waiting for Response"
+            title={<span style={{ color: "black" }}>Waiting for Response</span>}
             open={waitingModalVisible}
             footer={[
               <Button key="cancel" onClick={handleCancelWaiting}>
