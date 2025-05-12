@@ -9,6 +9,8 @@ import { EditOutlined, DeleteOutlined, PlusOutlined, SaveOutlined, UploadOutline
 import { Deck } from "@/types/deck";
 import Image from "next/image";
 import type { UploadChangeParam, UploadFile } from "antd/es/upload/interface";
+import { DatePicker } from "antd"; 
+import dayjs from "dayjs";
 
 const { TextArea } = Input;
 
@@ -94,7 +96,7 @@ const FlashcardsPage: React.FC = () => {
       wrongAnswers: flashcard.wrongAnswers?.length >= 3 
         ? flashcard.wrongAnswers 
         : DEFAULT_WRONG_ANSWERS,
-      date: typeof flashcard.date === 'string' ? flashcard.date : '',
+        date: flashcard.date ? dayjs(flashcard.date) : null,
     });
     
     // Set image display if there is one
@@ -191,7 +193,7 @@ const FlashcardsPage: React.FC = () => {
         description: values.description.trim(),
         answer: values.answer.trim(),
         wrongAnswers,
-        date: values.date || null,
+        date: values.date ? values.date.format('YYYY-MM-DD') : null,
         imageUrl: imageUrl ?? null,
         flashcardCategory: deck?.deckCategory,
       };
@@ -432,8 +434,17 @@ const FlashcardsPage: React.FC = () => {
             )}
           </Form.List>
 
-          <Form.Item label="Date (optional)" name="date">
-            <Input type="date" style={{ backgroundColor: 'white', color: 'black', borderRadius: 8 }}/>
+          <Form.Item label={<span style={{ color: 'black' }}>Date (optional)</span>} name="date">
+              <DatePicker 
+                style={{ width: '100%', backgroundColor: 'white', color: 'black', borderRadius: 8 }}
+                format="YYYY-MM-DD"
+                placeholder="Select date (optional)"
+                popupClassName="light-range-calendar" 
+                disabledDate={(current) => {
+                  // Can't select dates after today or before 1900
+                  return current && (current > dayjs().endOf('day') || current < dayjs('1900-01-01'));
+                }}
+              />
           </Form.Item>
 
           <Form.Item label="Image (optional)">

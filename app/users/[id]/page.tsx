@@ -14,6 +14,7 @@ import {
   Row,
   Col,
   Card,
+  DatePicker, // Add DatePicker import
 } from "antd";
 import dayjs from "dayjs";
 
@@ -31,7 +32,6 @@ const UserProfileDisplay = () => {
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const watchedFieldValue = Form.useWatch(editField || "", form);
 
-
   // Check validity whenever the field value changes
   useEffect(() => {
     if (editField) {
@@ -41,14 +41,19 @@ const UserProfileDisplay = () => {
       setIsSaveDisabled(!isTouched || hasErrors);
     }
   }, [editField, form, watchedFieldValue]);
-  
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const data = await apiService.get<User>(`/users/${id}`);
         setUser(data);
-        form.setFieldsValue(data);
+        
+        // Convert birthday to dayjs object for the form
+        const formValues = {
+          ...data,
+          birthday: data.birthday ? dayjs(data.birthday) : null
+        };
+        form.setFieldsValue(formValues);
       } catch (err) {
         console.error("Failed to fetch user", err);
         message.error("Could not load profile.");
@@ -63,19 +68,32 @@ const UserProfileDisplay = () => {
   const handleSave = async (field: string) => {
     if (!user) return;
     let value = form.getFieldValue(field);
-  
-    // If it's a date field, convert to YYYY-MM-DD string
-    if (field.includes("date") || field === "birthday") {
+
+    // If it's the birthday field and we have a valid dayjs object
+    if (field === "birthday" && value && dayjs.isDayjs(value)) {
+      value = value.format("YYYY-MM-DD");
+    } 
+    // For other date fields that might be using native date inputs
+    else if (field.includes("date")) {
       value = dayjs(value).format("YYYY-MM-DD");
     }
-  
+
     const updatedUser = { ...user, [field]: value };
-  
+
     try {
       await apiService.put(`/users/${user.id}`, updatedUser);
       const updatedData = await apiService.get<User>(`/users/${user.id}`);
+      
+      // Update the user state with the raw API response
       setUser(updatedData);
-      form.setFieldsValue(updatedData);
+      
+      // For the form, convert dates to dayjs objects
+      const formValues = {
+        ...updatedData,
+        birthday: updatedData.birthday ? dayjs(updatedData.birthday) : null
+      };
+      form.setFieldsValue(formValues);
+      
       message.success(`${field} updated successfully`);
       setEditField(null);
     } catch (err) {
@@ -136,14 +154,32 @@ const UserProfileDisplay = () => {
                 <Col span={12}>
                   {field.editable && editField === field.name ? (
                     <Form.Item name={field.name} style={{ margin: 0 }}>
-                      <Input
-                        type={field.name.includes("date") ? "date" : "text"}
-                        style={{
-                          backgroundColor: "white",
-                          color: "black",
-                          borderRadius: 4,
-                        }}
-                      />
+                      {field.name === "birthday" ? (
+                        <DatePicker 
+                          style={{ 
+                            width: '100%', 
+                            backgroundColor: 'white', 
+                            color: 'black', 
+                            borderRadius: 4 
+                          }}
+                          format="DD.MM.YYYY"
+                          placeholder="Select birthday"
+                          popupClassName="light-range-calendar" 
+                          disabledDate={(current) => {
+                            // Can't select dates after today or before 1900
+                            return current && (current > dayjs().endOf('day') || current < dayjs('1900-01-01'));
+                          }}
+                        />
+                      ) : (
+                        <Input
+                          type={field.name.includes("date") ? "date" : "text"}
+                          style={{
+                            backgroundColor: "white",
+                            color: "black",
+                            borderRadius: 4,
+                          }}
+                        />
+                      )}
                     </Form.Item>
                   ) : (
                     <div
@@ -165,13 +201,13 @@ const UserProfileDisplay = () => {
                   <Col span={6}>
                     {editField === field.name ? (
                       <Button
-                      type="primary"
-                      onClick={() => handleSave(field.name)}
-                      style={{ background: "#2E8049", borderColor: "#2E8049" }}
-                      disabled={isSaveDisabled}
-                    >
-                      Save
-                    </Button>
+                        type="primary"
+                        onClick={() => handleSave(field.name)}
+                        style={{ background: "#2E8049", borderColor: "#2E8049" }}
+                        disabled={isSaveDisabled}
+                      >
+                        Save
+                      </Button>
                     ) : (
                       <Button onClick={() => setEditField(field.name)}>Edit</Button>
                     )}
@@ -260,7 +296,6 @@ const UserProfileDisplay = () => {
       </div>
     </div>
   );
-  
 };
 
 export default UserProfileDisplay;
