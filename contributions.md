@@ -85,6 +85,11 @@ reason).
 ---
 
 ## Contributions Week 4 - [14.04.2025] to [21.04.2025]
+|--------------------|
+### WAS EASTER BREAK NO CONTRIBUTIONS
+|--------------------|
+
+## Contributions Week 5 - [21.04.2025] to [28.04.2025]
 
 
 | **Student**        | **Date**        | **Link to Commit**          | **Description**                                                                                                              | **Relevance**                                                                                               |
@@ -101,7 +106,7 @@ reason).
 |                    |[20.04.2025]         | [Link to Commit 3](https://github.com/KlrShaK/MemoryDeck-Server/commit/08b10e1466b2dedae448510bd6d4d72bc0f1d272) | [added tests for UserService and controller] | [Developed Unit Tests and Integration Tests for testing User Service/Controller which handles login-registeration-logOut for all users of web app]   |
 ---
 
-## Contributions Week 5 - [28.04.2025] to [05.05.2025]
+## Contributions Week 6 - [28.04.2025] to [05.05.2025]
 
 | **Student**        | **Date**         | **Link to Commit**          | **Description**                                                                                                                                                                                                                                                           | **Relevance**                                                                                               |
 |--------------------|------------------|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
@@ -117,19 +122,51 @@ reason).
 
 ---
 
-## Contributions Week 6 - [05.05.2025] to [12.05.2025]
+## Contributions Week 7 - [05.05.2025] to [12.05.2025]
 
 
 | **Student**        | **Date**      | **Link to Commit**          | **Description**                                                                                   | **Relevance**                                                              |
 |--------------------|---------------|-----------------------------|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 | **[@melihsrn]**    | [20.04.2025]  | [https://github.com/KlrShaK/MemoryDeck-Server/commit/a81e557dd4dadeb83e0619dcc284cc4ef9d2e8ae]          | [FUTURE WORK: Create tests for all of the Mappers]                                                | [It is very important to test functionality of our server.]                |
 |                    | [20.04.2025]  | [https://github.com/KlrShaK/MemoryDeck-Server/commit/c442952ea8135aa9e643ad72807a04f3e58bb0db]          | [FUTURE WORK: Create tests for FlashcardService and GCS Service]                                  | [It is very important to test functionality of our server.]                |
-|                    | [20.04.2025]  | [https://github.com/KlrShaK/MemoryDeck-Server/commit/d7210ab54d7b7c6810485d2340d90bc0dbe02f53]          | [FUTURE WORK: Create tests for Quiz Invitation REST APIs and their corresponding service methods] | [It is very important to test functionality of our server.]                |
 | **[@sarahnab]**    | [May 9, 2025] | [https://github.com/KlrShaK/MemoryDeck-Client/commit/f49cc72cbdbc3a3a059acc91128c15e006a3358e]          | [Created the FA and tutorials page]                                                               | [Without this users would not have a page to go to when they are lost]     |
 |                    | [May 9, 2025]        | [https://github.com/KlrShaK/MemoryDeck-Client/commit/a1280ccd670a7a403e4a41f8c15790263a5ec36d]          | [Created a support form that users can fill out if they still have questions ]                    | [Without this users wouldn't be able to contact us if they have questions] |
 | **[@leylakhasieva]** | [May 12, 2025]        | [Link to Commit 1(https://github.com/KlrShaK/MemoryDeck-Client/commit/5c73dde19b8be192fd3d372e1a84240333bd5eaf)]          | [Improved the edit profile page and implemented input validation checks for the fields]                                                                   | [It is important to enforce certain input rules on users to guide them to enter valid information to keep the database clean and also guide them toward the correct input with relevant messages]                                        |
-|                    | [date]        | [Link to Commit 2]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
-| **[@githubUser4]** | [date]        | [Link to Commit 1]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
-|                    | [date]        | [Link to Commit 2]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
+|                    | [May 12, 2025]        | [Link to Commit 2(https://github.com/KlrShaK/MemoryDeck-Client/commit/5fc36c147edbed199fdcbe7b86782cbd5609bd9b)]          | [Some SonarQube fixes]                                                                   | [To resolve some of the errors on SonarQube]                                        |
+| **[@KlrShaK]** | [May 12, 2025]        | [Link to Commit 1](https://github.com/KlrShaK/MemoryDeck-Server/commit/37c6c0fb5dbb53c1e3e0beb014fc5c50979b0e77)          | [Closes #73 , Created a Quiz Architecture and implementation]                                                                   | [Taking the Quiz is an essential part of the app and the code attached facilitates the use of Quiz by providing all the backend code required for the implementation]                                        |
+|                    | [May 12, 2025]        | [Link to Commit 2](https://github.com/KlrShaK/MemoryDeck-Server/commit/a8d6e1cedb1f5f25a83b9f993d918343c6a58db7)          | [created DTO and rest endpoints for Quiz logistics]                                                                   | [This code serves as a bridge between front-end and backend and allows the front-end to access improtant data about the quiz]                                        |
+| **[@nicola.luder]** | [May 12, 2025]   | [https://github.com/KlrShaK/MemoryDeck-Client/commit/eacf25c9da47135509d5805601a357795cd83d86] | [added proper datepicker to user and edit flashcard] | [Important for to pick date make it function] |
+| **[@nicola.luder]**  | [May 12, 2025]   | [https://github.com/KlrShaK/MemoryDeck-Client/commit/cb34a621c9331aedf3426c1a0491be0704c734b7] | [fixed deployment issues] | [Why this contribution is relevant] |
+| **[@nicola.luder]** | [May 12, 2025]   | [https://github.com/KlrShaK/MemoryDeck-Client/commit/a7c0e7592c5b6941b4810c2d4f103e33e16941c9] | [fixed some more of invitation UI] | [important UI in order to be able to read üroperly] |
+| **[@nicola.luder]** | [May 12, 2025]   | [https://github.com/KlrShaK/MemoryDeck-Server/commit/aa8280ae62c07c4cda81f9dfcb897eae395d3bfb] | [reset user status in the backend when cancelling invitation] | [previously would set user to playing and would be stuck there when cancelling invitation, important for app to function properly] |
 
 ---
+
+## Contributions Week 8 - [12.05.2025] to [19.05.2025]
+| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
+| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
+| **[@KlrShaK]** | [May 12, 2025]   | [Link to Commit 1](https://github.com/KlrShaK/MemoryDeck-Server/commit/f6565e2e1af24d073e66ee4727088edaafcc5f7e) | [Closes #83 , Created statistics entity and related controllers and services to help with storing data about quiz and their history] | [FUTURE WORK: This work provides a method via an entity for the user to store the history of their performance in Quizes, hence it is an important part of progress as this data is essential in helping users improve] |
+|                    | [May 12, 2025]   | [Link to Commit 2](https://github.com/KlrShaK/MemoryDeck-Server/commit/6c39e871267d5b031494ee234299d4b6de4d0fff) | [Closes #76 Closes #77 makes appropriate changes to User Controller, Deck and Quiz files to make them compatible with quiz and invitation logic] | [FUTURE WORK: THis commit is essential in making sure all the files, User, deck, etc work together to handle Quiz, invitations and statistics ] |
+| **[@melihsrn]** | [20.04.2025]  | [https://github.com/KlrShaK/MemoryDeck-Server/commit/d7210ab54d7b7c6810485d2340d90bc0dbe02f53]          | [FUTURE WORK: Create tests for Quiz Invitation REST APIs and their corresponding service methods] | [It is very important to test functionality of our server.]                |
+|                    | [08.05.2025]   | [https://github.com/KlrShaK/MemoryDeck-Server/commit/4cab1d9e50b5d6b7944e486d5f1dc98cce12d051] | [Add a REST API for users to be able to change their password.] | [FUTURE WORK: It is important for users to update their information] |
+| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
+---
+
+## Contributions Week 9 - [19.05.2025] to [23.05.2025]
+| **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
+| ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
+| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@githubUser4]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
+
+---
+
