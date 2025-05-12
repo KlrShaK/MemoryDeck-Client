@@ -100,7 +100,7 @@ const DeckPage = () => {
   const handleSetReminderClick = () => {};
   const handleQuizClick = () => router.push("/decks/quiz/select-decks");
   const handleVersusClick = () => router.push("/quiz-play");
-  const handleTutorialClick = () => {};
+  const handleTutorialClick = () => router.push("/tutorials");
   const handleProfileClick = () => {
     if (userId) {
       router.push(`/users/${userId}`);
