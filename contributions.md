@@ -85,6 +85,11 @@ reason).
 ---
 
 ## Contributions Week 4 - [14.04.2025] to [21.04.2025]
+|--------------------|
+### WAS EASTER BREAK NO CONTRIBUTIONS
+|--------------------|
+
+## Contributions Week 5 - [21.04.2025] to [28.04.2025]
 
 
 | **Student**        | **Date**        | **Link to Commit**          | **Description**                                                                                                              | **Relevance**                                                                                               |
@@ -101,7 +106,7 @@ reason).
 |                    |[20.04.2025]         | [Link to Commit 3](https://github.com/KlrShaK/MemoryDeck-Server/commit/08b10e1466b2dedae448510bd6d4d72bc0f1d272) | [added tests for UserService and controller] | [Developed Unit Tests and Integration Tests for testing User Service/Controller which handles login-registeration-logOut for all users of web app]   |
 ---
 
-## Contributions Week 5 - [28.04.2025] to [05.05.2025]
+## Contributions Week 6 - [28.04.2025] to [05.05.2025]
 
 | **Student**        | **Date**         | **Link to Commit**          | **Description**                                                                                                                                                                                                                                                           | **Relevance**                                                                                               |
 |--------------------|------------------|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
@@ -117,7 +122,7 @@ reason).
 
 ---
 
-## Contributions Week 6 - [05.05.2025] to [12.05.2025]
+## Contributions Week 7 - [05.05.2025] to [12.05.2025]
 
 
 | **Student**        | **Date**      | **Link to Commit**          | **Description**                                                                                   | **Relevance**                                                              |
@@ -133,3 +138,6 @@ reason).
 |                    | [date]        | [Link to Commit 2]          | [Brief description of the task]                                                                   | [Why this contribution is relevant]                                        |
 
 ---
+
+## Contributions Week 7 - [12.05.2025] to [19.05.2025]
+
