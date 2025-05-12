@@ -33,7 +33,6 @@ const UserInvitationPage: React.FC = () => {
   const [invitationModalVisible, setInvitationModalVisible] = useState(false);
   const [sendingInvitation, setSendingInvitation] = useState(false);
   const [waitingModalVisible, setWaitingModalVisible] = useState(false);
-  const [invitationSent, setInvitationSent] = useState(false);
   const [currentInvitationId, setCurrentInvitationId] = useState<string | null>(null);
   const { message: antMessage } = App.useApp(); // Use the App context instead of direct message use
 
@@ -213,7 +212,6 @@ const UserInvitationPage: React.FC = () => {
       }
       
       // Mark invitation as sent and show waiting screen
-      setInvitationSent(true);
       setWaitingModalVisible(true);
       
     } catch (error) {

@@ -65,6 +65,7 @@ const DeckPage = () => {
       }
       setDecks(grouped);
     } catch (error) {
+      console.log(error)
       message.error("Failed to load decks.");
       setDecks({});
     }

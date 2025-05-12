@@ -64,12 +64,7 @@ const UserProfileDisplay = () => {
     }
   };
 
-  const handleEditClick = (field: string) => {
-    setEditField(field);
-  };
-
   const handleBack = () => router.push("/decks");
-  const handleEditPassword = () => router.push(`/users/${id}/editProfile`);
 
   if (loading || !user)
     return (
@@ -114,7 +109,14 @@ const UserProfileDisplay = () => {
                 <Col span={12}>
                   {field.editable && editField === field.name ? (
                     <Form.Item name={field.name} style={{ margin: 0 }}>
-                      <Input type={field.name.includes("date") ? "date" : "text"} />
+                      <Input
+                        type={field.name.includes("date") ? "date" : "text"}
+                        style={{
+                          backgroundColor: "white",
+                          color: "black",
+                          borderRadius: 4,
+                        }}
+                      />
                     </Form.Item>
                   ) : (
                     <div
@@ -143,25 +145,88 @@ const UserProfileDisplay = () => {
                         Save
                       </Button>
                     ) : (
-                      <Button onClick={() => handleEditClick(field.name)}>Edit</Button>
+                      <Button onClick={() => setEditField(field.name)}>Edit</Button>
                     )}
                   </Col>
                 )}
               </Row>
             ))}
+
+            {/* Password update section */}
+            <Row gutter={16} align="middle" style={{ marginBottom: 20 }}>
+              <Col span={6} style={{ color: "#215F46", fontWeight: 600 }}>
+                Password
+              </Col>
+              <Col span={12}>
+                {editField === "password" ? (
+                  <>
+                    <Form.Item name="oldPassword" style={{ marginBottom: 8 }}>
+                      <Input.Password
+                        placeholder="Old Password"
+                        style={{ backgroundColor: "white", color: "black", borderRadius: 4 }}
+                      />
+                    </Form.Item>
+                    <Form.Item name="newPassword" style={{ margin: 0 }}>
+                      <Input.Password
+                        placeholder="New Password"
+                        style={{ backgroundColor: "white", color: "black", borderRadius: 4 }}
+                      />
+                    </Form.Item>
+                  </>
+                ) : (
+                  <div
+                    style={{
+                      backgroundColor: "white",
+                      padding: "8px 12px",
+                      border: "1px solid #ccc",
+                      borderRadius: 6,
+                      color: "#999",
+                    }}
+                  >
+                    ••••••••••
+                  </div>
+                )}
+              </Col>
+              <Col span={6}>
+                {editField === "password" ? (
+                  <Button
+                    type="primary"
+                    onClick={async () => {
+                      const values = form.getFieldsValue(["oldPassword", "newPassword"]);
+                      if (!values.oldPassword || !values.newPassword) {
+                        message.error("Please fill in both password fields");
+                        return;
+                      }
+                      if (values.oldPassword === values.newPassword) {
+                        message.error("New password must be different");
+                        return;
+                      }
+                      try {
+                        await apiService.put(`/users/${user?.id}/password`, {
+                          oldPassword: values.oldPassword,
+                          newPassword: values.newPassword,
+                        });
+                        message.success("Password updated");
+                        form.resetFields(["oldPassword", "newPassword"]);
+                        setEditField(null);
+                      } catch (err) {
+                        console.error("Password update failed", err);
+                        message.error("Password update failed");
+                      }
+                    }}
+                    style={{ background: "#2E8049", borderColor: "#2E8049" }}
+                  >
+                    Save
+                  </Button>
+                ) : (
+                  <Button onClick={() => setEditField("password")}>Edit</Button>
+                )}
+              </Col>
+            </Row>
           </Form>
 
           <div style={{ textAlign: "center", marginTop: 32 }}>
-            <Button onClick={handleBack} style={{ marginRight: 12 }}>
-              Back to Home
-            </Button>
-            <Button
-              type="primary"
-              onClick={handleEditPassword}
-              style={{ background: "#2E8049", borderColor: "#2E8049" }}
-            >
-              Edit Password
-            </Button>
+            <Button onClick={handleBack}>Back to Home</Button>
           </div>
         </Card>
       </div>

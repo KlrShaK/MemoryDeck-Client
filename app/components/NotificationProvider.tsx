@@ -29,7 +29,7 @@ const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         
         if (pendingInvitation && !invitation) {
           // Set default values first
-          let enhancedInvitation = {
+          const enhancedInvitation = {
             ...pendingInvitation,
             senderName: "Another user",
             deckTitle: "Quiz Deck"
@@ -42,7 +42,7 @@ const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               enhancedInvitation.senderName = sender.username;
             }
           } catch (error) {
-            console.log("Could not fetch sender info, using default name");
+            console.log("Could not fetch sender info, using default name", error);
           }
           
           // Try to enhance with deck info, but don't fail if this doesn't work
@@ -53,7 +53,7 @@ const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 enhancedInvitation.deckTitle = deckInfo.title;
               }
             } catch (error) {
-              console.log("Could not fetch deck info, using default title");
+              console.log("Could not fetch deck info, using default title", error);
             }
           }
           

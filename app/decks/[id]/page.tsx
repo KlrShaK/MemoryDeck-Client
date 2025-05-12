@@ -4,7 +4,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  Fragment,
 } from "react";
 import {
   Button,
@@ -28,7 +27,6 @@ import {
 } from "@ant-design/icons";
 import { useRouter, useParams } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
 
 
 // Types
@@ -68,7 +66,6 @@ const EditDeckPage: React.FC = () => {
   const router = useRouter();
   const { deckId } = useParams<{ deckId: string }>();
   const apiService = useApi();
-  const { value: userId } = useLocalStorage<string>("userId", "");
 
   // State 
   const [loading, setLoading] = useState(true);
@@ -98,6 +95,7 @@ const EditDeckPage: React.FC = () => {
         isPublic: fetchedDeck.isPublic ?? false,
       });
     } catch (err) {
+      console.error(err);
       message.error("Failed to load deck details.");
     }
   }, [apiService, deckId]);
@@ -109,6 +107,7 @@ const EditDeckPage: React.FC = () => {
       );
       setFlashcards(data);
     } catch (err) {
+      console.error(err);
       message.error("Failed to load flashcards.");
     }
   }, [apiService, deckId]);
@@ -134,6 +133,7 @@ const EditDeckPage: React.FC = () => {
       message.success("Deck updated successfully");
       router.push("/decks");
     } catch (err) {
+      console.error(err);
       message.error("Failed to update deck");
     }
   };
@@ -173,6 +173,7 @@ const EditDeckPage: React.FC = () => {
       fetchFlashcards();
       message.success("Flashcard saved");
     } catch (err) {
+      console.error(err);
       message.error("Failed to save flashcard");
     }
   };
@@ -303,12 +304,13 @@ const EditDeckPage: React.FC = () => {
                 actions={[
                   <EditOutlined key="edit" onClick={() => openEditModal(card)} />,
                   <Popconfirm
+                    key="delete"
                     title="Delete this flashcard?"
                     onConfirm={() => handleDeleteFlashcard(card.id)}
                     okText="Yes"
                     cancelText="No"
                   >
-                    <DeleteOutlined key="delete" />
+                    <DeleteOutlined />
                   </Popconfirm>,
                 ]}
               >

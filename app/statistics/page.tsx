@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { Card, Statistic, DatePicker, Typography, Spin, Empty, message, Select } from "antd";
 import { Line } from "@ant-design/charts";
 import useLocalStorage from "@/hooks/useLocalStorage";
-import { useApi } from "@/hooks/useApi";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 
@@ -25,7 +24,7 @@ const TOKENS = {
 };
 
 const StatisticsPage: React.FC = () => {
-  const api = useApi();
+
   const { value: rawUserId } = useLocalStorage<string>("userId", "");
   const userId = Number(rawUserId || 0);
 

@@ -34,10 +34,11 @@ import {
 } from '@ant-design/icons';
 import Image from 'next/image';
 import type { UploadChangeParam, UploadFile } from 'antd/es/upload/interface';
+import { DatePicker } from "antd"; 
+import dayjs from "dayjs"; 
 
 import { useApi } from '@/hooks/useApi';
 import useLocalStorage from '@/hooks/useLocalStorage';
-import { getApiDomain } from '@/utils/domain';
 import { Deck } from '@/types/deck';
 import { Flashcard } from '@/types/flashcard';
 
@@ -57,11 +58,18 @@ const TOKENS = {
 
 const DEFAULT_WRONG_ANSWERS = ['', '', ''];
 
+interface DeckFormData {
+  title: string;
+  deckCategory: string;
+  isPublic: boolean;
+}
+
+
 interface FlashcardFormData {
   description: string;
   answer: string;
   wrongAnswers: string[];
-  date?: string;
+  date?: dayjs.Dayjs;
   imageUrl?: string;
 }
 
@@ -93,7 +101,7 @@ const DeckEditPage: React.FC = () => {
   const [imageUrl, setImageUrl] = useState<string | undefined>();
 
   /* ----------  helpers ---------- */
-  const apiBaseUrl = getApiDomain(); 
+
   const isNewCard = editingCardId === 'new';
 
   const showError = (msg: string) => message.error(msg);
@@ -118,6 +126,7 @@ const DeckEditPage: React.FC = () => {
         isPublic: deckData.isPublic,
       });
     } catch (err) {
+      console.error('Error loading deck data:', err);
       showError('Failed to load deck data.');
       router.push('/decks');
     } finally {
@@ -135,7 +144,7 @@ const DeckEditPage: React.FC = () => {
   }, [deckId, fetchDeckAndCards, router]);
 
   /* ----------  deck handlers ---------- */
-  const handleDeckSave = async (values: any) => {
+  const handleDeckSave = async (values: DeckFormData) => {
     if (!deck) return;
     setSavingDeck(true);
     try {
@@ -186,7 +195,7 @@ const DeckEditPage: React.FC = () => {
         answer: card.answer,
         wrongAnswers:
           card.wrongAnswers?.length >= 3 ? card.wrongAnswers : DEFAULT_WRONG_ANSWERS,
-        date: typeof card.date === 'string' ? card.date : '',
+          date: card.date ? dayjs(card.date) : null,
       });
       setImageUrl(card.imageUrl ?? undefined);
       setFileList(
@@ -233,7 +242,7 @@ const DeckEditPage: React.FC = () => {
         description: values.description.trim(),
         answer: values.answer.trim(),
         wrongAnswers,
-        date: values.date || null,
+        date: values.date ? values.date.format('YYYY-MM-DD') : null,
         imageUrl: imageUrl ?? null,
         flashcardCategory: deck?.deckCategory,
       };
@@ -596,7 +605,7 @@ const DeckEditPage: React.FC = () => {
                                 </span>
 
                                 <Popconfirm
-                                  title="Delete flashcard?"
+                                   title={<span style={{ color: 'black' }}>Delete flashcard?</span>}
                                   onConfirm={() => handleDeleteFlashcard(card.id)}
                                   okType="danger"
                                 >
@@ -714,8 +723,10 @@ const DeckEditPage: React.FC = () => {
                     label={<span style={{ color: 'black' }}>{`Wrong answer ${index + 1}`}</span>}
                   >
                     <Input.Group compact style={{ display: 'flex' }}>
-                      <Form.Item
-                        {...field}
+                    <Form.Item
+                        key={field.key}
+                        name={field.name}
+                        fieldKey={field.fieldKey}
                         noStyle
                         rules={[
                           { required: index < 3, message: 'Required' },
@@ -754,8 +765,17 @@ const DeckEditPage: React.FC = () => {
             )}
           </Form.List>
 
-          <Form.Item label="Date (optional)" name="date">
-            <Input type="date" style={{ backgroundColor: 'white', color: 'black', borderRadius: 8 }}/>
+          <Form.Item label={<span style={{ color: 'black' }}>Date (optional)</span>} name="date">
+            <DatePicker 
+              style={{ width: '100%', backgroundColor: 'white', color: 'black', borderRadius: 8 }}
+              format="YYYY-MM-DD"
+              placeholder="Select date (optional)"
+              popupClassName="light-range-calendar" 
+              disabledDate={(current) => {
+                // Can't select dates after today or before 1900
+                return current && (current > dayjs().endOf('day') || current < dayjs('1900-01-01'));
+              }}
+            />
           </Form.Item>
 
           <Form.Item label="Image (optional)">

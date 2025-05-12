@@ -1,9 +1,19 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
+
+/**
+ * Constraints
+ *  - AI prompt must be provided when `isAiGenerated` is checked and must have at least 10 chars
+ *  - `numberOfAICards` must be between 1‑20 (inclusive)
+ *  - Save button is disabled and shows a loading state while the API request is in flight
+ */
+
+const MAX_AI_CARDS = 20;
 
 type DeckFormValues = {
   title: string;
@@ -18,8 +28,9 @@ const AddDeckPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
   const { value: userId } = useLocalStorage<string>("userId", "");
-  const [userIdAsNumber, setUserIdAsNumber] = useState<number | null>(null);
 
+  const [userIdAsNumber, setUserIdAsNumber] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [form, setForm] = useState<DeckFormValues>({
     title: "",
     deckCategory: "",
@@ -28,9 +39,11 @@ const AddDeckPage: React.FC = () => {
     aiPrompt: "",
     numberOfAICards: 5,
   });
-
   const [error, setError] = useState<string | null>(null);
 
+  /* ------------------------------------------------------------------ */
+  /*                           SIDE‑EFFECTS                             */
+  /* ------------------------------------------------------------------ */
   useEffect(() => {
     if (userId) {
       const parsed = Number(userId);
@@ -39,37 +52,62 @@ const AddDeckPage: React.FC = () => {
     }
   }, [userId]);
 
+  /* ------------------------------------------------------------------ */
+  /*                           HANDLERS                                 */
+  /* ------------------------------------------------------------------ */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return; // extra guard
+
     setError(null);
 
-    if (!form.title || !form.deckCategory) {
+    // ------------ client‑side validations --------------------------- //
+    if (!form.title.trim() || !form.deckCategory) {
       setError("Title and category are required.");
       return;
     }
 
-    if (form.isAiGenerated && (!form.aiPrompt || !form.numberOfAICards)) {
-      setError("AI prompt and card count are required when using AI.");
-      return;
+    if (form.isAiGenerated) {
+      if (!form.aiPrompt || form.aiPrompt.trim().length < 10) {
+        setError("AI prompt must be at least 10 characters long.");
+        return;
+      }
+      if (
+        form.numberOfAICards === undefined ||
+        form.numberOfAICards < 1 ||
+        form.numberOfAICards > MAX_AI_CARDS
+      ) {
+        setError(`Number of cards must be between 1 and ${MAX_AI_CARDS}.`);
+        return;
+      }
     }
+
+    // start loading UI
+    setIsLoading(true);
 
     try {
       const deckDTO = {
-        title: form.title,
+        title: form.title.trim(),
         deckCategory: form.deckCategory,
         isPublic: form.isPublic ?? false,
         isAiGenerated: form.isAiGenerated ?? false,
-        aiPrompt: form.aiPrompt ?? "",
+        aiPrompt: form.aiPrompt?.trim() ?? "",
         numberOfAICards: form.numberOfAICards ?? null,
       };
 
       await apiService.post(`/decks/addDeck?userId=${userIdAsNumber}`, deckDTO);
       router.push("/decks");
     } catch (err) {
-      setError("Failed to add deck.");
+      console.error(err);
+      setError("Failed to add deck. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  /* ------------------------------------------------------------------ */
+  /*                              JSX                                   */
+  /* ------------------------------------------------------------------ */
   return (
     <div
       style={{
@@ -90,8 +128,27 @@ const AddDeckPage: React.FC = () => {
           boxShadow: "0 8px 18px rgba(0,0,0,0.15)",
           width: "100%",
           maxWidth: "560px",
+          position: "relative",
         }}
       >
+        {/* -------------------------------- overlay spinner ------------------------------- */}
+        {isLoading && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(255,255,255,0.7)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "inherit",
+              zIndex: 10,
+            }}
+          >
+            <span className="loader" />
+          </div>
+        )}
+
         <h1
           style={{
             fontSize: "36px",
@@ -122,8 +179,18 @@ const AddDeckPage: React.FC = () => {
           >
             <option value="">Select a category</option>
             {[
-              "MOMENTS", "SPORTS", "ANIMALS", "PLACES", "FOODS", "SCIENCE",
-              "MATH", "HISTORY", "LANGUAGE", "TECHNOLOGY", "OTHERS", "MIXED",
+              "MOMENTS",
+              "SPORTS",
+              "ANIMALS",
+              "PLACES",
+              "FOODS",
+              "SCIENCE",
+              "MATH",
+              "HISTORY",
+              "LANGUAGE",
+              "TECHNOLOGY",
+              "OTHERS",
+              "MIXED",
             ].map((cat) => (
               <option key={cat} value={cat}>
                 {cat[0] + cat.slice(1).toLowerCase()}
@@ -136,7 +203,9 @@ const AddDeckPage: React.FC = () => {
               <input
                 type="checkbox"
                 checked={form.isPublic}
-                onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
+                onChange={(e) =>
+                  setForm({ ...form, isPublic: e.target.checked })
+                }
               />
               <span style={checkboxLabelStyle}> Public</span>
             </label>
@@ -158,15 +227,19 @@ const AddDeckPage: React.FC = () => {
               <label style={labelStyle}>AI Prompt</label>
               <textarea
                 value={form.aiPrompt}
-                onChange={(e) => setForm({ ...form, aiPrompt: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, aiPrompt: e.target.value })
+                }
                 placeholder="Enter prompt for AI to generate cards"
                 style={{ ...inputStyle, height: "100px" }}
+                required
               />
 
               <label style={labelStyle}>Number of Cards</label>
               <input
                 type="number"
                 min={1}
+                max={MAX_AI_CARDS}
                 value={form.numberOfAICards}
                 onChange={(e) =>
                   setForm({
@@ -175,20 +248,42 @@ const AddDeckPage: React.FC = () => {
                   })
                 }
                 style={inputStyle}
+                required
               />
             </>
           )}
 
-          {error && <p style={{ color: "red", marginTop: "12px" }}>{error}</p>}
+          {/* ------------------------------ error + helper texts ----------------------------- */}
+          {error && (
+            <p style={{ color: "red", marginTop: "12px" }}>{error}</p>
+          )}
+          {isLoading && !error && (
+            <p style={{ color: "#215F46", marginTop: "12px" }}>
+              Creating deck, please wait…
+            </p>
+          )}
 
           <div style={{ marginTop: "40px", display: "flex", gap: "16px" }}>
-            <button type="submit" style={buttonStyle}>
-              Save Deck
+            <button
+              type="submit"
+              style={{
+                ...buttonStyle,
+                opacity: isLoading ? 0.7 : 1,
+                cursor: isLoading ? "not-allowed" : "pointer",
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? "Saving…" : "Save Deck"}
             </button>
             <button
               type="button"
               onClick={() => router.push("/decks")}
-              style={{ ...buttonStyle, backgroundColor: "#ccc", color: "#222" }}
+              style={{
+                ...buttonStyle,
+                backgroundColor: "#ccc",
+                color: "#222",
+              }}
+              disabled={isLoading}
             >
               Cancel
             </button>
@@ -199,6 +294,9 @@ const AddDeckPage: React.FC = () => {
   );
 };
 
+/* ------------------------------------------------------------------ */
+/*                             STYLES                                 */
+/* ------------------------------------------------------------------ */
 const labelStyle: React.CSSProperties = {
   fontSize: "18px",
   fontWeight: "500",
@@ -214,7 +312,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: "10px",
   border: "1.5px solid #ccc",
   fontSize: "18px",
-  color: "#222", // fix: readable text
+  color: "#222",
   backgroundColor: "#f9f9f9",
   outline: "none",
 };
