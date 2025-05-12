@@ -4,12 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import { Flashcard } from "@/types/flashcard";
-import { Button, Drawer, Form, Input, Space, Divider, message, Upload } from "antd";
+import { Button, Drawer, Form, Input, Space, Divider, message, Upload, DatePicker } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined, SaveOutlined, UploadOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import { Deck } from "@/types/deck";
 import Image from "next/image";
 import type { UploadChangeParam, UploadFile } from "antd/es/upload/interface";
-import { DatePicker } from "antd"; 
 import dayjs from "dayjs";
 
 const { TextArea } = Input;
@@ -200,7 +199,7 @@ const FlashcardsPage: React.FC = () => {
 
       setSavingCard(true);
       
-      if (editingCard && editingCard.id) {
+      if (editingCard?.id) {
         await apiService.put(`/flashcards/${editingCard.id}`, payload);
         message.success('Flashcard updated successfully');
         
@@ -247,6 +246,10 @@ const FlashcardsPage: React.FC = () => {
         </Button>
 
         <div
+        role="button"
+        aria-label="Flashcard content"
+        aria-describedby="flashcard-instruction"
+        aria-pressed={flippedIndex === currentIndex}
           style={{
             width: "800px",
             height: "500px",
@@ -265,12 +268,36 @@ const FlashcardsPage: React.FC = () => {
           tabIndex={0}
           onClick={() => toggleFlip(currentIndex)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              toggleFlip(currentIndex);
+            switch (e.key) {
+              case 'Enter':
+              case ' ':
+                e.preventDefault();
+                toggleFlip(currentIndex);
+                break;
+              default:
+                // Handle other key presses if needed
+                break;
             }
           }}
         >
+          {/* Hidden accessibility instruction */}
+          <span 
+            id="flashcard-instruction" 
+            style={{
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              padding: 0,
+              margin: '-1px',
+              overflow: 'hidden',
+              clip: 'rect(0, 0, 0, 0)',
+              whiteSpace: 'nowrap',
+              border: 0
+            }}
+            aria-hidden="true"
+          >
+            Press space or enter to flip card
+          </span>
           {flashcards.length > 0 ? (
             <>
               <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: "10px" }}>

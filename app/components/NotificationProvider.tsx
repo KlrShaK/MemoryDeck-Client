@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { message } from 'antd';
@@ -84,7 +83,7 @@ const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       message.success("Invitation accepted!");
       
       // Navigate to quiz play page
-      const quizIdForRoute = invitation.quizId || invitation.id;
+      const quizIdForRoute = invitation.quizId ?? invitation.id;
       router.push(`/decks/quiz/play/${quizIdForRoute}`);
       
       // Reset invitation state
@@ -116,9 +115,9 @@ const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       <InvitationNotification
         visible={!!invitation}
-        senderName={invitation?.senderName || "Another user"}
-        deckTitle={invitation?.deckTitle || "Quiz Deck"}
-        timeLimit={invitation?.timeLimit || 60}
+        senderName={invitation?.senderName ?? "Another user"}
+        deckTitle={invitation?.deckTitle ?? "Quiz Deck"}
+        timeLimit={invitation?.timeLimit ?? 60}
         onAccept={handleAccept}
         onDecline={handleDecline}
       />
