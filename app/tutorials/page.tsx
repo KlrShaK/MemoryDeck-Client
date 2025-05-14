@@ -47,8 +47,8 @@ const TutorialsPage: React.FC = () => {
             </Collapse>
 
             <div style={{ marginTop: "2rem", textAlign: "center" }}>
-                <Button type="primary" onClick={() => router.push("/contact")}>
-                    Need More Help?
+                <Button type="primary" onClick={() => router.push("/decks")}>
+                    Back to Decks
                 </Button>
             </div>
         </div>

@@ -26,9 +26,9 @@ const Login: React.FC = () => {
         password,
       });
 
-      if (response.token) {
+      if (response.token && response.id) {
         setToken(response.token);
-        setUserId(String(response.id));
+        setUserId(response.id);
         router.push("/decks");
       }
     } catch {
