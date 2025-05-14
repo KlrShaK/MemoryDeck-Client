@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, Row, Col, Spin, message, Button, Typography } from 'antd';
 import { useApi } from '@/hooks/useApi';
-import useLocalStorage from '@/hooks/useLocalStorage';
 import { Deck } from '@/types/deck';
 import { Flashcard } from '@/types/flashcard';
 
@@ -21,10 +20,22 @@ const TOKENS = {
 const DeckSelectionPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const { value: userId } = useLocalStorage<string>('userId', '');
+  // const { value: id } = useLocalStorage<string>('userId', '');
+  const [userId, setUserId] = useState<string | null>(null)
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      // const parsedUserId = Number(storedUserId);
+      // if (!isNaN(parsedUserId)) {
+      setUserId(storedUserId);
+      // }
+    }
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -38,7 +49,8 @@ const DeckSelectionPage: React.FC = () => {
       }
 
       try {
-        const deckList = await apiService.get<Deck[]>(`/decks?userId=${cleanUserId}`);
+        // const deckList = await apiService.get<Deck[]>(`/decks?userId=${cleanUserId}`);
+        const deckList = await apiService.get<Deck[]>(`/decks/public`);
         const decksWithFlashcards = await Promise.all(
           deckList.map(async (deck) => {
             try {
