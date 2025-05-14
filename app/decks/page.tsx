@@ -96,14 +96,13 @@ const DeckPage = () => {
   };
 
   const handleCreateClick = () => router.push("/decks/create");
-  const handlePerformanceClick = () => router.push("/statistics");
-  const handleSetReminderClick = () => {};
+  const handlePerformanceClick = () => router.push(`/statistics`);
   const handleQuizClick = () => router.push("/decks/quiz/select-decks");
-  const handleVersusClick = () => router.push("/quiz-play");
+  const handleSoloQuizClick = () => router.push("/decks/solo-quiz/select-decks");
   const handleTutorialClick = () => router.push("/tutorials");
   const handleProfileClick = () => {
     if (userId) {
-      router.push(`/users/${userId}`);
+      router.push(`/profile/${userId}`);
     } else {
       console.warn("User ID not found.");
     }
@@ -116,6 +115,23 @@ const DeckPage = () => {
     }
     fetchGroupedDecks().finally(() => setLoading(false));
   }, [userId, fetchGroupedDecks]);
+
+  const handleLogout = async () => {
+    try {
+      // Make a DELETE request to the logout endpoint
+      await apiService.delete(`/users/logout/${Number(userId)}`);
+  
+      // Clear the token from local storage or any other relevant data
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+  
+      // Redirect the user to the login page
+      router.push("/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      alert("An error occurred while logging out.");
+    }
+  };
 
   return (
     <div style={{ backgroundColor, minHeight: "100vh", fontFamily }}>
@@ -163,17 +179,19 @@ const DeckPage = () => {
           <div style={{ borderTop: "1px solid #999", marginBottom: "20px" }}></div>
 
           <Button onClick={handlePerformanceClick} style={sidebarBtnStyle}>Performance</Button>
-          <Button onClick={handleSetReminderClick} style={sidebarBtnStyle}>Set Reminder</Button>
 
           <div style={{ borderTop: "1px solid #999", marginBottom: "20px" }}></div>
 
           <h3 style={{ margin: "20px 0", color: "#215F46", fontSize: "18px" }}>Gamemodes</h3>
 
           <Button onClick={handleQuizClick} style={sidebarBtnStyleFilled}>Start a quiz together!</Button>
-          <Button onClick={handleVersusClick} style={sidebarBtnStyleFilled}>Versus Mode</Button>
+          <Button onClick={handleSoloQuizClick} style={sidebarBtnStyleFilled}>Start a solo quiz!</Button>
 
-          <div style={{ position: "fixed", bottom: "20px" }}>
+          <div style={{ position: "fixed", bottom: "80px" }}>
             <Button onClick={handleTutorialClick} style={tutorialBtnStyle}>Tutorial and FAQs</Button>
+          </div>
+          <div style={{ position: "fixed", bottom: "20px" }}>
+            <Button onClick={handleLogout} style={logoutBtnStyle}>Logout</Button>
           </div>
         </div>
 
@@ -271,11 +289,16 @@ const sidebarBtnStyleFilled: React.CSSProperties = {
 };
 
 const tutorialBtnStyle: React.CSSProperties = {
+  ...sidebarBtnStyle,
   backgroundColor: "white",
-  border: "none",
-  fontWeight: "bold",
-  borderRadius: "12px",
-  padding: "8px 16px",
+  padding: "8px 22px",
+};
+
+const logoutBtnStyle: React.CSSProperties = {
+  ...sidebarBtnStyle,
+  backgroundColor: primaryColor,
+  color: "white",
+  padding: "8px 58px",
 };
 
 export default DeckPage;
