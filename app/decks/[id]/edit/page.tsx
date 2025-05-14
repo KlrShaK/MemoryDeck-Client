@@ -41,6 +41,7 @@ import { useApi } from '@/hooks/useApi';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import { Deck } from '@/types/deck';
 import { Flashcard } from '@/types/flashcard';
+import { getApiDomain } from '@/utils/domain';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -79,6 +80,7 @@ const DeckEditPage: React.FC = () => {
   const deckId = String(deckIdParam);
   const router = useRouter();
   const apiService = useApi();
+  const domain = getApiDomain();
   const { value: userId } = useLocalStorage<string>('userId', '');
   const userIdNumber = userId ? Number(userId) : null;
 
@@ -238,12 +240,23 @@ const DeckEditPage: React.FC = () => {
         return;
       }
 
+      let finalImageUrl = imageUrl;
+
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+          try {
+              finalImageUrl = await apiService.uploadImage("/flashcards/upload-image", fileList[0].originFileObj);
+          } catch {
+              message.error("Image upload failed. Please try again.");
+              return;
+          }
+      }
+
       const payload = {
         description: values.description.trim(),
         answer: values.answer.trim(),
         wrongAnswers,
         date: values.date ? values.date.format('YYYY-MM-DD') : null,
-        imageUrl: imageUrl ?? null,
+        imageUrl: finalImageUrl ?? null,
         flashcardCategory: deck?.deckCategory,
       };
 
@@ -296,6 +309,19 @@ const DeckEditPage: React.FC = () => {
       } catch {
         showError('Upload failed');
         setFileList([]);
+      }
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (imageUrl) {
+      try {
+        await apiService.delete(`/flashcards/delete-image?imageUrl=${encodeURIComponent(imageUrl)}`);
+        setImageUrl(undefined);
+        setFileList([]);
+        message.success("Image removed successfully");
+      } catch {
+        message.error("Failed to remove image.");
       }
     }
   };
@@ -547,7 +573,8 @@ const DeckEditPage: React.FC = () => {
                                     }}
                                   >
                                     <Image
-                                      src={card.imageUrl}
+                                      // src={card.imageUrl}
+                                      src = {`${domain}/flashcards/image?imageUrl=${encodeURIComponent(card.imageUrl)}`}
                                       alt="cover"
                                       width={140}
                                       height={120}
@@ -777,41 +804,42 @@ const DeckEditPage: React.FC = () => {
               }}
             />
           </Form.Item>
-
+          {imageUrl ? (
+                <div style={{ position: "relative", display: "inline-block" }}>
+                  <Image
+                    src={`${domain}/flashcards/image?imageUrl=${encodeURIComponent(imageUrl)}`}
+                    alt="Flashcard"
+                    width={260}
+                    height={180}
+                    style={{
+                      objectFit: 'cover',
+                      borderRadius: 8,
+                      border: '1px solid #eee',
+                    }}
+                    unoptimized
+                  />
+                  <div>
+                  <Button
+                    type="link"
+                    icon={<DeleteOutlined />}
+                    // className="delete-button"
+                    style={{color: "#ff4000" }}
+                    onClick={handleDeleteImage}
+                  />
+                  </div>
+                </div>
+              ) : (
+                <Upload
+                  fileList={fileList}
+                  beforeUpload={() => false}
+                  onChange={handleImageChange}
+                  listType="picture-card"
+                >
+                  {fileList.length >= 1 ? null : <Button icon={<UploadOutlined />}>Upload Image</Button>}
+                </Upload>
+              )}
           <Form.Item label="Image (optional)">
-            <Upload
-              accept="image/*"
-              listType="picture"
-              fileList={fileList}
-              onChange={handleImageChange}
-              onRemove={() => {
-                setImageUrl(undefined);
-                setFileList([]);
-              }}
-              beforeUpload={() => false /* manual */}
-              maxCount={1}
-            >
-              <Button icon={<UploadOutlined />}>
-                {imageUrl ? 'Change image' : 'Upload image'}
-              </Button>
-            </Upload>
 
-            {imageUrl && (
-              <div style={{ marginTop: 8 }}>
-                <Image
-                  src={imageUrl}
-                  alt="preview"
-                  width={260}
-                  height={180}
-                  style={{
-                    objectFit: 'cover',
-                    borderRadius: 8,
-                    border: '1px solid #eee',
-                  }}
-                  unoptimized
-                />
-              </div>
-            )}
           </Form.Item>
         </Form>
       </Drawer>

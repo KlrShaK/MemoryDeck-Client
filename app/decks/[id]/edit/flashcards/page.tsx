@@ -11,6 +11,7 @@ import Image from "next/image";
 import type { UploadChangeParam, UploadFile } from "antd/es/upload/interface";
 import { DatePicker } from "antd"; 
 import dayjs from "dayjs";
+import { getApiDomain } from "@/utils/domain";
 
 const { TextArea } = Input;
 
@@ -20,6 +21,7 @@ const DEFAULT_WRONG_ANSWERS = ['', '', ''];
 const FlashcardsPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
+  const domain = getApiDomain();
   const { id } = useParams();
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
@@ -302,23 +304,26 @@ const FlashcardsPage: React.FC = () => {
                 width: "100%",
                 padding: "0 20px"
               }}>
-                {/* Show image if available and relevant to the current side */}
+                {/* Show image if available and relevant to the current side */}                
+                <p style={{ fontSize: "1.2rem" }}>
+                  {flippedIndex === currentIndex ? flashcards[currentIndex].answer : flashcards[currentIndex].description}
+                
+
                 {flashcards[currentIndex].imageUrl && (
-                  <div style={{ marginBottom: "20px", maxWidth: "100%", textAlign: "center" }}>
+                  <div style={{ marginTop: "20px",marginBottom: "20px", maxWidth: "100%", textAlign: "center" }}>
                     <Image
-                      src={flashcards[currentIndex].imageUrl}
+                      // src={flashcards[currentIndex].imageUrl}
+                      src = {`${domain}/flashcards/image?imageUrl=${encodeURIComponent(flashcards[currentIndex].imageUrl)}`}
                       alt="Flashcard image"
-                      width={300}
-                      height={200}
+                      width={250}
+                      height={170}
                       style={{ objectFit: "contain", maxHeight: "200px", borderRadius: "8px" }}
                       unoptimized
                     />
                   </div>
                 )}
-                
-                <p style={{ fontSize: "1.2rem" }}>
-                  {flippedIndex === currentIndex ? flashcards[currentIndex].answer : flashcards[currentIndex].description}
-                </p>
+
+              </p>
               </div>
             </>
           ) : (
