@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { message } from 'antd';
 import { useApi } from '@/hooks/useApi';
-import useLocalStorage from '@/hooks/useLocalStorage';
 import InvitationNotification from '@/components/InvitationNotification';
 import { Invitation } from '@/types/invitation';
 import { User } from '@/types/user';
@@ -12,17 +11,39 @@ import { Deck } from '@/types/deck';
 
 const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [invitation, setInvitation] = useState<Invitation | null>(null);
-  const { value: userId } = useLocalStorage<string>("userId", "");
+  // const { value: userId } = useLocalStorage<string>("userId", "");
+  const [userId, setUserId] = useState<string | null>(null)
   const router = useRouter();
   const apiService = useApi();
 
   useEffect(() => {
-    if (!userId || userId.trim() === "" || userId === "1") return;
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      // const parsedUserId = Number(storedUserId);
+      // if (!isNaN(parsedUserId)) {
+      setUserId(storedUserId);
+      // }
+    }
+  }, []);
+
+  useEffect(() => {
+    // if (!userId || userId.trim() === "" || userId === "1") return;
+    if (!userId || userId.trim() === "") return;
 
     const checkForInvitations = async () => {
-      if (!userId || userId.trim() === "" || userId === "1") return;
+      // if (!userId || userId.trim() === "" || userId === "1") return;
+      if (!userId || userId.trim() === "") return;
+
       try {
-        const invitations = await apiService.get<Invitation[]>(`/quiz/invitation/receivers?toUserId=${userId}`);
+        const user = await apiService.get<User>(`/users/${userId}`);
+        // .catch(() => {null});
+        if (!user) return;
+        if (user?.status ==="OFFLINE" || user?.status === "PLAYING") return;
+      } catch {
+        return;
+      }
+      try {
+        const invitations = await apiService.get<Invitation[]>(`/quiz/invitation/receivers?toUserId=${Number(userId)}`);
         
         // Find pending invitations
         const pendingInvitation = invitations.find(inv => !inv.isAccepted);
@@ -70,11 +91,49 @@ const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     checkForInvitations();
     
     // Set interval for periodic checks
-    const intervalId = setInterval(checkForInvitations, 10000);
+    const intervalId = setInterval(checkForInvitations, 1000);
+
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId); 
+  }, [userId, apiService, invitation]);
+
+
+  useEffect(() => {
+    // if (!userId || userId.trim() === "" || userId === "1") return;
+    if (!userId || userId.trim() === "") return;
+
+    const checkIfInvitationCancelled = async () => {
+      // if (!userId || userId.trim() === "" || userId === "1") return;
+      if (!userId || userId.trim() === "") return;
+      try {
+        
+        if (invitation?.id) {        
+          // Try to enhance with sender info, but don't fail if this doesn't work
+          try {
+            await apiService.get<Invitation>(`/quiz/invitation/${invitation?.id}`);
+          } catch (error) {
+            setInvitation(null);
+            console.log("Could not fetch sender info, using default name", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking for invitations:", error);
+        // Don't show error messages to user for background checks
+      }
+    };
+
+    // Initial check
+    checkIfInvitationCancelled();
+    
+    // Set interval for periodic checks
+    const intervalId = setInterval(checkIfInvitationCancelled, 1000);
     
     // Clean up interval on unmount
     return () => clearInterval(intervalId);
   }, [userId, apiService, invitation]);
+
+
 
   const handleAccept = async () => {
     if (!invitation) return;
@@ -84,11 +143,11 @@ const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       message.success("Invitation accepted!");
       
       // Navigate to quiz play page
-      const quizIdForRoute = invitation.quizId || invitation.id;
+      const quizIdForRoute = invitation.quizId;
       router.push(`/decks/quiz/play/${quizIdForRoute}`);
       
-      // Reset invitation state
-      setInvitation(null);
+      // // Reset invitation state
+      // setInvitation(null);
     } catch (error) {
       console.error("Error accepting invitation:", error);
       message.error("Failed to accept invitation");

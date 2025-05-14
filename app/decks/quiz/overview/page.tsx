@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { List, Avatar, Button, Input, Card, Spin, Modal, App } from 'antd';
 import { UserOutlined, SearchOutlined, UserSwitchOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useApi } from '@/hooks/useApi';
-import useLocalStorage from '@/hooks/useLocalStorage';
 import { User } from '@/types/user';
 import { Invitation } from '@/types/invitation';
 
@@ -15,14 +14,14 @@ const { Search } = Input;
 interface InvitationResponse {
   id?: string;
   invitationId?: string;
-  quizId?: string;
   [key: string]: unknown; // Allow for other properties
 }
 
 const UserInvitationPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const { value: userId } = useLocalStorage<string>('userId', '');
+  // const { value: userId } = useLocalStorage<string>('userId', '');
+  const [userId, setUserId] = useState<string | null>(null)
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +35,16 @@ const UserInvitationPage: React.FC = () => {
   const [currentInvitationId, setCurrentInvitationId] = useState<string | null>(null);
   const { message: antMessage } = App.useApp(); // Use the App context instead of direct message use
 
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      // const parsedUserId = Number(storedUserId);
+      // if (!isNaN(parsedUserId)) {
+      setUserId(storedUserId);
+      // }
+    }
+  }, []);
+
   // Effect to poll for invitation acceptance
   useEffect(() => {
     // Only run the polling if we have an invitation and are waiting
@@ -44,41 +53,84 @@ const UserInvitationPage: React.FC = () => {
     const checkInvitationStatus = async () => {
       try {
         // Handle userId properly by ensuring it's a string first
-        const userIdString = String(userId);
-        const cleanUserId = userIdString.replace(/^"|"$/g, '');
+        // const userIdString = String(userId);
+        // const cleanUserId = userIdString.replace(/^"|"$/g, '');
         
-        if (!cleanUserId) {
+        if (!userId) {
           console.error("Invalid userId for checking invitation status");
           return;
         }
         
         // Check if the current invitation has been accepted
-        const response = await apiService.get<Invitation>(`/quiz/invitation/accepted?fromUserId=${cleanUserId}`);
-        
+        const response = await apiService.get<Invitation>(`/quiz/invitation/accepted?fromUserId=${Number(userId)}`);
+
         // If we get a response with an accepted invitation that matches our current invitation
-        if (response && response.id === currentInvitationId && response.isAccepted) {
+        if (Number(response.id) === Number(currentInvitationId) && response.isAccepted) {
           // Get the quiz ID from the response
           const quizId = response.quizId;
-          
+          const invId = response.id;
+      
           if (quizId) {
             // Close the waiting modal
             setWaitingModalVisible(false);
-            
+
             // Navigate to the quiz play page
             router.push(`/decks/quiz/play/${quizId}`);
+
+            if (invId){
+              apiService.delete(`/quiz/invitation/delete/${Number(invId)}`);
+            }
           }
+
         }
       } catch (error) {
         console.error("Error checking invitation status:", error);
       }
     };
-    
+
+    checkInvitationStatus();
+
     // Poll every 2 seconds
-    const intervalId = setInterval(checkInvitationStatus, 2000);
+    const intervalId = setInterval(checkInvitationStatus, 1000);
     
     // Clean up interval on unmount or when waiting modal closes
     return () => clearInterval(intervalId);
   }, [currentInvitationId, waitingModalVisible, userId, apiService, router]);
+
+  useEffect(() => {
+    // if (!userId || userId.trim() === "" || userId === "1") return;
+    if (!currentInvitationId || !waitingModalVisible) return;
+
+    const checkIfInvitationRejected = async () => {
+      // if (!userId || userId.trim() === "" || userId === "1") return;
+      if (!userId) return;
+      try {
+        
+        if (currentInvitationId) {        
+          // Try to enhance with sender info, but don't fail if this doesn't work
+          try {
+            await apiService.get<Invitation>(`/quiz/invitation/${currentInvitationId}`);
+          } catch (error) {
+            setCurrentInvitationId(null);
+            setWaitingModalVisible(false);
+            console.log("Could not fetch sender info, using default name", error);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking for invitations:", error);
+        // Don't show error messages to user for background checks
+      }
+    };
+
+    // Initial check
+    checkIfInvitationRejected();
+    
+    // Set interval for periodic checks
+    const intervalId = setInterval(checkIfInvitationRejected, 2000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+  }, [userId, apiService, currentInvitationId, waitingModalVisible]);
 
   useEffect(() => {
     if (!userId) return;
@@ -171,25 +223,27 @@ const UserInvitationPage: React.FC = () => {
     setSendingInvitation(true);
     try {
       // Clean userId - remove any quotes if it's a string
-      const cleanUserId = typeof userId === 'string' 
-        ? userId.replace(/^"|"$/g, '')
-        : userId;
+      // const cleanUserId = typeof userId === 'string' 
+      //   ? userId.replace(/^"|"$/g, '')
+      //   : userId;
       
-      // For selectedUser.id, first convert to string if it's a number
-      const selectedUserId = String(selectedUser.id);
-      const cleanSelectedUserId = selectedUserId.replace(/^"|"$/g, '');
+      // // For selectedUser.id, first convert to string if it's a number
+      // const selectedUserId = String(selectedUser.id);
+      // const cleanSelectedUserId = selectedUserId.replace(/^"|"$/g, '');
       
-      if (!cleanUserId || !cleanSelectedUserId) {
+      if (!userId || !selectedUser.id) {
         antMessage.error('Invalid user information');
         setSendingInvitation(false);
         return;
       }
+
+      const selectedDeckIds: string[] = [selectedDeckId];
       
       // Make sure to convert types to match what backend expects
       const invitationData = {
-        fromUserId: Number(cleanUserId),
-        toUserId: Number(cleanSelectedUserId),
-        deckIds: [Number(selectedDeckId)],
+        fromUserId: Number(userId),
+        toUserId: Number(selectedUser.id),
+        deckIds: selectedDeckIds,
         timeLimit: timeLimit
       };
       
@@ -201,13 +255,17 @@ const UserInvitationPage: React.FC = () => {
       setInvitationModalVisible(false);
       
       // Check if response has an id
-      if (response && response.id) {
-        setCurrentInvitationId(String(response.id));
-      } else if (response && response.invitationId) {
+      // if (response && response.id) {
+      //   setCurrentInvitationId(String(response.id));
+      // } 
+      if (response && response.invitationId) {
         setCurrentInvitationId(String(response.invitationId));
-      } else if (response && response.quizId) {
-        setCurrentInvitationId(String(response.quizId));
-      } else {
+        console.warn("Current invitation ID in response:", response.invitationId);
+      } 
+      // else if (response && response.quizId) {
+      //   setCurrentInvitationId(String(response.quizId));
+      // } 
+      else {
         console.warn("Could not find invitation ID in response:", response);
       }
       
@@ -226,7 +284,7 @@ const UserInvitationPage: React.FC = () => {
     try {
       // Delete the invitation if it exists
       if (currentInvitationId) {
-        await apiService.delete(`/quiz/invitation/delete/${currentInvitationId}`);
+        await apiService.delete(`/quiz/invitation/senders/cancel?invitationId=${Number(currentInvitationId)}`);
       }
     } catch (error) {
       console.error('Error canceling invitation:', error);
@@ -313,8 +371,10 @@ const UserInvitationPage: React.FC = () => {
                       }
                       description={user.name || 'No name provided'}
                     />
-                    <div>{user.status === 'ONLINE' ? 
-                      <span style={{ color: 'green' }}>Online</span> : 
+                    <div>{user.status === 'PLAYING' ? 
+                      <span style={{ color: 'red' }}>Playing</span> : 
+                      user.status === 'ONLINE' ?
+                      <span style={{ color: 'green' }}>Online</span> :
                       <span style={{ color: 'gray' }}>Offline</span>}
                     </div>
                   </List.Item>
