@@ -289,3 +289,22 @@ h3 {
   border-color: #2E8049 !important;
 }
 
+
+.white-table,
+.white-table .ant-table,
+.white-table .ant-table-content,
+.white-table .ant-table-thead > tr > th,
+.white-table .ant-table-tbody > tr > td {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+.white-table .ant-table-thead > tr > th {
+  color: #111 !important;
+  font-weight: 600;
+}
+
+.white-table .ant-table-tbody > tr > td {
+  color: #111 !important;
+}
+
