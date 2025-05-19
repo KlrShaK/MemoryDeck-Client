@@ -135,7 +135,7 @@ const FinishPage: React.FC = () => {
           {winnerId === -1 || !winnerId ? (
             <>
               <div style={{ fontSize: 64, marginBottom: 16 }}>🤝</div>
-              <Title level={3} style={{ color: "black", margin: 0 }}>It's a tie!</Title>
+              <Title level={3} style={{ color: "black", margin: 0 }}>It&apos;s a tie!</Title>
               <Text style={{ color: "black", fontSize: 16, display: "block" }}>
                 Both players performed equally well
               </Text>
@@ -153,7 +153,7 @@ const FinishPage: React.FC = () => {
               <div style={{ fontSize: 64, marginBottom: 16 }}>👏</div>
               <Title level={3} style={{ color: "black", margin: 0 }}>Good effort!</Title>
               <Text style={{ color: "black", fontSize: 16, display: "block" }}>
-                Keep practicing and you'll improve
+                Keep practicing and you&apos;ll improve
               </Text>
             </>
           )}

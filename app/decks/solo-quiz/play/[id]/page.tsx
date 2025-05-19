@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Radio, message, Card, Typography, Progress, Spin } from "antd";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { useApi } from "@/hooks/useApi";
 import { getApiDomain } from "@/utils/domain";
 import ProgressBar from "@/components/ProgressBar";
-import ScorePanel from "@/components/ScorePanel";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
@@ -91,10 +89,10 @@ const QuizSessionPage: React.FC = () => {
   const uid = Number(localStorage.getItem("userId"));
 
   const shuffle = (arr: string[]): string[] => [...arr].sort(() => Math.random() - 0.5);
-  const err = (e: unknown): Error => (e instanceof Error ? e : new Error(String(e)));
+  const err = (error: unknown): Error => (error instanceof Error ? error : new Error(String(error)));
 
   /* ───────────────────── fetch first question ───────────────────── */
-  async function loadCurrentQuestion() {
+  const loadCurrentQuestion = useCallback(async () => {
     if (!quizId) return;
     setLoading(true);
     try {
@@ -104,8 +102,8 @@ const QuizSessionPage: React.FC = () => {
       setSelectedOption("");
       setLastAnswerCorrect(null);
       setIAmFinished(false);
-    } catch (e) {
-      const m = err(e).message;
+    } catch (error) {
+      const m = err(error).message;
       if (m.includes("already finished")) {
         setIAmFinished(true);
       } else {
@@ -114,11 +112,11 @@ const QuizSessionPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [quizId, uid, apiService]);
 
   useEffect(() => {
     if (quizId) loadCurrentQuestion();
-  }, [quizId]);
+  }, [quizId, loadCurrentQuestion]);
 
   /* ───────────────────── poll quiz status every 1 s ───────────────────── */
   useEffect(() => {
@@ -182,6 +180,20 @@ const QuizSessionPage: React.FC = () => {
     return () => clearInterval(id);
   }, []);
 
+  /* ───────────────────── submit timeout answer ───────────────────── */
+  const sendTimeoutAnswer = useCallback(async () => {
+    if (!quizId || !currentQuestion) return;
+    
+    const payload = {
+      quizId,
+      flashcardId: currentQuestion.id,
+      selectedAnswer: null,
+      userId: uid
+    };
+
+    await apiService.post<AnswerResponseDTO>(`/quiz/answer`, payload).catch(() => {});
+  }, [quizId, currentQuestion, uid, apiService]);
+
   /* redirect when done or time expired */
   useEffect(() => {
     const timeUp = totalSecondsRef.current !== null &&
@@ -195,7 +207,7 @@ const QuizSessionPage: React.FC = () => {
     if ((quizFinishedForAll || timeUp) && quizId) {
       router.push(`/decks/solo-quiz/finish/${quizId}`);
     }
-  }, [quizFinishedForAll, elapsedSec, quizId, router, iAmFinished]);
+  }, [quizFinishedForAll, elapsedSec, quizId, router, iAmFinished, sendTimeoutAnswer]);
 
   /* ───────────────────── submit answer ───────────────────── */
   async function handleSubmitAnswer() {
@@ -240,22 +252,9 @@ const QuizSessionPage: React.FC = () => {
         // Just show error message for wrong answer, don't reveal correct answer
         message.error("Wrong answer, try again");
       }
-    } catch (e) {
-      message.error(err(e).message);
+    } catch (error) {
+      message.error(err(error).message);
     }
-  }
-
-  async function sendTimeoutAnswer() {
-    if (!quizId || !currentQuestion) return;
-    
-    const payload = {
-      quizId,
-      flashcardId: currentQuestion.id,
-      selectedAnswer: null,
-      userId: uid
-    };
-
-    await apiService.post<AnswerResponseDTO>(`/quiz/answer`, payload).catch(() => {});
   }
 
   const handleCancelQuiz = async () => {
@@ -266,7 +265,7 @@ const QuizSessionPage: React.FC = () => {
     try {
       await apiService.delete(`/quiz/quit/${quizId}`);
       router.push("/decks");
-    } catch (e) {
+    } catch {
       message.error("Failed to cancel quiz. Redirecting to decks.");
       router.push("/decks");
     }
@@ -318,7 +317,7 @@ const QuizSessionPage: React.FC = () => {
             <div style={{ textAlign: "center", padding: 40 }}>
               <Title level={3} style={{ color: "black" }}>Well Done!</Title>
               <Text style={{ fontSize: 16, display: "block", marginBottom: 24, color: "black" }}>
-                You've completed all questions!
+                You&apos;ve completed all questions!
               </Text>
               <Text style={{ color: "black" }}>Redirecting to results page...</Text>
             </div>
