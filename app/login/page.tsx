@@ -14,11 +14,65 @@ const Login: React.FC = () => {
 
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [error, setError] = React.useState("");
+  const [errors, setErrors] = React.useState<{
+    username?: string;
+    password?: string;
+    general?: string;
+  }>({});
+
+  // Validation functions
+  const validateUsername = (value: string) => {
+    if (!value) return "Username is required";
+    if (value.length <= 5) return "Username must be larger than 5 characters";
+    if (!/^[a-zA-Z0-9]+$/.test(value)) return "Username must contain only letters and numbers";
+    return "";
+  };
+
+  const validatePassword = (value: string) => {
+    if (!value) return "Password is required";
+    if (value.length < 8) return "Password must be at least 8 characters";
+    return "";
+  };
+
+  // Handle input changes with validation
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUsername(value);
+    
+    const error = validateUsername(value);
+    setErrors(prev => ({ ...prev, username: error }));
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    
+    const error = validatePassword(value);
+    setErrors(prev => ({ ...prev, password: error }));
+  };
+
+  const validateForm = () => {
+    const usernameError = validateUsername(username);
+    const passwordError = validatePassword(password);
+    
+    setErrors({
+      username: usernameError,
+      password: passwordError
+    });
+    
+    return !usernameError && !passwordError;
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    
+    // Clear any previous general errors
+    setErrors(prev => ({ ...prev, general: "" }));
+    
+    // Validate all fields before submitting
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       const response = await apiService.post<User>("/login", {
@@ -32,7 +86,10 @@ const Login: React.FC = () => {
         router.push("/decks");
       }
     } catch {
-      setError("Login failed. Please check your credentials.");
+      setErrors(prev => ({ 
+        ...prev, 
+        general: "Incorrect username or password" 
+      }));
     }
   };
 
@@ -69,50 +126,49 @@ const Login: React.FC = () => {
         </h1>
 
         <form onSubmit={handleLogin}>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-            style={{
-              width: "100%",
-              padding: "16px 0",
-              border: "none",
-              borderBottom: "1.5px solid #666",
-              marginBottom: "30px",
-              fontSize: "18px",
-              color: "#222",
-              background: "transparent",
-              outline: "none",
-            }}
-            required
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            style={{
-              width: "100%",
-              padding: "16px 0",
-              border: "none",
-              borderBottom: "1.5px solid #666",
-              marginBottom: "30px",
-              fontSize: "18px",
-              color: "#222",
-              background: "transparent",
-              outline: "none",
-            }}
-            required
-          />
+          <div style={{ marginBottom: "15px", position: "relative" }}>
+            <input
+              type="text"
+              value={username}
+              onChange={handleUsernameChange}
+              placeholder="Username"
+              style={{
+                ...inputStyle,
+                borderColor: errors.username ? "red" : "#666",
+                marginBottom: "5px"
+              }}
+              required
+            />
+            {errors.username && (
+              <p style={errorStyle}>{errors.username}</p>
+            )}
+          </div>
 
-          {error && (
-            <p style={{ color: "red", fontSize: "15px", marginBottom: "20px" }}>
-              {error}
+          <div style={{ marginBottom: "15px", position: "relative" }}>
+            <input
+              type="password"
+              value={password}
+              onChange={handlePasswordChange}
+              placeholder="Password"
+              style={{
+                ...inputStyle,
+                borderColor: errors.password ? "red" : "#666",
+                marginBottom: "5px"
+              }}
+              required
+            />
+            {errors.password && (
+              <p style={errorStyle}>{errors.password}</p>
+            )}
+          </div>
+
+          {errors.general && (
+            <p style={{ ...errorStyle, textAlign: "center", marginTop: "10px" }}>
+              {errors.general}
             </p>
           )}
 
-          <div style={{ textAlign: "right", marginBottom: "40px" }}>
+          <div style={{ textAlign: "right", marginTop: "10px", marginBottom: "30px" }}>
             <a
               href="#"
               onClick={() => router.push("/register")}
@@ -146,6 +202,27 @@ const Login: React.FC = () => {
       </div>
     </div>
   );
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "16px 0",
+  border: "none",
+  borderBottom: "1.5px solid #666",
+  marginBottom: "0",
+  fontSize: "18px",
+  color: "#222",
+  background: "transparent",
+  outline: "none",
+};
+
+const errorStyle: React.CSSProperties = {
+  color: "red",
+  fontSize: "12px",
+  marginTop: "2px",
+  marginBottom: "0",
+  textAlign: "left",
+  paddingLeft: "2px",
 };
 
 export default Login;

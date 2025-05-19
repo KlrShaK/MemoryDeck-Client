@@ -126,7 +126,7 @@ const DeckPage = () => {
       localStorage.removeItem("userId");
   
       // Redirect the user to the login page
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       console.error("Error during logout:", error);
       alert("An error occurred while logging out.");
