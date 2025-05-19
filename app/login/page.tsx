@@ -5,6 +5,8 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import React from "react";
+import { Input } from "antd";
+import { EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 
 const Login: React.FC = () => {
   const router = useRouter();
@@ -145,18 +147,20 @@ const Login: React.FC = () => {
           </div>
 
           <div style={{ marginBottom: "15px", position: "relative" }}>
-            <input
-              type="password"
-              value={password}
-              onChange={handlePasswordChange}
-              placeholder="Password"
-              style={{
-                ...inputStyle,
-                borderColor: errors.password ? "red" : "#666",
-                marginBottom: "5px"
-              }}
-              required
-            />
+            <div style={{ position: "relative" }}>
+              <Input.Password
+                value={password}
+                onChange={handlePasswordChange}
+                placeholder="Password"
+                style={{
+                  ...inputStyle,
+                  borderColor: errors.password ? "red" : "#666",
+                  marginBottom: "5px",
+                }}
+                required
+                iconRender={visible => visible ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+              />
+            </div>
             {errors.password && (
               <p style={errorStyle}>{errors.password}</p>
             )}
@@ -199,6 +203,20 @@ const Login: React.FC = () => {
             Login
           </button>
         </form>
+
+        <div style={{ marginTop: "35px", textAlign: "center" }}>
+          <a
+            href="#"
+            onClick={() => router.push("/")}
+            style={{
+              fontSize: "13px",
+              color: "#555",
+              textDecoration: "none",
+            }}
+          >
+            Go back to Main page
+          </a>
+        </div>
       </div>
     </div>
   );

@@ -5,6 +5,9 @@ import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
 import React from "react";
+import Link from "next/link";
+// Use Ant Design's components
+import { Input } from "antd";
 
 const Register: React.FC = () => {
   const router = useRouter();
@@ -132,6 +135,11 @@ const Register: React.FC = () => {
     }
   };
 
+  // Add debug console logs to help troubleshoot
+  React.useEffect(() => {
+    console.log("Current errors:", errors);
+  }, [errors]);
+
   return (
     <div
       style={{
@@ -165,7 +173,7 @@ const Register: React.FC = () => {
         </h1>
 
         <form onSubmit={handleRegister}>
-          <div style={{ marginBottom: "15px", position: "relative" }}>
+          <div style={{ marginBottom: "25px", position: "relative" }}>
             <input
               type="text"
               value={username}
@@ -173,60 +181,92 @@ const Register: React.FC = () => {
               placeholder="Username"
               style={{
                 ...inputStyle,
-                borderColor: errors.username ? "red" : "#666",
-                marginBottom: "5px"
+                borderColor: errors.username ? "#ff0000" : "#666",
               }}
               required
             />
             {errors.username && (
-              <p style={errorStyle}>{errors.username}</p>
+              <div style={{
+                ...errorStyle,
+                display: "block", // Force display
+                visibility: "visible" // Ensure visibility
+              }}>
+                {errors.username}
+              </div>
             )}
           </div>
 
-          <div style={{ marginBottom: "15px", position: "relative" }}>
-            <input
-              type="password"
+          <div style={{ marginBottom: "25px", position: "relative" }}>
+            <Input.Password
               value={password}
               onChange={handlePasswordChange}
               placeholder="Password"
               style={{
-                ...inputStyle,
-                borderColor: errors.password ? "red" : "#666",
-                marginBottom: "5px"
+                borderColor: errors.password ? "#ff0000" : "#666",
+                backgroundColor: "transparent",
+                fontSize: "18px",
+                color: "#222",
+                padding: "16px 12px",
+                height: "auto",
               }}
               required
             />
             {errors.password && (
-              <p style={errorStyle}>{errors.password}</p>
+              <div style={{
+                ...errorStyle,
+                display: "block", // Force display
+                visibility: "visible" // Ensure visibility
+              }}>
+                {errors.password}
+              </div>
             )}
           </div>
 
-          <div style={{ marginBottom: "15px", position: "relative" }}>
-            <input
-              type="password"
+          <div style={{ marginBottom: "25px", position: "relative" }}>
+            <Input.Password
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               placeholder="Confirm Password"
               style={{
-                ...inputStyle,
-                borderColor: errors.confirmPassword ? "red" : "#666",
-                marginBottom: "5px"
+                borderColor: errors.confirmPassword ? "#ff0000" : "#666",
+                backgroundColor: "transparent",
+                fontSize: "18px",
+                color: "#222",
+                padding: "16px 12px",
+                height: "auto",
               }}
               required
             />
             {errors.confirmPassword && (
-              <p style={errorStyle}>{errors.confirmPassword}</p>
+              <div style={{
+                ...errorStyle,
+                display: "block", // Force display
+                visibility: "visible" // Ensure visibility
+              }}>
+                {errors.confirmPassword}
+              </div>
             )}
           </div>
 
           {errors.general && (
-            <p style={errorStyle}>{errors.general}</p>
+            <div style={{
+              ...errorStyle,
+              display: "block", // Force display
+              visibility: "visible", // Ensure visibility
+              marginBottom: "20px",
+              fontWeight: "bold"
+            }}>
+              {errors.general}
+            </div>
           )}
 
           <div style={{ textAlign: "right", marginBottom: "30px" }}>
             <a
               href="#"
-              onClick={() => router.push("/login")}
+              onClick={(e) => {
+                e.preventDefault();
+                router.push("/login");
+              }}
               style={{
                 fontSize: "12px",
                 color: "#222",
@@ -250,13 +290,30 @@ const Register: React.FC = () => {
               fontSize: "20px",
               fontWeight: "500",
               opacity: loading ? 0.6 : 1,
-              pointerEvents: loading ? 'none' : 'auto'
+              pointerEvents: loading ? 'none' : 'auto',
+              marginBottom: "30px"
             }}
             disabled={loading}
           >
             {loading ? "Processing..." : "Create Account"}
           </button>
         </form>
+        
+        <div style={{ textAlign: "center", marginTop: "20px", fontSize: "14px" }}>
+          <Link 
+            href="/" 
+            style={{ 
+              color: "#215F46", 
+              textDecoration: "none",
+              opacity: 0.8,
+              transition: "opacity 0.2s"
+            }}
+            onMouseOver={(e) => e.currentTarget.style.opacity = "1"}
+            onMouseOut={(e) => e.currentTarget.style.opacity = "0.8"}
+          >
+            Go back to Main page
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -267,7 +324,7 @@ const inputStyle: React.CSSProperties = {
   padding: "16px 0",
   border: "none",
   borderBottom: "1.5px solid #666",
-  marginBottom: "0",
+  marginBottom: "8px", // Add some space for error messages
   fontSize: "18px",
   color: "#222",
   background: "transparent",
@@ -275,12 +332,15 @@ const inputStyle: React.CSSProperties = {
 };
 
 const errorStyle: React.CSSProperties = {
-  color: "red",
-  fontSize: "12px",
-  marginTop: "2px",
-  marginBottom: "0",
+  color: "#ff0000",
+  fontSize: "14px", // Increased from 12px for better visibility
+  fontWeight: "500",
+  marginTop: "4px",
+  marginBottom: "8px",
   textAlign: "left",
   paddingLeft: "2px",
+  position: "relative", // Ensure proper stacking context
+  zIndex: 10, // Ensure it's above other elements
 };
 
 export default Register;
