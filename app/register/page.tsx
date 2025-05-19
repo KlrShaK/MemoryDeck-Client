@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { User } from "@/types/user";
-import React, { useEffect } from "react";
+import React from "react";
 
 const Register: React.FC = () => {
   const router = useRouter();
@@ -15,7 +15,7 @@ const Register: React.FC = () => {
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [isCheckingUsername, setIsCheckingUsername] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const [errors, setErrors] = React.useState<{
     username?: string;
     password?: string;
@@ -101,6 +101,7 @@ const Register: React.FC = () => {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await apiService.post<User>("/register", {
         username,
@@ -113,11 +114,12 @@ const Register: React.FC = () => {
         setUserId(response.id);
         router.push("/decks");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
       
       // Check if this is a conflict error (409) which indicates username already exists
-      if (error?.response?.status === 409) {
+      const errorObj = error as { response?: { status?: number } };
+      if (errorObj?.response?.status === 409) {
         setErrors(prev => ({ 
           ...prev, 
           username: "Username not unique. Please choose a different name." 
@@ -125,6 +127,8 @@ const Register: React.FC = () => {
       } else {
         setErrors(prev => ({ ...prev, general: "Registration failed. Please try again." }));
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -174,9 +178,6 @@ const Register: React.FC = () => {
               }}
               required
             />
-            {isCheckingUsername && (
-              <p style={{ ...statusStyle, color: "#666" }}>Checking username availability...</p>
-            )}
             {errors.username && (
               <p style={errorStyle}>{errors.username}</p>
             )}
@@ -248,12 +249,12 @@ const Register: React.FC = () => {
               cursor: "pointer",
               fontSize: "20px",
               fontWeight: "500",
-              opacity: isCheckingUsername ? 0.6 : 1,
-              pointerEvents: isCheckingUsername ? 'none' : 'auto'
+              opacity: loading ? 0.6 : 1,
+              pointerEvents: loading ? 'none' : 'auto'
             }}
-            disabled={isCheckingUsername}
+            disabled={loading}
           >
-            {isCheckingUsername ? "Checking..." : "Create Account"}
+            {loading ? "Processing..." : "Create Account"}
           </button>
         </form>
       </div>
@@ -275,14 +276,6 @@ const inputStyle: React.CSSProperties = {
 
 const errorStyle: React.CSSProperties = {
   color: "red",
-  fontSize: "12px",
-  marginTop: "2px",
-  marginBottom: "0",
-  textAlign: "left",
-  paddingLeft: "2px",
-};
-
-const statusStyle: React.CSSProperties = {
   fontSize: "12px",
   marginTop: "2px",
   marginBottom: "0",
