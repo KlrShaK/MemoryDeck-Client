@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Radio, message, Card, Typography, Progress, Spin } from "antd";
 import { CheckCircleOutlined } from "@ant-design/icons";
@@ -87,8 +87,8 @@ const QuizSessionPage: React.FC = () => {
   const shuffle = (arr: string[]): string[] => [...arr].sort(() => Math.random() - 0.5);
   const err = (e: unknown): Error => (e instanceof Error ? e : new Error(String(e)));
 
-  // Load question
-  async function loadCurrentQuestion() {
+  // Load question - defined with useCallback to avoid dependency warnings
+  const loadCurrentQuestion = useCallback(async () => {
     if (!quizId) return;
     setLoading(true);
     try {
@@ -109,12 +109,12 @@ const QuizSessionPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [quizId, uid, apiService]);
 
   // Initial load
   useEffect(() => {
     if (quizId) loadCurrentQuestion();
-  }, [quizId]);
+  }, [quizId, loadCurrentQuestion]);
 
   // Poll for updates
   useEffect(() => {
@@ -178,6 +178,20 @@ const QuizSessionPage: React.FC = () => {
     return () => clearInterval(id);
   }, []);
 
+  // Send timeout - defined with useCallback to avoid dependency warnings
+  const sendTimeoutAnswer = useCallback(async () => {
+    if (!quizId || !currentQuestion) return;
+    
+    const payload = {
+      quizId,
+      flashcardId: currentQuestion.id,
+      selectedAnswer: null,
+      userId: uid
+    };
+
+    await apiService.post<AnswerResponseDTO>(`/quiz/answer`, payload).catch(() => {});
+  }, [quizId, currentQuestion, uid, apiService]);
+
   // Handle timeout and quiz completion
   useEffect(() => {
     const timeUp = totalSecondsRef.current !== null &&
@@ -190,7 +204,7 @@ const QuizSessionPage: React.FC = () => {
     if ((quizFinishedForAll || timeUp) && quizId) {
       router.push(`/decks/quiz/finish/${quizId}`);
     }
-  }, [quizFinishedForAll, elapsedSec, quizId, router, iAmFinished]);
+  }, [quizFinishedForAll, elapsedSec, quizId, router, iAmFinished, sendTimeoutAnswer]);
 
   // Submit answer
   async function handleSubmitAnswer() {
@@ -240,20 +254,6 @@ const QuizSessionPage: React.FC = () => {
       message.error(err(e).message);
       setAnswerSubmitted(false);
     }
-  }
-
-  // Send timeout
-  async function sendTimeoutAnswer() {
-    if (!quizId || !currentQuestion) return;
-    
-    const payload = {
-      quizId,
-      flashcardId: currentQuestion.id,
-      selectedAnswer: null,
-      userId: uid
-    };
-
-    await apiService.post<AnswerResponseDTO>(`/quiz/answer`, payload).catch(() => {});
   }
 
   // Cancel quiz
@@ -396,7 +396,7 @@ const QuizSessionPage: React.FC = () => {
                 <div style={{ textAlign: "center", padding: 40 }}>
                   <Title level={3} style={{ color: "black" }}>Well Done!</Title>
                   <Text style={{ fontSize: 16, display: "block", marginBottom: 24, color: "black" }}>
-                    You have completed all questions!
+                    You&apos;ve completed all questions!
                   </Text>
                   <Text style={{ color: "black" }}>Waiting for your opponent to finish...</Text>
                 </div>
