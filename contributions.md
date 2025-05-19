@@ -153,8 +153,7 @@ reason).
 |                    | [May 18, 2025]         | [https://github.com/KlrShaK/MemoryDeck-Client/commit/9cc7c77a2ca718ecb8c18b041ed644af53acf2f7] | [Removed incorrect message when loading stats telling user they had no quiz data when they did, and worked on the page's UI, included option to view the last 10 quiz results ] | [This faulty message would mislead users, and fixing the UI makes things feel more conherent for the user]                                                                                                             |
 | **[@nikkiluder]** | [May 19, 2025]         | [https://github.com/KlrShaK/MemoryDeck-Client/commit/c1eb0ccaf3591faed72a77cabeebf79a0e785af7] | [part of task #149, improved Multiplayer Quiz UI] | [Improved UI and added important visual features to make it more appealing to look at and easier for the eye]    |    
                     | [May 19, 2025]         | [https://github.com/KlrShaK/MemoryDeck-Client/commit/fbcea60898cea3ca50244476bd26eb3974f5d7f2] | [part of task #149, improved Singleplayer Quiz UI]        | [Improved UI for the signle player QUiz  UI and added important visual features to make it more appealing to look at and easier for the eye]   |
-| **[@nikkiluder]** | [May 19, 2025]         | [https://github.com/KlrShaK/MemoryDeck-Client/commit/c1eb0ccaf3591faed72a77cabeebf79a0e785af7] | [part of task #149, improved Multiplayer Quiz UI] | [Improved UI and added important visual features to make it more appealing to look at and easier for the eye]    |    
-                    | [May 19, 2025]         | [https://github.com/KlrShaK/MemoryDeck-Client/commit/fbcea60898cea3ca50244476bd26eb3974f5d7f2] | [part of task #149, improved Singleplayer Quiz UI]        | [Improved UI for the signle player QUiz  UI and added important visual features to make it more appealing to look at and easier for the eye]   |
+
 
 ---
 
