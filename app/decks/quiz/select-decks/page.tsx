@@ -89,7 +89,7 @@ const DeckSelectionPage: React.FC = () => {
   return (
     <div style={{ background: TOKENS.bg, minHeight: '100vh', padding: '40px 20px' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <Title level={3} style={{ color: '#215F46', marginBottom: 24 }}>Select a Deck for Quiz</Title>
+        <Title level={3} style={{ color: '#215F46', marginBottom: 24 }}>Select a Public Deck for Quiz</Title>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>
@@ -97,7 +97,7 @@ const DeckSelectionPage: React.FC = () => {
           </div>
         ) : decks.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#ff0000', fontWeight: 700 }}>
-            You have no saved decks yet. Please create one first.
+            There are no saved public decks yet. Please create one first.
           </div>
         ) : (
           <>
