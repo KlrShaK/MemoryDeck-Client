@@ -4,7 +4,7 @@ import { ConfigProvider, theme, App as AntdApp } from "antd";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import NotificationProvider from "@/components/NotificationProvider";
 import "@/styles/globals.css";
-import "antd/dist/reset.css";          
+import "antd/dist/reset.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -66,7 +66,7 @@ export default function RootLayout({
             </AntdApp>
           </AntdRegistry>
         </ConfigProvider>
-      </body>
+      </body>z
     </html>
   );
 }

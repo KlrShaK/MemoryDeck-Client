@@ -284,7 +284,7 @@ const StatisticsPage: React.FC = () => {
                         </Card>
                         <Card style={{ backgroundColor: "#fff", color: "#111" }}>
                             <Statistic
-                                title={<span style={{ color: "#333" }}>Win Rate</span>}
+                                title={<span style={{ color: "#333" }}>Multiplayer Game Win Rate</span>}
                                 value={`${winRate}%`}
                                 valueStyle={{ color: "#111" }}
                             />

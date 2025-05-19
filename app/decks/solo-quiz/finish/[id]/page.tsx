@@ -113,6 +113,13 @@ const FinishPage: React.FC = () => {
             <Button style={{ marginTop: 24 }} onClick={() => router.push("/decks")}>
                 Back to Decks
             </Button>
+            <Button
+                type="primary"
+                style={{ marginTop: 16, marginLeft: 12 }}
+                onClick={() => router.push("/statistics")} // Change this route if your stats page is different
+            >
+                See Overall Performance
+            </Button>
         </div>
     );
 };
