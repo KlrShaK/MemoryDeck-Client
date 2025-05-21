@@ -160,8 +160,8 @@ const FinishPage: React.FC = () => {
                                             strokeColor={getStatusColor(percentage)}
                                             width={120}
                                              format={(percent) => (
-    <span style={{ color: 'black' }}>{percent}%</span>
-  )}
+                                                <span style={{ color: 'black' }}>{percent}%</span>
+                                            )}
                                         />
                                     </div>
                                     
@@ -224,6 +224,21 @@ const FinishPage: React.FC = () => {
                                 }}
                             >
                                 Back to Decks
+                            </Button>
+
+                            <Button 
+                                type="primary" 
+                                size="large"
+                                onClick={() => router.push("/statistics")}
+                                style={{
+                                    backgroundColor: TOKENS.primary,
+                                    borderColor: TOKENS.primary,
+                                    height: 48,
+                                    padding: "0 32px",
+                                    fontSize: 16
+                                }}
+                            >
+                                See Overall Performance
                             </Button>
                         </div>
                     </>

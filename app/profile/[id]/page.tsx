@@ -14,7 +14,7 @@ import {
   Row,
   Col,
   Card,
-  DatePicker, // Add DatePicker import
+  DatePicker,
 } from "antd";
 import dayjs from "dayjs";
 
@@ -31,6 +31,10 @@ const UserProfileDisplay = () => {
   const [editField, setEditField] = useState<string | null>(null);
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
   const watchedFieldValue = Form.useWatch(editField || "", form);
+  // Add state for field-specific messages
+  const [fieldMessages, setFieldMessages] = useState<{
+    [key: string]: { type: 'success' | 'error'; message: string } | null;
+  }>({});
 
   // Check validity whenever the field value changes
   useEffect(() => {
@@ -72,7 +76,8 @@ const UserProfileDisplay = () => {
     const updatedUser = {
       username: null,
       name: null,
-      birthday: null};
+      birthday: null
+    };
     try {
       // If it's the birthday field and we have a valid dayjs object
       if (field === "birthday" && value && dayjs.isDayjs(value)) {
@@ -83,10 +88,6 @@ const UserProfileDisplay = () => {
       } else if (field === "username" && value !== user.username) {
         updatedUser.username = value;
       }
-      // // For other date fields that might be using native date inputs
-      // else if (field.includes("date")) {
-      //   value = dayjs(value).format("YYYY-MM-DD");
-      // }
 
       await apiService.put(`/users/${user.id}`, updatedUser);
       const updatedData = await apiService.get<User>(`/users/${user.id}`);
@@ -101,10 +102,29 @@ const UserProfileDisplay = () => {
       };
       form.setFieldsValue(formValues);
       
+      // Show success message under the field
+      setFieldMessages(prev => ({
+        ...prev,
+        [field]: { type: 'success', message: `${field} updated successfully` }
+      }));
+      
       message.success(`${field} updated successfully`);
+      
+      // Clear the field message after 3 seconds
+      setTimeout(() => {
+        setFieldMessages(prev => ({ ...prev, [field]: null }));
+      }, 3000);
+      
       setEditField(null);
     } catch (err) {
       console.error("Update failed", err);
+      
+      // Show error message under the field
+      setFieldMessages(prev => ({
+        ...prev,
+        [field]: { type: 'error', message: `Failed to update ${field}` }
+      }));
+      
       message.error("Failed to update field.");
     }
   };
@@ -115,11 +135,19 @@ const UserProfileDisplay = () => {
       if (!values.oldPassword || !values.newPassword) {
         console.error("Please fill in both password fields");
         message.error("Please fill in both password fields");
+        setFieldMessages(prev => ({
+          ...prev,
+          password: { type: 'error', message: "Please fill in both password fields" }
+        }));
         return;
       }
       if (values.oldPassword === values.newPassword) {
         console.error("New password must be different");
         message.error("New password must be different");
+        setFieldMessages(prev => ({
+          ...prev,
+          password: { type: 'error', message: "New password must be different" }
+        }));
         return;
       }
       try {
@@ -127,11 +155,31 @@ const UserProfileDisplay = () => {
           oldPassword: values.oldPassword,
           newPassword: values.newPassword,
         });
+        
+        // Show success message under the password field
+        setFieldMessages(prev => ({
+          ...prev,
+          password: { type: 'success', message: "Password updated successfully" }
+        }));
+        
         message.success("Password updated");
         form.resetFields(["oldPassword", "newPassword"]);
+        
+        // Clear the field message after 3 seconds
+        setTimeout(() => {
+          setFieldMessages(prev => ({ ...prev, password: null }));
+        }, 3000);
+        
         setEditField(null);
       } catch (err) {
         console.error("Password update failed", err);
+        
+        // Show error message under the password field
+        setFieldMessages(prev => ({
+          ...prev,
+          password: { type: 'error', message: "Password update failed. Check if your old password is correct." }
+        }));
+        
         message.error("Password update failed");
       }
   }
@@ -158,6 +206,14 @@ const UserProfileDisplay = () => {
     const date = dayjs(dateValue);
     return date.isValid() ? date.format("DD.MM.YYYY") : "—";
   };
+
+  // Message styles
+  const messageStyle = (type: 'success' | 'error') => ({
+    color: type === 'success' ? '#2E8049' : '#ff4d4f',
+    fontSize: '12px',
+    marginTop: '4px',
+    marginBottom: '0',
+  });
 
   return (
     <div style={{ background: "#c3fad4", minHeight: "100vh", padding: 40 }}>
@@ -186,50 +242,58 @@ const UserProfileDisplay = () => {
                   {field.label}
                 </Col>
                 <Col span={12}>
-                  {field.editable && editField === field.name ? (
-                    <Form.Item name={field.name} style={{ margin: 0 }}>
-                      {field.name === "birthday" ? (
-                        <DatePicker 
-                          style={{ 
-                            width: '100%', 
-                            backgroundColor: 'white', 
-                            color: 'black', 
-                            borderRadius: 4 
-                          }}
-                          format="DD.MM.YYYY"
-                          placeholder="Select birthday"
-                          popupClassName="light-range-calendar" 
-                          disabledDate={(current) => {
-                            // Can't select dates after today or before 1900
-                            return current && (current > dayjs().endOf('day') || current < dayjs('1900-01-01'));
-                          }}
-                        />
-                      ) : (
-                        <Input
-                          type={field.name.includes("date") ? "date" : "text"}
-                          style={{
-                            backgroundColor: "white",
-                            color: "black",
-                            borderRadius: 4,
-                          }}
-                        />
-                      )}
-                    </Form.Item>
-                  ) : (
-                    <div
-                      style={{
-                        backgroundColor: "white",
-                        padding: "8px 12px",
-                        border: "1px solid #ccc",
-                        borderRadius: 6,
-                        color: "black",
-                      }}
-                    >
-                      {field.name === "creationDate" || field.name === "birthday"
-                        ? formatDate(user[field.name as keyof User])
-                        : user[field.name as keyof User] ?? "—"}
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {field.editable && editField === field.name ? (
+                      <Form.Item name={field.name} style={{ margin: 0 }}>
+                        {field.name === "birthday" ? (
+                          <DatePicker 
+                            style={{ 
+                              width: '100%', 
+                              backgroundColor: 'white', 
+                              color: 'black', 
+                              borderRadius: 4 
+                            }}
+                            format="DD.MM.YYYY"
+                            placeholder="Select birthday"
+                            popupClassName="light-range-calendar" 
+                            disabledDate={(current) => {
+                              // Can't select dates after today or before 1900
+                              return current && (current > dayjs().endOf('day') || current < dayjs('1900-01-01'));
+                            }}
+                          />
+                        ) : (
+                          <Input
+                            type={field.name.includes("date") ? "date" : "text"}
+                            style={{
+                              backgroundColor: "white",
+                              color: "black",
+                              borderRadius: 4,
+                            }}
+                          />
+                        )}
+                      </Form.Item>
+                    ) : (
+                      <div
+                        style={{
+                          backgroundColor: "white",
+                          padding: "8px 12px",
+                          border: "1px solid #ccc",
+                          borderRadius: 6,
+                          color: "black",
+                        }}
+                      >
+                        {field.name === "creationDate" || field.name === "birthday"
+                          ? formatDate(user[field.name as keyof User])
+                          : user[field.name as keyof User] ?? "—"}
+                      </div>
+                    )}
+                    {/* Field-specific message */}
+                    {fieldMessages[field.name] && (
+                      <div style={messageStyle(fieldMessages[field.name]?.type || 'error')}>
+                        {fieldMessages[field.name]?.message}
+                      </div>
+                    )}
+                  </div>
                 </Col>
                 {field.editable && (
                   <Col span={6}>
@@ -256,34 +320,42 @@ const UserProfileDisplay = () => {
                 Password
               </Col>
               <Col span={12}>
-                {editField === "password" ? (
-                  <>
-                    <Form.Item name="oldPassword" style={{ marginBottom: 8 }}>
-                      <Input.Password
-                        placeholder="Old Password"
-                        style={{ backgroundColor: "white", color: "black", borderRadius: 4 }}
-                      />
-                    </Form.Item>
-                    <Form.Item name="newPassword" style={{ margin: 0 }}>
-                      <Input.Password
-                        placeholder="New Password"
-                        style={{ backgroundColor: "white", color: "black", borderRadius: 4 }}
-                      />
-                    </Form.Item>
-                  </>
-                ) : (
-                  <div
-                    style={{
-                      backgroundColor: "white",
-                      padding: "8px 12px",
-                      border: "1px solid #ccc",
-                      borderRadius: 6,
-                      color: "#999",
-                    }}
-                  >
-                    ••••••••••
-                  </div>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {editField === "password" ? (
+                    <>
+                      <Form.Item name="oldPassword" style={{ marginBottom: 8 }}>
+                        <Input.Password
+                          placeholder="Old Password"
+                          style={{ backgroundColor: "white", color: "black", borderRadius: 4 }}
+                        />
+                      </Form.Item>
+                      <Form.Item name="newPassword" style={{ margin: 0 }}>
+                        <Input.Password
+                          placeholder="New Password"
+                          style={{ backgroundColor: "white", color: "black", borderRadius: 4 }}
+                        />
+                      </Form.Item>
+                    </>
+                  ) : (
+                    <div
+                      style={{
+                        backgroundColor: "white",
+                        padding: "8px 12px",
+                        border: "1px solid #ccc",
+                        borderRadius: 6,
+                        color: "#999",
+                      }}
+                    >
+                      ••••••••••
+                    </div>
+                  )}
+                  {/* Password-specific message */}
+                  {fieldMessages.password && (
+                    <div style={messageStyle(fieldMessages.password?.type || 'error')}>
+                      {fieldMessages.password?.message}
+                    </div>
+                  )}
+                </div>
               </Col>
               <Col span={6}>
                 {editField === "password" ? (

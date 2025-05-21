@@ -404,7 +404,7 @@ const UserInvitationPage: React.FC = () => {
             <p style={{ color: "black" }}>Send a quiz invitation to {selectedUser?.username}?</p>
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: "black" }}>
-                Time limit per question (seconds):
+                Time limit (seconds):
               </label>
               <Input
                 type="number"

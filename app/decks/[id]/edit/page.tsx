@@ -168,18 +168,32 @@ const DeckEditPage: React.FC = () => {
 
   const handleDeleteDeck = () => {
     confirm({
-      title: 'Delete this deck?',
+      title: (
+        <span style={{ color: 'black' }}>
+          Delete this deck?
+        </span>
+      ),
       icon: <ExclamationCircleOutlined />,
-      content: 'All flashcards will be removed. This action is irreversible.',
+      content: (
+        <span style={{ color: 'black' }}>
+          All flashcards will be removed. This action is irreversible.
+        </span>
+      ),
       okText: 'Delete',
       okType: 'danger',
       cancelText: 'Cancel',
-      async onOk() {
+      onOk: async () => {
         try {
+          if (!deckId) {
+            showError("Deck ID is missing.");
+            return;
+          }
+
           await apiService.delete(`/decks/${deckId}`);
           showSuccess('Deck deleted');
           router.push('/decks');
-        } catch {
+        } catch (error) {
+          console.error('Delete deck failed:', error);
           showError('Failed to delete deck');
         }
       },
