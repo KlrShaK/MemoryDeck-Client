@@ -70,6 +70,21 @@ interface ChartDataPoint {
   key: number;
 }
 
+// Define proper types for Ant Design table components
+interface TableHeaderCellProps {
+  align?: 'left' | 'center' | 'right';
+  children?: React.ReactNode;
+}
+
+interface TableRowProps {
+  'data-row-key'?: number;
+  children?: React.ReactNode;
+}
+
+interface TableCellProps {
+  children?: React.ReactNode;
+}
+
 // Helper function to determine score color
 const getScoreColor = (score: string): string => {
   const value = parseInt(score);
@@ -406,7 +421,7 @@ const StatisticsPage: React.FC = () => {
               image={Empty.PRESENTED_IMAGE_SIMPLE} 
               description={
                 <span style={{ color: COLORS.primary.dark, fontSize: "16px" }}>
-                  You haven't taken any quizzes yet
+                  You haven&apos;t taken any quizzes yet
                 </span>
               } 
             />
@@ -619,44 +634,47 @@ const StatisticsPage: React.FC = () => {
                     }}
                     components={{
                       header: {
-                        cell: (props: any) => (
+                        cell: (props: TableHeaderCellProps) => (
                           <th
-                            {...props}
                             style={{
                               background: COLORS.primary.lighter,
                               color: COLORS.primary.dark,
                               fontWeight: 600,
                               padding: '16px',
                               fontSize: '14px',
-                              textAlign: (props.align as string) || 'left',
+                              textAlign: props.align || 'left',
                               borderBottom: 'none'
                             }}
-                          />
+                          >
+                            {props.children}
+                          </th>
                         ),
                       },
                       body: {
-                        row: (props: any) => {
+                        row: (props: TableRowProps) => {
                           const index = props['data-row-key'] as number;
                           return (
                             <tr
-                              {...props}
                               style={{
                                 background: index % 2 === 0 
                                   ? COLORS.neutral.white
                                   : COLORS.primary.lightest
                               }}
-                            />
+                            >
+                              {props.children}
+                            </tr>
                           );
                         },
-                        cell: (props: any) => (
+                        cell: (props: TableCellProps) => (
                           <td
-                            {...props}
                             style={{
                               padding: '16px',
                               borderBottom: `1px solid ${COLORS.neutral.lightGray}`,
                               fontSize: '14px'
                             }}
-                          />
+                          >
+                            {props.children}
+                          </td>
                         ),
                       },
                     }}

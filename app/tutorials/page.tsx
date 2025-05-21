@@ -252,7 +252,7 @@ const TutorialsPage: React.FC = () => {
         <Card style={{ marginTop: 32, borderRadius: TOKENS.radius, boxShadow: TOKENS.shadow, backgroundColor: TOKENS.cardBg, textAlign: "center", padding: "20px" }}>
           <Title level={4} style={{ color: "#215F46" }}>Need more help?</Title>
           <Paragraph style={{ color: "#333", fontSize: 16 }}>
-            If you can't find the answer to your question or need additional assistance, please contact our support team.
+            If you can&apos;t find the answer to your question or need additional assistance, please contact our support team.
           </Paragraph>
           <Button type="primary" size="large" style={{ backgroundColor: TOKENS.primary, borderColor: TOKENS.primary, color: "white", fontWeight: "bold" }}>
             Contact Support
