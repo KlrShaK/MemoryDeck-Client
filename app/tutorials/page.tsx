@@ -1,126 +1,266 @@
 "use client";
 
-import React from "react";
-import { Typography, Card, Collapse, Button } from "antd";
+import React, { useState } from "react";
+import { Typography, Card, Collapse, Button, Tabs, Row, Col, Divider, Space, Avatar } from "antd";
 import { useRouter } from "next/navigation";
+import { 
+  QuestionCircleOutlined, 
+  PlayCircleOutlined, 
+  BookOutlined, 
+  HomeOutlined,
+  PlusOutlined,
+  ShareAltOutlined,
+  RightCircleOutlined,
+  GlobalOutlined,
+  RobotOutlined,
+  EditOutlined,
+  BarChartOutlined,
+  TeamOutlined,
+  LogoutOutlined
+} from "@ant-design/icons";
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 const { Panel } = Collapse;
+const { TabPane } = Tabs;
+
+const TOKENS = {
+  primary: '#2E8049',
+  pageBg: '#aef5c4',
+  contentBg: '#d4ffdd',
+  cardBg: '#ffffff',
+  radius: 20,
+  shadow: '0 8px 16px rgba(0,0,0,0.12)',
+};
+
+const customTabsStyle = `
+  .custom-tabs .ant-tabs-tab {
+    background-color: white !important;
+    border-radius: 8px 8px 0 0;
+    margin-right: 4px;
+    padding: 10px 16px;
+    transition: background-color 0.3s ease;
+  }
+
+  .custom-tabs .ant-tabs-tab:hover {
+    background-color: #f0f0f0 !important;
+  }
+
+  .custom-tabs .ant-tabs-tab.ant-tabs-tab-active {
+    background-color: #2E8049 !important; /* active tab bg (green) */
+  }
+
+  .custom-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+    color: white !important; /* active tab text color */
+  }
+
+  .custom-tabs .ant-tabs-tab-btn {
+    color: #215F46;
+    font-weight: bold;
+  }
+`;
+
 
 const TutorialsPage: React.FC = () => {
-    const router = useRouter();
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("1");
 
-    return (
-        <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
-            <Title level={2} style={{ textAlign: "center" }}>
-                Tutorials & FAQ
-            </Title>
+  const faqs = [
+    {
+      key: "1",
+      icon: <PlusOutlined />,
+      question: "How do I create a new deck?",
+      answer: "To create a new deck, click on the \"Create\" button in the sidebar. You'll be prompted to enter a deck title, category, and optionally a description. From there, you can start adding flashcards manually or use the AI tool to auto-generate them based on a topic."
+    },
+    {
+      key: "2",
+      icon: <ShareAltOutlined />,
+      question: "Can I share decks with others?",
+      answer: "Yes! When creating a deck, you can mark it as public. Public decks are visible to other users who can view and use them for their own learning or quizzing purposes."
+    },
+    {
+      key: "3",
+      icon: <RightCircleOutlined />,
+      question: "Why does a question remain after I select an incorrect answer?",
+      answer: "The question stays on screen until you answer it correctly or the quiz time ends. This approach is inspired by neuroscience research on reinforcement learning: repeated exposure to questions you answered incorrectly helps reinforce memory and promotes deeper learning."
+    },
+    {
+      key: "4",
+      icon: <GlobalOutlined />,
+      question: "Which decks can I use for multiplayer quiz mode?",
+      answer: "Only public decks can be used in the multiplayer quiz mode. This ensures all players have equal access to the same content and maintains a fair competitive environment."
+    },
+    {
+      key: "5",
+      icon: <RobotOutlined />,
+      question: "What is 'Generate with AI'?",
+      answer: "This feature allows you to automatically generate flashcards by entering a topic or prompt. The AI uses that input to create relevant questions and answers, which you can then edit, rearrange, or remove before saving."
+    },
+    {
+      key: "6",
+      icon: <EditOutlined />,
+      question: "Can I edit or delete a deck after creating it?",
+      answer: "Absolutely. From the main page, click on a deck to open it, then use the edit or delete options available on the deck toolbar. You can change the title, category, or flashcards at any time."
+    },
+    {
+      key: "7",
+      icon: <BarChartOutlined />,
+      question: "Is there a way to track my progress?",
+      answer: "Yes. Click the \"Performance\" button on the main page to access detailed statistics about your quiz results over time. You can view progress graphs, filter by time ranges, and analyze your strengths and weaknesses."
+    },
+    {
+      key: "8",
+      icon: <TeamOutlined />,
+      question: "How do multiplayer quizzes work?",
+      answer: "In the multiplayer mode, you can invite other online users to compete with you in a quiz. Once accepted, both players are shown the same flashcards with a countdown timer. You can see your opponent's progress and scores in real-time."
+    },
+    {
+      key: "9",
+      icon: <LogoutOutlined />,
+      question: "What happens if I forget to log out?",
+      answer: "If you are inactive for a while, your status may automatically switch to offline. However, you can always manually log out from the profile menu. Logging out ensures your session is secure, especially on shared devices."
+    }
+  ];
 
-            <Card style={{ marginBottom: "2rem" }}>
-                <iframe
-                    width="100%"
-                    height="400"
-                    src="https://www.youtube.com/embed/Ph5_9-ZSOek?si=uXfC8YZUYSy9KTtd"
-                    title="Tutorial Video"
-                    frameBorder="0"
-                    allowFullScreen
-                ></iframe>
-            </Card>
+  const tutorials = [
+    {
+      title: "Complete Memory Deck Tutorial",
+      videoId: "KX5oOoW3HPo",
+      description: "Learn everything you need to know about Memory Deck: creating decks, adding flashcards, using AI generation, multiplayer quizzes, and more!"
+    }
+  ];
 
-            <Title level={4}>❓ Frequently Asked Questions</Title>
-            <Collapse
-                accordion
-                style={{ backgroundColor: "#fff" }}
-            >
-                <Panel key="1"
-                       header={<span style={{ color: "#000" }}>How do I create a new deck?</span>}
-                       style={{ backgroundColor: "#fff" }}>
-                    <Paragraph>
-                        To create a new deck, click on the “Create” button in the sidebar. You&apos;ll be prompted to enter a deck title, category, and optionally a description. From there, you can start adding flashcards manually or use the AI tool to auto-generate them based on a topic.
-                    </Paragraph>
-                </Panel>
+  const quickTips = [
+    { title: "Keyboard Shortcuts", content: "Press spacebar to flip a flashcard, or use arrow keys to navigate between cards." },
+    { title: "Best Practices", content: "Regular short study sessions are more effective than long cramming sessions. Try reviewing your flashcards 10-15 minutes daily." },
+    { title: "Creating Effective Flashcards", content: "Keep questions clear and concise. One fact per card is ideal for better memory retention." },
+    { title: "Using Categories", content: "Organize your decks by category to make them easier to find and study related topics together." },
+  ];
 
+  return (
+    <div style={{ background: TOKENS.pageBg, minHeight: "100vh", padding: "40px 20px", fontFamily: "'Poppins', sans-serif" }}>
+      <style>{customTabsStyle}</style>
 
-                <Panel key="2"
-                       header={<span style={{ color: "#000" }}>Can I share decks with others?</span>}
-                       style={{ backgroundColor: "#fff" }}>
-                    <Paragraph>
-                        Yes! When creating a deck, you can mark it as public. Public decks are visible to other users who can view and use them for their own learning or quizzing purposes.
-                    </Paragraph>
-                </Panel>
-
-
-                <Panel key="3"
-                       header={<span style={{ color: "#000" }}>Why does a question remain after I select an incorrect answer?</span>}
-                       style={{ backgroundColor: "#fff" }}>
-                    <Paragraph>
-                        The question stays on screen until you answer it correctly or the quiz time ends. This approach is inspired by neuroscience research on <b>reinforcement learning</b>: repeated exposure to questions you answered incorrectly helps reinforce memory and promotes deeper learning. By persisting until you get it right, your brain receives a stronger learning signal, leading to better long-term retention.
-                    </Paragraph>
-                </Panel>
-
-                <Panel key="4"
-                       header={<span style={{ color: "#000" }}>Which decks can I use for multiplayer quiz mode?</span>}
-                       style={{ backgroundColor: "#fff" }}>
-
-                    <Paragraph>
-                        Only <b>public decks</b> can be used in the multiplayer quiz mode. This ensures all players have equal access to the same content and maintains a fair competitive environment.
-                    </Paragraph>
-                </Panel>
-
-
-                <Panel key="5"
-                       header={<span style={{ color: "#000" }}>What is &apos;Generate with AI&apos;?</span>}
-                       style={{ backgroundColor: "#fff" }}>
-
-                    <Paragraph>
-                        This feature allows you to automatically generate flashcards by entering a topic or prompt. The AI uses that input to create relevant questions and answers, which you can then edit, rearrange, or remove before saving.
-                    </Paragraph>
-                </Panel>
-
-                <Panel key="6"
-                       header={<span style={{ color: "#000" }}>Can I edit or delete a deck after creating it</span>}
-                       style={{ backgroundColor: "#fff" }}>
-
-                    <Paragraph>
-                        Absolutely. From the main page, click on a deck to open it, then use the edit or delete options available on the deck toolbar. You can change the title, category, or flashcards at any time.
-                    </Paragraph>
-                </Panel>
-
-                <Panel key="7"
-                       header={<span style={{ color: "#000" }}>Is there a way to track my progress?</span>}
-                       style={{ backgroundColor: "#fff" }}>
-
-                    <Paragraph>
-                        Yes. Click the “Performance” button on the main page to access detailed statistics about your quiz results over time. You can view progress graphs, filter by time ranges, and analyze your strengths and weaknesses.
-                    </Paragraph>
-                </Panel>
-
-                <Panel key="8"
-                       header={<span style={{ color: "#000" }}>How do multiplayer quizzes work?</span>}
-                       style={{ backgroundColor: "#fff" }}>
-
-                    <Paragraph>
-                        In the multiplayer mode, you can invite other online users to compete with you in a quiz. Once accepted, both players are shown the same flashcards with a countdown timer. You can see your opponent&apos;s progress and scores in real-time.
-                    </Paragraph>
-                </Panel>
-
-                <Panel key="9"
-                       header={<span style={{ color: "#000" }}>What happens if I forget to log out?</span>}
-                       style={{ backgroundColor: "#fff" }}>
-                    <Paragraph>
-                        If you are inactive for a while, your status may automatically switch to offline. However, you can always manually log out from the profile menu. Logging out ensures your session is secure, especially on shared devices.
-                    </Paragraph>
-                </Panel>
-            </Collapse>
-
-
-            <div style={{ marginTop: "2rem", textAlign: "center" }}>
-                <Button type="primary" onClick={() => router.push("/decks")}>
-                    Back to Decks
-                </Button>
-            </div>
+      <div style={{ maxWidth: 1200, margin: "0 auto", background: TOKENS.contentBg, borderRadius: TOKENS.radius, padding: "40px 30px 60px", boxShadow: TOKENS.shadow }}>
+        <div style={{ marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <Title level={2} style={{ color: "#215F46", margin: 0 }}>Tutorials & FAQ</Title>
+            <Text type="secondary">Learn how to use Memory Deck effectively</Text>
+          </div>
+          <Button 
+            icon={<HomeOutlined />} 
+            onClick={() => router.push("/decks")}
+            style={{ backgroundColor: "#fff", borderColor: TOKENS.primary, color: TOKENS.primary }}
+          >
+            Back to Decks
+          </Button>
         </div>
-    );
+
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={setActiveTab}
+          type="card"
+          size="large"
+          className="custom-tabs"
+          tabBarStyle={{ backgroundColor: "transparent", borderRadius: "8px 8px 0 0", padding: "8px 8px 0" }}
+        >
+          <TabPane tab={<span style={{ color: activeTab === "1" ? "#fff" : "#215F46", fontWeight: "bold" }}><PlayCircleOutlined /> Video Tutorial</span>} key="1">
+            <Row justify="center">
+              <Col xs={24} lg={20} xl={18}>
+                <Card
+                    style={{
+                      borderRadius: TOKENS.radius,
+                      overflow: "hidden",
+                      boxShadow: TOKENS.shadow,
+                      backgroundColor: TOKENS.cardBg,
+                      marginBottom: 24
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        paddingTop: "56.25%", 
+                        borderRadius: TOKENS.radius,
+                        overflow: "hidden"
+                      }}
+                    >
+                      <iframe
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          border: "none"
+                        }}
+                        src={`https://www.youtube.com/embed/${tutorials[0].videoId}`}
+                        title={tutorials[0].title}
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+
+                    <div style={{ padding: "24px" }}>
+                      <Title level={4} style={{ color: "#215F46", marginTop: 0 }}>
+                        {tutorials[0].title}
+                      </Title>
+                      <Paragraph style={{ fontSize: 16, color: "#333" }}>
+                        {tutorials[0].description}
+                      </Paragraph>
+                    </div>
+                  </Card>
+
+              </Col>
+            </Row>
+          </TabPane>
+
+          <TabPane tab={<span style={{ color: activeTab === "2" ? "#fff" : "#215F46", fontWeight: "bold" }}><QuestionCircleOutlined /> Frequently Asked Questions</span>} key="2">
+            <Card style={{ borderRadius: TOKENS.radius, boxShadow: TOKENS.shadow, backgroundColor: TOKENS.cardBg }}>
+              <Collapse accordion bordered={false} expandIconPosition="end" style={{ backgroundColor: "#fff" }}>
+                {faqs.map((faq) => (
+                  <Panel
+                    key={faq.key}
+                    header={
+                      <Space>
+                        <Avatar icon={faq.icon} style={{ backgroundColor: TOKENS.primary, color: 'white' }} />
+                        <Text strong style={{ color: '#215F46', fontSize: 16 }}>{faq.question}</Text>
+                      </Space>
+                    }
+                    style={{ marginBottom: 16, borderRadius: TOKENS.radius, overflow: 'hidden', backgroundColor: "#fff", border: "1px solid #eee" }}
+                  >
+                    <Paragraph style={{ color: '#333', paddingLeft: 40 }}>{faq.answer}</Paragraph>
+                  </Panel>
+                ))}
+              </Collapse>
+            </Card>
+          </TabPane>
+
+          <TabPane tab={<span style={{ color: activeTab === "3" ? "#fff" : "#215F46", fontWeight: "bold" }}><BookOutlined /> Quick Tips</span>} key="3">
+            <Row gutter={[24, 24]}>
+              {quickTips.map((tip, index) => (
+                <Col xs={24} md={12} key={index}>
+                  <Card style={{ height: "100%", borderRadius: TOKENS.radius, boxShadow: TOKENS.shadow, backgroundColor: TOKENS.cardBg }}>
+                    <Title level={4} style={{ color: TOKENS.primary, marginTop: 0 }}>{tip.title}</Title>
+                    <Divider style={{ margin: "12px 0" }} />
+                    <Paragraph style={{ fontSize: 16, color: "#333" }}>{tip.content}</Paragraph>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </TabPane>
+        </Tabs>
+
+        <Card style={{ marginTop: 32, borderRadius: TOKENS.radius, boxShadow: TOKENS.shadow, backgroundColor: TOKENS.cardBg, textAlign: "center", padding: "20px" }}>
+          <Title level={4} style={{ color: "#215F46" }}>Need more help?</Title>
+          <Paragraph style={{ color: "#333", fontSize: 16 }}>
+            If you can&apos;t find the answer to your question or need additional assistance, please contact our support team.
+          </Paragraph>
+          <Button type="primary" size="large" style={{ backgroundColor: TOKENS.primary, borderColor: TOKENS.primary, color: "white", fontWeight: "bold" }}>
+            Contact Support
+          </Button>
+        </Card>
+      </div>
+    </div>
+  );
 };
 
 export default TutorialsPage;
