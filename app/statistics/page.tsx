@@ -105,11 +105,7 @@ const StatisticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("chart");
 
   useEffect(() => {
-    if (!userId) {
-      message.warning("Please log in to see your statistics.");
-      router.push("/login");
-      return;
-    }
+    if (!userId) return;
 
     const fetchStatistics = async () => {
       try {
