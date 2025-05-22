@@ -12,7 +12,6 @@ import {
   Form,
   Input,
   message,
-  Modal,
   Popconfirm,
   Row,
   Select,
@@ -25,7 +24,6 @@ import {
 import {
   DeleteOutlined,
   EditOutlined,
-  ExclamationCircleOutlined,
   LeftOutlined,
   MinusCircleOutlined,
   PlusOutlined,
@@ -46,7 +44,6 @@ import { getApiDomain } from '@/utils/domain';
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
-const { confirm } = Modal;
 
 /* ----------  design tokens ---------- */
 const TOKENS = {
@@ -166,38 +163,21 @@ const DeckEditPage: React.FC = () => {
     }
   };
 
-  const handleDeleteDeck = () => {
-    confirm({
-      title: (
-        <span style={{ color: 'black' }}>
-          Delete this deck?
-        </span>
-      ),
-      icon: <ExclamationCircleOutlined />,
-      content: (
-        <span style={{ color: 'black' }}>
-          All flashcards will be removed. This action is irreversible.
-        </span>
-      ),
-      okText: 'Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          if (!deckId) {
-            showError("Deck ID is missing.");
-            return;
-          }
+  const handleDeleteDeck = async () => {
 
-          await apiService.delete(`/decks/${deckId}`);
-          showSuccess('Deck deleted');
-          router.push('/decks');
-        } catch (error) {
-          console.error('Delete deck failed:', error);
-          showError('Failed to delete deck');
-        }
-      },
-    });
+    try {
+      if (!deckId) {
+        showError("Deck ID is missing.");
+        return;
+      }
+
+      await apiService.delete(`/decks/${deckId}`);
+      showSuccess('Deck deleted');
+      router.push('/decks');
+    } catch (error) {
+      console.error('Delete deck failed:', error);
+      showError('Failed to delete deck');
+    }
   };
 
   /* ----------  flashcard handlers ---------- */
@@ -394,7 +374,7 @@ const DeckEditPage: React.FC = () => {
               placement="left"
               title="Delete deck?"
               description="All flashcards will be removed"
-              onConfirm={handleDeleteDeck}
+              onConfirm={() => handleDeleteDeck()}
               okType="danger"
             >
               <Button danger icon={<DeleteOutlined />}>
