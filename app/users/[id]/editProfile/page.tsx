@@ -8,6 +8,11 @@ import { Spin, Input, Button, Form, message, Typography } from "antd";
 
 const { Title, Text } = Typography;
 
+type PasswordFormValues = {
+  oldPassword: string;
+  newPassword: string;
+};
+
 const EditUserProfilePage = () => {
   const { id } = useParams();
   const router = useRouter();
@@ -37,7 +42,7 @@ const EditUserProfilePage = () => {
     fetchUser();
   }, [id, apiService, form]);
 
-  const handleUpdate = async (values: any) => {
+  const handleUpdate = async (values: PasswordFormValues): Promise<void> => {
     if (!id || !user) return;
   
     // Reset status states
@@ -77,7 +82,7 @@ const EditUserProfilePage = () => {
       // Set success message
       setPasswordUpdated(true);
       setUpdateFailed(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Update failed:", error);
       message.error("Failed to update password");
       setPasswordUpdated(false);

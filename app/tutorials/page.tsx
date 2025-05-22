@@ -18,7 +18,6 @@ import {
   TeamOutlined,
   LogoutOutlined,
   MailOutlined,
-  PhoneOutlined,
   MessageOutlined
 } from "@ant-design/icons";
 
@@ -72,7 +71,7 @@ const TutorialsPage: React.FC = () => {
       key: "1",
       icon: <PlusOutlined />,
       question: "How do I create a new deck?",
-      answer: "To create a new deck, click on the \"Create\" button in the sidebar. You'll be prompted to enter a deck title, category, and optionally a description. From there, you can start adding flashcards manually or use the AI tool to auto-generate them based on a topic."
+      answer: "To create a new deck, click on the \"Create\" button in the sidebar. You&apos;ll be prompted to enter a deck title, category, and optionally a description. From there, you can start adding flashcards manually or use the AI tool to auto-generate them based on a topic."
     },
     {
       key: "2",
@@ -95,7 +94,7 @@ const TutorialsPage: React.FC = () => {
     {
       key: "5",
       icon: <RobotOutlined />,
-      question: "What is 'Generate with AI'?",
+      question: "What is &apos;Generate with AI&apos;?",
       answer: "This feature allows you to automatically generate flashcards by entering a topic or prompt. The AI uses that input to create relevant questions and answers, which you can then edit, rearrange, or remove before saving."
     },
     {
@@ -114,7 +113,7 @@ const TutorialsPage: React.FC = () => {
       key: "8",
       icon: <TeamOutlined />,
       question: "How do multiplayer quizzes work?",
-      answer: "In the multiplayer mode, you can invite other online users to compete with you in a quiz. Once accepted, both players are shown the same flashcards with a countdown timer. You can see your opponent's progress and scores in real-time."
+      answer: "In the multiplayer mode, you can invite other online users to compete with you in a quiz. Once accepted, both players are shown the same flashcards with a countdown timer. You can see your opponen&apos;ts progress and scores in real-time."
     },
     {
       key: "9",
@@ -326,7 +325,7 @@ const TutorialsPage: React.FC = () => {
 
             <div>
               <Text style={{ color: "#666", fontSize: 14 }}>
-                Please include details about your issue, browser information, and any error messages you've encountered.
+                Please include details about your issue, browser information, and any error messages you&apos;ve encountered.
               </Text>
             </div>
           </Space>
