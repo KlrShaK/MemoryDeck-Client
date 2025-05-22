@@ -110,17 +110,17 @@ const StatisticsPage: React.FC = () => {
     const fetchStatistics = async () => {
       try {
         // Clean userId by removing quotes if they exist
-        const cleanUserId = userId.replace(/^"|"$/g, '');
-        const numericUserId = Number(cleanUserId);
+        // const cleanUserId = userId.replace(/^"|"$/g, '');
+        // const numericUserId = Number(cleanUserId);
         
-        if (isNaN(numericUserId)) {
-          message.error("Invalid user ID. Please log in again.");
-          router.push("/login");
-          return;
-        }
+        // if (isNaN(numericUserId)) {
+        //   message.error("Invalid user ID. Please log in again.");
+        //   router.push("/login");
+        //   return;
+        // }
 
         // Fetch statistics from the API
-        const statistics = await apiService.get<QuizResult[]>(`/statistics/${numericUserId}`);
+        const statistics = await apiService.get<QuizResult[]>(`/statistics/${userId}`);
         
         setData(statistics);
         setFiltered(statistics);
