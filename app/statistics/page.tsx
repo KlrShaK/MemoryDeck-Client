@@ -8,7 +8,6 @@ import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useApi } from "@/hooks/useApi";
-import useLocalStorage from "@/hooks/useLocalStorage";
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -97,7 +96,7 @@ const getScoreColor = (score: string): string => {
 const StatisticsPage: React.FC = () => {
   const router = useRouter();
   const apiService = useApi();
-  const { value: userId } = useLocalStorage<string>("userId", "");
+  const [userId, setUserId] = useState<string | null>(null)
 
   const [data, setData] = useState<QuizResult[]>([]);
   const [filtered, setFiltered] = useState<QuizResult[]>([]);
@@ -105,19 +104,18 @@ const StatisticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("chart");
 
   useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      setUserId(storedUserId);
+      // }
+    }
+  }, []);
+
+  useEffect(() => {
     if (!userId) return;
 
     const fetchStatistics = async () => {
       try {
-        // Clean userId by removing quotes if they exist
-        // const cleanUserId = userId.replace(/^"|"$/g, '');
-        // const numericUserId = Number(cleanUserId);
-        
-        // if (isNaN(numericUserId)) {
-        //   message.error("Invalid user ID. Please log in again.");
-        //   router.push("/login");
-        //   return;
-        // }
 
         // Fetch statistics from the API
         const statistics = await apiService.get<QuizResult[]>(`/statistics/${userId}`);
