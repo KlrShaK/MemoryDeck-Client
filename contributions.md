@@ -161,9 +161,9 @@ reason).
 ## Contributions Week 9 - [19.05.2025] to [23.05.2025]
 | **Student**        | **Date** | **Link to Commit** | **Description**                 | **Relevance**                       |
 | ------------------ | -------- | ------------------ | ------------------------------- | ----------------------------------- |
-| **[@githubUser1]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
-|                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
-| **[@githubUser2]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
+| **[@nikkiluder]** | [22.05.2025]   | [https://github.com/KlrShaK/MemoryDeck-Client/commit/0da21af7575e3dcc27694de3b9cb2e983ce921da] | [Updated Statistics page UI] | [Updated to be more in line with the design of all of the other pages] |
+|                    | [22.05.2025]   | [https://github.com/KlrShaK/MemoryDeck-Client/commit/aa2c4d79304e8996d1b862a1ecf2dfb852c281cf] | [Uüdated Overview, select deck and quiz UI] | [Updated to be more pleasing on the eye and prettier to look at and easier to view buttons] |
+| **[@nikkiluder]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
 | **[@githubUser3]** | [date]   | [Link to Commit 1] | [Brief description of the task] | [Why this contribution is relevant] |
 |                    | [date]   | [Link to Commit 2] | [Brief description of the task] | [Why this contribution is relevant] |
