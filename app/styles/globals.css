@@ -9,6 +9,9 @@
   --primary-lighter: #DAFCE7;   /*  = COLORS.primary.lighter  */
   --primary-lightest: #F2FFF7;  /*  = COLORS.primary.lightest */
   --primary-dark: #146638;      /*  = COLORS.primary.dark     */
+  --primary-lighter: #DAFCE7;   /*  = COLORS.primary.lighter  */
+  --primary-lightest: #F2FFF7;  /*  = COLORS.primary.lightest */
+  --primary-dark: #146638;      /*  = COLORS.primary.dark     */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -314,6 +317,32 @@ h3 {
   color: #111 !important;
 }
 
+
+.statistics-table .ant-table-thead > tr > th {
+  background-color: var(--primary-lighter) !important;
+  color: var(--primary-dark) !important;
+  font-weight: 600;
+}
+
+.statistics-table .ant-table-tbody > tr:nth-child(odd) {
+  background-color: #fff; 
+}
+
+.statistics-table .ant-table-tbody > tr:nth-child(even) {
+  background-color: var(--primary-lightest);
+}
+
+
+.statistics-table .ant-table-tbody > tr:hover > td,
+.statistics-table .ant-table-row:hover > td {
+  background-color: var(--primary-lighter) !important;
+}
+
+
+.statistics-table .ant-table {
+  border-radius: 12px;
+  overflow: hidden;
+}
 
 .statistics-table .ant-table-thead > tr > th {
   background-color: var(--primary-lighter) !important;
