@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Typography, Card, Collapse, Button, Tabs, Row, Col, Divider, Space, Avatar } from "antd";
+import { Typography, Card, Collapse, Button, Tabs, Row, Col, Divider, Space, Avatar, Modal } from "antd";
 import { useRouter } from "next/navigation";
 import { 
   QuestionCircleOutlined, 
@@ -16,7 +16,9 @@ import {
   EditOutlined,
   BarChartOutlined,
   TeamOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  MailOutlined,
+  MessageOutlined
 } from "@ant-design/icons";
 
 const { Title, Paragraph, Text } = Typography;
@@ -46,11 +48,11 @@ const customTabsStyle = `
   }
 
   .custom-tabs .ant-tabs-tab.ant-tabs-tab-active {
-    background-color: #2E8049 !important; /* active tab bg (green) */
+    background-color: #2E8049 !important;
   }
 
   .custom-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-    color: white !important; /* active tab text color */
+    color: white !important;
   }
 
   .custom-tabs .ant-tabs-tab-btn {
@@ -59,17 +61,17 @@ const customTabsStyle = `
   }
 `;
 
-
 const TutorialsPage: React.FC = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("1");
+  const [supportModalVisible, setSupportModalVisible] = useState(false);
 
   const faqs = [
     {
       key: "1",
       icon: <PlusOutlined />,
       question: "How do I create a new deck?",
-      answer: "To create a new deck, click on the \"Create\" button in the sidebar. You'll be prompted to enter a deck title, category, and optionally a description. From there, you can start adding flashcards manually or use the AI tool to auto-generate them based on a topic."
+      answer: "To create a new deck, click on the \"Create\" button in the sidebar. You&apos;ll be prompted to enter a deck title, category, and optionally a description. From there, you can start adding flashcards manually or use the AI tool to auto-generate them based on a topic."
     },
     {
       key: "2",
@@ -92,7 +94,7 @@ const TutorialsPage: React.FC = () => {
     {
       key: "5",
       icon: <RobotOutlined />,
-      question: "What is 'Generate with AI'?",
+      question: "What is &apos;Generate with AI&apos;?",
       answer: "This feature allows you to automatically generate flashcards by entering a topic or prompt. The AI uses that input to create relevant questions and answers, which you can then edit, rearrange, or remove before saving."
     },
     {
@@ -111,7 +113,7 @@ const TutorialsPage: React.FC = () => {
       key: "8",
       icon: <TeamOutlined />,
       question: "How do multiplayer quizzes work?",
-      answer: "In the multiplayer mode, you can invite other online users to compete with you in a quiz. Once accepted, both players are shown the same flashcards with a countdown timer. You can see your opponent's progress and scores in real-time."
+      answer: "In the multiplayer mode, you can invite other online users to compete with you in a quiz. Once accepted, both players are shown the same flashcards with a countdown timer. You can see your opponen&apos;ts progress and scores in real-time."
     },
     {
       key: "9",
@@ -135,6 +137,10 @@ const TutorialsPage: React.FC = () => {
     { title: "Creating Effective Flashcards", content: "Keep questions clear and concise. One fact per card is ideal for better memory retention." },
     { title: "Using Categories", content: "Organize your decks by category to make them easier to find and study related topics together." },
   ];
+
+  const handleEmailClick = () => {
+    window.location.href = "mailto:support@memorydeck.com?subject=Memory Deck Support Request";
+  };
 
   return (
     <div style={{ background: TOKENS.pageBg, minHeight: "100vh", padding: "40px 20px", fontFamily: "'Poppins', sans-serif" }}>
@@ -254,11 +260,77 @@ const TutorialsPage: React.FC = () => {
           <Paragraph style={{ color: "#333", fontSize: 16 }}>
             If you can&apos;t find the answer to your question or need additional assistance, please contact our support team.
           </Paragraph>
-          <Button type="primary" size="large" style={{ backgroundColor: TOKENS.primary, borderColor: TOKENS.primary, color: "white", fontWeight: "bold" }}>
+          <Button 
+            type="primary" 
+            size="large" 
+            style={{ backgroundColor: TOKENS.primary, borderColor: TOKENS.primary, color: "white", fontWeight: "bold" }}
+            onClick={() => setSupportModalVisible(true)}
+          >
             Contact Support
           </Button>
         </Card>
       </div>
+
+      {/* Support Modal */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <MessageOutlined style={{ color: TOKENS.primary }} />
+            <span style={{ color: "#215F46" }}>Contact Support</span>
+          </div>
+        }
+        open={supportModalVisible}
+        onCancel={() => setSupportModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setSupportModalVisible(false)}>
+            Close
+          </Button>,
+          <Button 
+            key="email" 
+            type="primary" 
+            icon={<MailOutlined />}
+            style={{ backgroundColor: TOKENS.primary, borderColor: TOKENS.primary }}
+            onClick={handleEmailClick}
+          >
+            Send Email
+          </Button>
+        ]}
+        width={500}
+      >
+        <div style={{ padding: "20px 0" }}>
+          <Space direction="vertical" size={20} style={{ width: "100%" }}>
+            <div>
+              <Title level={5} style={{ color: "#215F46", margin: 0 }}>Get Help</Title>
+              <Paragraph style={{ marginTop: 8, color: "#666" }}>
+                Our support team is here to help you with any questions or issues you might have.
+              </Paragraph>
+            </div>
+
+            <Divider style={{ margin: 0 }} />
+
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <MailOutlined style={{ color: TOKENS.primary, fontSize: 18 }} />
+              <div>
+                <Text strong style={{ color: "#215F46" }}>Email Support</Text>
+                <br />
+                <Text copyable style={{ color: "#666" }}>support@memorydeck.com</Text>
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: "#f8f9fa", padding: 16, borderRadius: 8, border: "1px solid #e9ecef" }}>
+              <Text style={{ color: "#666", fontSize: 14 }}>
+                <strong>Response Time:</strong> We typically respond within 24 hours during business days.
+              </Text>
+            </div>
+
+            <div>
+              <Text style={{ color: "#666", fontSize: 14 }}>
+                Please include details about your issue, browser information, and any error messages you&apos;ve encountered.
+              </Text>
+            </div>
+          </Space>
+        </div>
+      </Modal>
     </div>
   );
 };
