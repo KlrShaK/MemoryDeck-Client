@@ -6,6 +6,9 @@
   --primary-lighter: #DAFCE7;   /*  = COLORS.primary.lighter  */
   --primary-lightest: #F2FFF7;  /*  = COLORS.primary.lightest */
   --primary-dark: #146638;      /*  = COLORS.primary.dark     */
+  --primary-lighter: #DAFCE7;   /*  = COLORS.primary.lighter  */
+  --primary-lightest: #F2FFF7;  /*  = COLORS.primary.lightest */
+  --primary-dark: #146638;      /*  = COLORS.primary.dark     */
 }
 
 @media (prefers-color-scheme: dark) {
