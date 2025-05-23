@@ -244,14 +244,20 @@ const UserProfileDisplay = () => {
         style={{
           marginBottom: 16,
           borderRadius: 16,
-          border: isEditing ? `2px solid ${TOKENS.primary}` : '1px solid #e8e8e8',
-          boxShadow: isEditing ? '0 4px 12px rgba(46,128,73,0.15)' : '0 2px 8px rgba(0,0,0,0.06)',
+          // Fixed: Use consistent border with subtle color change instead of thickness change
+          border: isEditing ? `1px solid ${TOKENS.primary}` : '1px solid #e8e8e8',
+          // Enhanced shadow for editing state instead of border change
+          boxShadow: isEditing 
+            ? `0 4px 16px rgba(46,128,73,0.15), 0 0 0 1px ${TOKENS.primary}40` 
+            : '0 2px 8px rgba(0,0,0,0.06)',
           transition: 'all 0.3s ease',
-          backgroundColor: '#ffffff'
+          backgroundColor: '#ffffff',
+          // Subtle background change when editing
+          background: isEditing ? '#fafffe' : '#ffffff'
         }}
         bodyStyle={{ 
           padding: '20px 24px',
-          backgroundColor: '#ffffff'
+          backgroundColor: 'transparent'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -260,17 +266,23 @@ const UserProfileDisplay = () => {
               width: 40,
               height: 40,
               borderRadius: '50%',
-              backgroundColor: TOKENS.primary + '15',
+              backgroundColor: isEditing ? TOKENS.primary + '25' : TOKENS.primary + '15',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginRight: 16
+              marginRight: 16,
+              transition: 'background-color 0.3s ease'
             }}>
               {icon}
             </div>
             
             <div style={{ flex: 1 }}>
-              <Text strong style={{ color: '#333333', fontSize: 14, display: 'block' }}>
+              <Text strong style={{ 
+                color: isEditing ? TOKENS.primary : '#333333', 
+                fontSize: 14, 
+                display: 'block',
+                transition: 'color 0.3s ease' 
+              }}>
                 {label}
               </Text>
               
