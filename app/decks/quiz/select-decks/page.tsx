@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Row, Col, Spin, message, Button, Typography } from 'antd';
-import { ArrowLeftOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Spin, message, Button, Typography, Alert } from 'antd';
+import { ArrowLeftOutlined, CheckCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { useApi } from '@/hooks/useApi';
 import { Deck } from '@/types/deck';
 import { Flashcard } from '@/types/flashcard';
@@ -70,11 +70,28 @@ const DeckSelectionPage: React.FC = () => {
   }, [userId, apiService, router]);
 
   const handleDeckSelect = (deckId: string) => {
+    const selectedDeck = decks.find(deck => deck.id === deckId);
+    
+    // Check if deck has flashcards before allowing selection
+    if (!selectedDeck?.flashcards || selectedDeck.flashcards.length === 0) {
+      message.warning('This deck is empty. Please select a deck with flashcards for multiplayer quiz.');
+      return;
+    }
+    
     setSelectedDeckId(deckId);
   };
 
   const handleContinue = () => {
     if (!selectedDeckId) return message.warning('Please select a deck first');
+    
+    // Double-check that selected deck has flashcards
+    const selectedDeck = decks.find(deck => deck.id === selectedDeckId);
+    if (!selectedDeck?.flashcards || selectedDeck.flashcards.length === 0) {
+      message.error('Cannot start multiplayer quiz: Selected deck has no flashcards.');
+      setSelectedDeckId(null); // Deselect the deck
+      return;
+    }
+    
     localStorage.setItem('selected_quiz_deck_id', selectedDeckId);
     router.push('/decks/quiz/overview');
   };
@@ -82,6 +99,10 @@ const DeckSelectionPage: React.FC = () => {
   const handleCancel = () => {
     router.push('/decks');
   };
+
+  // Filter decks to show which ones have flashcards
+  const decksWithCards = decks.filter(deck => deck.flashcards && deck.flashcards.length > 0);
+  const emptyDecks = decks.filter(deck => !deck.flashcards || deck.flashcards.length === 0);
 
   return (
     <div 
@@ -142,7 +163,7 @@ const DeckSelectionPage: React.FC = () => {
               marginBottom: 40 
             }}
           >
-            Choose from our collection of public flashcard decks to start your quiz
+            Choose from our collection of public flashcard decks to start your multiplayer quiz
           </Text>
 
           {loading ? (
@@ -189,10 +210,78 @@ const DeckSelectionPage: React.FC = () => {
                 </Button>
               </div>
             </Card>
+          ) : decksWithCards.length === 0 ? (
+            <Card
+              style={{
+                textAlign: 'center',
+                padding: '60px 40px',
+                borderRadius: TOKENS.radius,
+                boxShadow: TOKENS.shadow,
+                background: TOKENS.cardBg,
+                maxWidth: 600,
+                margin: '0 auto'
+              }}
+            >
+              <WarningOutlined style={{ fontSize: 48, color: '#fa8c16', marginBottom: 16 }} />
+              <Title level={4} style={{ color: '#fa8c16', marginBottom: 16 }}>
+                No Quiz-Ready Public Decks
+              </Title>
+              <Text style={{ fontSize: 16, color: '#666', marginBottom: 16 }}>
+                All available public decks are empty. Multiplayer quizzes require decks with flashcards.
+              </Text>
+              <Alert
+                message="Note"
+                description="Only public decks with flashcards can be used for multiplayer quizzes. Check back later when more content becomes available, or create and share your own public deck!"
+                type="info"
+                showIcon
+                style={{ marginBottom: 24, textAlign: 'left' }}
+              />
+              <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                <Button 
+                  onClick={() => router.push('/decks')}
+                  style={{
+                    height: '48px',
+                    padding: '0 32px',
+                    borderRadius: '24px',
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  Back to My Decks
+                </Button>
+                <Button 
+                  type="primary" 
+                  onClick={() => router.push('/decks/create')}
+                  style={{
+                    backgroundColor: TOKENS.primary,
+                    borderColor: TOKENS.primary,
+                    height: '48px',
+                    padding: '0 32px',
+                    borderRadius: '24px',
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  Create Public Deck
+                </Button>
+              </div>
+            </Card>
           ) : (
             <>
+              {/* Show warning if there are empty public decks */}
+              {emptyDecks.length > 0 && (
+                <Alert
+                  message={<span style={{ color: '#000' }}>"Some public decks are empty"</span>}
+                  description={ <span style={{ color: '#000' }}>{`${emptyDecks.length} public deck${emptyDecks.length > 1 ? 's have' : ' has'} no flashcards and cannot be used for multiplayer quizzes. Only decks with flashcards are shown below.`}</span>}
+                  type="warning"
+                  showIcon
+                  closable
+                  style={{ marginBottom: 24 }}
+                />
+              )}
+
               <Row gutter={[24, 24]}>
-                {decks.map((deck) => (
+                {decksWithCards.map((deck) => (
                   <Col xs={24} sm={12} md={8} lg={6} key={deck.id}>
                     <Card
                       hoverable
@@ -284,7 +373,7 @@ const DeckSelectionPage: React.FC = () => {
                             justifyContent: 'space-between'
                           }}
                         >
-                          <span>
+                          <span style={{ color: '#52c41a', fontWeight: 600 }}>
                             📚 {deck.flashcards?.length || 0} cards
                           </span>
                           <span style={{ color: '#52c41a', fontWeight: 600 }}>

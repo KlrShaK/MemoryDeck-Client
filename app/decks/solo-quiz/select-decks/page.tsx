@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Row, Col, Spin, Button, Typography, Modal, Input, App } from 'antd';
-import { ArrowLeftOutlined, CheckCircleOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Spin, Button, Typography, Modal, Input, App, Alert } from 'antd';
+import { ArrowLeftOutlined, CheckCircleOutlined, PlayCircleOutlined, WarningOutlined } from '@ant-design/icons';
 import { useApi } from '@/hooks/useApi';
 import { Deck } from '@/types/deck';
 import { Flashcard } from '@/types/flashcard';
@@ -80,6 +80,14 @@ const DeckSelectionPage: React.FC = () => {
   }, [userId, apiService, router, antMessage]);
 
   const handleDeckSelect = (deckId: string) => {
+    const selectedDeck = decks.find(deck => deck.id === deckId);
+    
+    // Check if deck has flashcards before allowing selection
+    if (!selectedDeck?.flashcards || selectedDeck.flashcards.length === 0) {
+      antMessage.warning('This deck is empty. Please add flashcards before starting a quiz.');
+      return;
+    }
+    
     setSelectedDeckId(deckId);
   };
 
@@ -88,10 +96,16 @@ const DeckSelectionPage: React.FC = () => {
     
     try {
       const selectedDeck = await apiService.get<Deck>(`/decks/${selectedDeckId}`);
-      if (selectedDeck.flashcards && selectedDeck.flashcards?.length > 0) {
-        setDeckSize(selectedDeck.flashcards.length);
-        setNumberOfQuestions(Math.min(numberOfQuestions, selectedDeck.flashcards.length));
+      
+      // Double-check that deck has flashcards
+      if (!selectedDeck.flashcards || selectedDeck.flashcards.length === 0) {
+        antMessage.error('Cannot start quiz: This deck has no flashcards. Please add some flashcards first.');
+        setSelectedDeckId(null); // Deselect the deck
+        return;
       }
+      
+      setDeckSize(selectedDeck.flashcards.length);
+      setNumberOfQuestions(Math.min(numberOfQuestions, selectedDeck.flashcards.length));
       setQuizModalVisible(true);
     } catch {
       antMessage.error('Failed to load deck details.');
@@ -105,6 +119,20 @@ const DeckSelectionPage: React.FC = () => {
     }
     if (!userId) {
       antMessage.error('Invalid user information');
+      return;
+    }
+
+    // Final validation before starting quiz
+    const selectedDeck = decks.find(deck => deck.id === selectedDeckId);
+    if (!selectedDeck?.flashcards || selectedDeck.flashcards.length === 0) {
+      antMessage.error('Cannot start quiz: Selected deck has no flashcards.');
+      setQuizModalVisible(false);
+      setSelectedDeckId(null);
+      return;
+    }
+
+    if (numberOfQuestions > selectedDeck.flashcards.length) {
+      antMessage.error('Number of questions cannot exceed the number of flashcards in the deck.');
       return;
     }
 
@@ -129,6 +157,10 @@ const DeckSelectionPage: React.FC = () => {
   const handleCancel = () => {
     router.push('/decks');
   };
+
+  // Filter decks to show which ones have flashcards
+  const decksWithCards = decks.filter(deck => deck.flashcards && deck.flashcards.length > 0);
+  const emptyDecks = decks.filter(deck => !deck.flashcards || deck.flashcards.length === 0);
 
   return (
     <div 
@@ -235,10 +267,86 @@ const DeckSelectionPage: React.FC = () => {
                 </Button>
               </div>
             </Card>
+          ) : decksWithCards.length === 0 ? (
+            <Card
+              style={{
+                textAlign: 'center',
+                padding: '60px 40px',
+                borderRadius: TOKENS.radius,
+                boxShadow: TOKENS.shadow,
+                background: TOKENS.cardBg,
+                maxWidth: 600,
+                margin: '0 auto'
+              }}
+            >
+              <WarningOutlined style={{ fontSize: 48, color: '#fa8c16', marginBottom: 16 }} />
+              <Title level={4} style={{ color: '#fa8c16', marginBottom: 16 }}>
+                No Quiz-Ready Decks
+              </Title>
+              <Text style={{ fontSize: 16, color: '#666', marginBottom: 16 }}>
+                All your decks are empty. You need to add flashcards to your decks before starting a quiz.
+              </Text>
+              <Alert
+                message="Tip"
+                description="Each deck needs at least one flashcard to be used for quizzes. Go to your deck editor and add some flashcards!"
+                type="info"
+                showIcon
+                style={{ marginBottom: 24, textAlign: 'left' }}
+              />
+              <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+                <Button 
+                  onClick={() => router.push('/decks')}
+                  style={{
+                    height: '48px',
+                    padding: '0 32px',
+                    borderRadius: '24px',
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  Go to My Decks
+                </Button>
+                <Button 
+                  type="primary" 
+                  onClick={() => router.push('/decks/create')}
+                  style={{
+                    backgroundColor: TOKENS.primary,
+                    borderColor: TOKENS.primary,
+                    height: '48px',
+                    padding: '0 32px',
+                    borderRadius: '24px',
+                    fontSize: '16px',
+                    fontWeight: 600
+                  }}
+                >
+                  Create New Deck
+                </Button>
+              </div>
+            </Card>
           ) : (
             <>
+              {/* Show warning if there are empty decks */}
+              {emptyDecks.length > 0 && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  closable
+                  style={{ marginBottom: 24 }}  
+                  message={
+                    <span style={{ color: '#000' }}>
+                      Some decks are empty
+                    </span>
+                  }
+                  description={
+                    <span style={{ color: '#000' }}>
+                      {`${emptyDecks.length} of your decks have no flashcards and cannot be used for quizzes. Only decks with flashcards are shown below.`}
+                    </span>
+                  }
+                />
+              )}
+
               <Row gutter={[24, 24]}>
-                {decks.map((deck) => (
+                {decksWithCards.map((deck) => (
                   <Col xs={24} sm={12} md={8} lg={6} key={deck.id}>
                     <Card
                       hoverable
@@ -330,7 +438,7 @@ const DeckSelectionPage: React.FC = () => {
                             justifyContent: 'space-between'
                           }}
                         >
-                          <span>
+                          <span style={{ color: '#52c41a', fontWeight: 600 }}>
                             📚 {deck.flashcards?.length || 0} cards
                           </span>
                           <span style={{ color: deck.isPublic ? '#52c41a' : '#1890ff', fontWeight: 600 }}>
@@ -476,7 +584,7 @@ const DeckSelectionPage: React.FC = () => {
                     <Input
                       type="number"
                       value={numberOfQuestions}
-                      onChange={e => setNumberOfQuestions(Number(e.target.value))}
+                      onChange={e => setNumberOfQuestions(Math.min(Number(e.target.value), deckSize))}
                       min={1}
                       max={deckSize}
                       size="large"
@@ -505,8 +613,8 @@ const DeckSelectionPage: React.FC = () => {
                     marginTop: 16
                   }}>
                     <Text style={{ color: '#666', fontSize: 14 }}>
-                      <strong>Quiz Summary:</strong> You&apos;ll answer {numberOfQuestions} question {numberOfQuestions !== 1 ? 's' : ''} 
-                      within {timeLimit} seconds. Total estimated time per question: {Math.ceil(timeLimit / numberOfQuestions )} seconds.
+                      <strong>Quiz Summary:</strong> You&apos;ll answer {numberOfQuestions} question{numberOfQuestions !== 1 ? 's' : ''} 
+                      within {timeLimit} seconds. Total estimated time per question: {Math.ceil(timeLimit / numberOfQuestions)} seconds.
                     </Text>
                   </div>
                 </div>
