@@ -220,7 +220,8 @@ const FinishPage: React.FC = () => {
                                     borderColor: TOKENS.primary,
                                     height: 48,
                                     padding: "0 32px",
-                                    fontSize: 16
+                                    fontSize: 16,
+                                    margin: "0px 30px"
                                 }}
                             >
                                 Back to Decks

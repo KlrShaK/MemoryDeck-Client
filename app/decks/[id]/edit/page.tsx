@@ -372,8 +372,12 @@ const DeckEditPage: React.FC = () => {
           {!isEditingDeckDetails && (
             <Popconfirm
               placement="left"
-              title="Delete deck?"
-              description="All flashcards will be removed"
+              title={<span style={{ color: '#000' }}>Delete deck?</span>}
+              description={
+    <span style={{ color: '#000' }}>
+      All flashcards will be removed
+    </span>
+  }
               onConfirm={() => handleDeleteDeck()}
               okType="danger"
             >
