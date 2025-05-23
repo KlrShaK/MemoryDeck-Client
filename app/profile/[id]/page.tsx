@@ -53,21 +53,9 @@ const UserProfileDisplay = () => {
   const [loading, setLoading] = useState(true);
   const [form] = Form.useForm();
   const [editField, setEditField] = useState<string | null>(null);
-  const [isSaveDisabled, setIsSaveDisabled] = useState(true);
-  const watchedFieldValue = Form.useWatch(editField || "", form);
   const [fieldMessages, setFieldMessages] = useState<{
     [key: string]: { type: 'success' | 'error'; message: string } | null;
   }>({});
-
-  // Check validity whenever the field value changes
-  useEffect(() => {
-    if (editField) {
-      const errors = form.getFieldError(editField);
-      const isTouched = form.isFieldTouched(editField);
-      const hasErrors = errors.length > 0;
-      setIsSaveDisabled(!isTouched || hasErrors);
-    }
-  }, [editField, form, watchedFieldValue]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -102,6 +90,7 @@ const UserProfileDisplay = () => {
     };
     
     try {
+      // If it's the birthday field and we have a valid dayjs object
       if (field === "birthday" && value && dayjs.isDayjs(value)) {
         value = value.format("YYYY-MM-DD");
         updatedUser.birthday = value;
@@ -114,14 +103,17 @@ const UserProfileDisplay = () => {
       await apiService.put(`/users/${user.id}`, updatedUser);
       const updatedData = await apiService.get<User>(`/users/${user.id}`);
       
+      // Update the user state with the raw API response
       setUser(updatedData);
       
+      // For the form, convert dates to dayjs objects
       const formValues = {
         ...updatedData,
         birthday: updatedData.birthday ? dayjs(updatedData.birthday) : null
       };
       form.setFieldsValue(formValues);
       
+      // Show success message under the field
       setFieldMessages(prev => ({
         ...prev,
         [field]: { type: 'success', message: `${field} updated successfully` }
@@ -129,6 +121,7 @@ const UserProfileDisplay = () => {
       
       message.success(`${field} updated successfully`);
       
+      // Clear the field message after 3 seconds
       setTimeout(() => {
         setFieldMessages(prev => ({ ...prev, [field]: null }));
       }, 3000);
@@ -137,6 +130,7 @@ const UserProfileDisplay = () => {
     } catch (err) {
       console.error("Update failed", err);
       
+      // Show error message under the field
       setFieldMessages(prev => ({
         ...prev,
         [field]: { type: 'error', message: `Failed to update ${field}` }
@@ -150,27 +144,30 @@ const UserProfileDisplay = () => {
     const values = form.getFieldsValue(["oldPassword", "newPassword"]);
 
     if (!values.oldPassword || !values.newPassword) {
+      console.error("Please fill in both password fields");
+      message.error("Please fill in both password fields");
       setFieldMessages(prev => ({
         ...prev,
         password: { type: 'error', message: "Please fill in both password fields" }
       }));
       return;
     }
-    
     if (values.oldPassword === values.newPassword) {
+      console.error("New password must be different");
+      message.error("New password must be different");
       setFieldMessages(prev => ({
         ...prev,
         password: { type: 'error', message: "New password must be different" }
       }));
       return;
     }
-    
     try {
       await apiService.put(`/users/${user?.id}/password`, {
         oldPassword: values.oldPassword,
         newPassword: values.newPassword,
       });
       
+      // Show success message under the password field
       setFieldMessages(prev => ({
         ...prev,
         password: { type: 'success', message: "Password updated successfully" }
@@ -179,6 +176,7 @@ const UserProfileDisplay = () => {
       message.success("Password updated");
       form.resetFields(["oldPassword", "newPassword"]);
       
+      // Clear the field message after 3 seconds
       setTimeout(() => {
         setFieldMessages(prev => ({ ...prev, password: null }));
       }, 3000);
@@ -187,6 +185,7 @@ const UserProfileDisplay = () => {
     } catch (err) {
       console.error("Password update failed", err);
       
+      // Show error message under the password field
       setFieldMessages(prev => ({
         ...prev,
         password: { type: 'error', message: "Password update failed. Check if your old password is correct." }
@@ -371,7 +370,15 @@ const UserProfileDisplay = () => {
               {isEditing ? (
                 <Space>
                   <Button 
-                    onClick={() => setEditField(null)}
+                    onClick={() => {
+                      setEditField(null);
+                      // Reset form field to original value when canceling
+                      const formValues = {
+                        ...user,
+                        birthday: user.birthday ? dayjs(user.birthday) : null
+                      };
+                      form.setFieldsValue(formValues);
+                    }}
                     style={{ borderRadius: 8 }}
                   >
                     Cancel
@@ -380,7 +387,6 @@ const UserProfileDisplay = () => {
                     type="primary"
                     icon={<SaveOutlined />}
                     onClick={() => isPassword ? handlePasswordSave() : handleSave(field as string)}
-                    disabled={isPassword ? false : isSaveDisabled}
                     style={{ 
                       background: TOKENS.primary, 
                       borderColor: TOKENS.primary,
