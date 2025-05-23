@@ -358,7 +358,8 @@ const UserProfileDisplay = () => {
                     marginTop: 8,
                     fontSize: 12,
                     padding: '4px 8px',
-                    borderRadius: 6
+                    borderRadius: 6,
+                    color: '#000000'
                   }}
                 />
               )}
