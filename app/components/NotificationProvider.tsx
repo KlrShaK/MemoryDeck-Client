@@ -34,14 +34,14 @@ const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // if (!userId || userId.trim() === "" || userId === "1") return;
       if (!userId || userId.trim() === "") return;
 
-      try {
-        const user = await apiService.get<User>(`/users/${userId}`);
-        // .catch(() => {null});
-        if (!user) return;
-        if (user?.status ==="OFFLINE" || user?.status === "PLAYING") return;
-      } catch {
-        return;
-      }
+      // try {
+      //   const user = await apiService.get<User>(`/users/${userId}`);
+      //   // .catch(() => {null});
+      //   if (!user) return;
+      //   if (user?.status ==="OFFLINE" || user?.status === "PLAYING") return;
+      // } catch {
+      //   return;
+      // }
       try {
         const invitations = await apiService.get<Invitation[]>(`/quiz/invitation/receivers?toUserId=${Number(userId)}`);
         
