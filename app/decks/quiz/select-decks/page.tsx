@@ -271,8 +271,8 @@ const DeckSelectionPage: React.FC = () => {
               {/* Show warning if there are empty public decks */}
               {emptyDecks.length > 0 && (
                 <Alert
-                  message="Some public decks are empty"
-                  description={`${emptyDecks.length} public deck${emptyDecks.length > 1 ? 's have' : ' has'} no flashcards and cannot be used for multiplayer quizzes. Only decks with flashcards are shown below.`}
+                  message={<span style={{ color: '#000' }}>Some public decks are empty</span>}
+                  description={<span style={{ color: '#000' }}>{`${emptyDecks.length} public deck${emptyDecks.length > 1 ? 's have' : ' has'} no flashcards and cannot be used for multiplayer quizzes. Only decks with flashcards are shown below.`}</span>}
                   type="warning"
                   showIcon
                   closable

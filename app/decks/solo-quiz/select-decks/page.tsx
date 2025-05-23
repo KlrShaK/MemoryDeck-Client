@@ -287,8 +287,8 @@ const DeckSelectionPage: React.FC = () => {
                 All your decks are empty. You need to add flashcards to your decks before starting a quiz.
               </Text>
               <Alert
-                message="Tip"
-                description="Each deck needs at least one flashcard to be used for quizzes. Go to your deck editor and add some flashcards!"
+                message={<span style={{ color: '#000' }}>Tip</span>}
+                description={<span style={{ color: '#000' }}>Each deck needs at least one flashcard to be used for quizzes. Go to your deck editor and add some flashcards!</span>}
                 type="info"
                 showIcon
                 style={{ marginBottom: 24, textAlign: 'left' }}
