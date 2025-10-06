@@ -4,6 +4,11 @@
 
 Memory Deck aims to help elderly individuals and those with memory loss retain valuable information through interactive flashcards. This is the frontend of Memory Deck — a useful tool designed to help users (especially the elderly or those with memory challenges) retain information through interactive decks of flashcards. The app emphasizes simplicity and clarity, enhancing its usability for its target audience.
 <br><br>
+
+**Server Repo**: https://github.com/KlrShaK/MemoryDeck-Server
+
+**Deployment Link**: https://sopra-fs25-group-40-client.vercel.app/
+
 ## Technologies Used
 
 - Next.js (React framework)
